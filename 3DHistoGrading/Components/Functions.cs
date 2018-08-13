@@ -12,7 +12,7 @@ using Kitware.VTK;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
-namespace VTKGUI.Components
+namespace HistoGrading.Components
 {
     class Functions
     {

@@ -11,9 +11,9 @@ using System.Windows.Forms;
 
 using Kitware.VTK;
 
-using VTKGUI.Components;
+using HistoGrading.Components;
 
-namespace VTKGUI
+namespace HistoGrading
 {
     public partial class MainForm : Form
     {

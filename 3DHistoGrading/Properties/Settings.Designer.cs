@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace VTKGUI.Properties
+namespace HistoGrading.Properties
 {
 
 

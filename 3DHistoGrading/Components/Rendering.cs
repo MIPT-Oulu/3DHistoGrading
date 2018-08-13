@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using Kitware.VTK;
 
-namespace VTKGUI.Components
+namespace HistoGrading.Components
 {
     class Rendering
     {
