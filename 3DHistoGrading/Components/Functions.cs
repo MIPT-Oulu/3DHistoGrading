@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using Kitware.VTK;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
@@ -18,7 +17,7 @@ namespace HistoGrading.Components
     {
         //Loader
         public static vtkImageData VTKLoader(string path, string extension)
-        {
+        {   
             /*DEPRECATED!!*/
             //Output
             vtkImageData data = vtkImageData.New();
