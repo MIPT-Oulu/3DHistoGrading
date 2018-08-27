@@ -54,13 +54,32 @@ namespace CNTKUNet.Models
         //Load weights from array
         private static Parameter weight_fromFloat(Parameter weight, float[] array, int[] view)
         {
-            //Create copies of the weight array W
+            //Generate weight array with correct dimensions
             NDArrayView nDArray = new NDArrayView(view, array, DeviceDescriptor.CPUDevice);
             weight.SetValue(nDArray);
             return weight;
         }
 
-        //Convolution block
+        //Generate weight array with correct dimensions from given input kernel
+        private static float[] from_kernel(float[] kernel, int dim)
+        {
+            //Total length of new weight array
+            int K = dim * dim * kernel.Length;
+            //Empty array for output
+            float[] outarray = new float[K];
+            //Loop over output array
+            for (int k = 0; k < K; k += kernel.Length * dim + kernel.Length)
+            {
+                //Loop over input array
+                for (int kk = 0; kk < kernel.Length; kk++)
+                {
+                    outarray[k + kk] = kernel[kk];
+                }
+            }
+            //Return the array
+            return outarray;
+        }
+            //Convolution block
         private static Function ConvBlock(Variable input_var,int[] kernel_size, int in_channels, int out_channels, float[] W = null, string wpath = null, string layer_name=null)
         {
             if(W != null & wpath != null)
@@ -78,7 +97,10 @@ namespace CNTKUNet.Models
             //Generate convolution function
             Function conv = CNTKLib.ReLU(
                 CNTKLib.Convolution(
-                weight, input_var, new int[] { 1, 1, in_channels}));
+                /*kernel and input*/ weight, input_var,
+                /*strides*/ new int[] { 1, 1, in_channels},
+                /*sharing*/ new CNTK.BoolVector { true },
+                /*padding*/ new CNTK.BoolVector { true }));
 
             return conv;
         }
@@ -90,37 +112,45 @@ namespace CNTKUNet.Models
             return output;
         }
 
-        //Bilinear upsampling *WEIGHTS ARE INITIALIZED INCORRECTLY, DOESN'T WORK*
+        //Bilinear upsampling
         private static Function UpSampling(Variable input_var, int n_channels)
         {
             //Weight parameters for transposed convolution and smoothing
             float[] Wt = new float[2] { (float)1.0, (float)1.0 };
             int[] ksy = new int[2] { 2, 1 };
             int[] ksx = new int[2] { 1, 2 };
-            float[] Ws = new float[9] { 1 / (4 * 4), 1 / (4 * 2), 1 / (4 * 4),
-                                        1 / (4 * 2), 1 / (4 * 1), 1 / (4 * 2),
-                                        1 / (4 * 4), 1 / (4 * 2), 1 / (4 * 4)};
+            float[] Ws = new float[9] { (float)1 / (4 * 4), (float)1 / (4 * 2), (float)1 / (4 * 4),
+                                        (float)1 / (4 * 2), (float)1 / (4 * 1), (float)1 / (4 * 2),
+                                        (float)1 / (4 * 4), (float)1 / (4 * 2), (float)1 / (4 * 4)};
             int[] kss = new int[2] { 3, 3 };
             //Initialize weights
-            Parameter wtransposedy = make_weight(ksy, n_channels, n_channels, Wt);
-            Parameter wtransposedx = make_weight(ksx, n_channels, n_channels, Wt);
-            Parameter wsmoothing = make_weight(kss, n_channels, n_channels, Ws);
-            
-            //Convolutions
+            Parameter wtransposedy = make_weight(ksy, n_channels, n_channels, from_kernel(Wt,n_channels));
+            Parameter wtransposedx = make_weight(ksx, n_channels, n_channels, from_kernel(Wt,n_channels));
+            Parameter wsmoothing = make_weight(kss, n_channels, n_channels, from_kernel(Ws,n_channels));
+
+            //Transposed convolutions
             Function tconvy = CNTKLib.ConvolutionTranspose(
-                wtransposedy, input_var, new int[2] {2,1});
-
+                /*kernel and input*/ wtransposedy, input_var,
+                /*strides*/ new int[] { 2, 1, n_channels },
+                /*sharing*/ new CNTK.BoolVector { true },
+                /*padding*/ new CNTK.BoolVector { false });
             Function tconvx = CNTKLib.ConvolutionTranspose(
-                wtransposedx, tconvy, new int[2] { 1, 2 });
-
+                /*kernel and input*/ wtransposedx, tconvy,
+                /*strides*/ new int[] { 1, 2, n_channels },
+                /*sharing*/ new CNTK.BoolVector { true },
+                /*padding*/ new CNTK.BoolVector { false });
+            //Smoothing
             Function smooth = CNTKLib.Convolution(
-                wsmoothing, tconvx);
-
+                /*kernel and input*/ wsmoothing, tconvx,
+                /*strides*/ new int[] { 1, 1 },
+                /*sharing*/new bool[] { true },
+                /*padding*/ new bool[] { true });
+            
             return smooth;
 
         }
 
-        //Concatenation *NOT TESTED*
+        //Concatenation
         private static Function cat(Variable feature1, Variable feature2)
         {
             //Add input feature maps to variablevector
@@ -128,8 +158,8 @@ namespace CNTKUNet.Models
             vec.Add(feature1);
             vec.Add(feature2);
 
-            //Concatenate along 1st axis
-            CNTK.Axis  ax = new CNTK.Axis(0);
+            //Concatenate along last axis
+            Axis ax = new Axis(2);
 
             return CNTKLib.Splice(vec, ax);
         }
@@ -168,7 +198,7 @@ namespace CNTKUNet.Models
             pooled = pooling.Output;
         }
 
-        //Decoder *NOT TESTED*
+        //Decoder
         private static void decoder(Variable feature, Variable feature_big, int[] ks, int in_channels, int out_channels,
             out Function up, string wpath = null, string[] names = null)
         {
@@ -185,7 +215,7 @@ namespace CNTKUNet.Models
                 name2 = null;
             }
             //Concatenation and upsampling
-            var upsampled = UpSampling(feature, in_channels);
+            var upsampled = UpSampling(feature, in_channels/2);
             var catted = cat(upsampled.Output, feature_big);
             //Convolutions
             var block1 = ConvBlock(catted, ks, in_channels, out_channels, null, wpath, name1);
@@ -252,73 +282,58 @@ namespace CNTKUNet.Models
         {
             //Parameters
             int[] ks = new int[2] { 3, 3 };
-            Console.WriteLine("Layer 1");
-            //Encoding path *CONSOLE OUTPUT IS FOR DEBUGGING, RUNS WITHOUT ERRORS*
+
+            //Encoding path
+
             Function down1;
             Function pooled1;
             encoder(feature, ks, 1, BW, out down1, out pooled1);
             CNTK.NDShape shape1 = pooled1.Output.Shape;
-            Console.WriteLine(shape1[0]);
-            Console.WriteLine(shape1[1]);
-            Console.WriteLine(shape1[2]);
 
-            Console.WriteLine("Layer 2");
             Function down2;
             Function pooled2;
             encoder(pooled1.Output, ks, BW, 2 * BW, out down2, out pooled2);
-            CNTK.NDShape shape2 = pooled2.Output.Shape;
-            Console.WriteLine(shape2[0]);
-            Console.WriteLine(shape2[1]);
-            Console.WriteLine(shape2[2]);
 
-            Console.WriteLine("Layer 3");
             Function down3;
             Function pooled3;
             encoder(pooled2.Output, ks, 2 * BW, 4 * BW, out down3, out pooled3);
-            CNTK.NDShape shape3 = pooled3.Output.Shape;
-            Console.WriteLine(shape3[0]);
-            Console.WriteLine(shape3[1]);
-            Console.WriteLine(shape3[2]);
 
-            Console.WriteLine("Layer 4");
             Function down4;
             Function pooled4;
             encoder(pooled3.Output, ks, 4 * BW, 8 * BW, out down4, out pooled4);
-            CNTK.NDShape shape4 = pooled4.Output.Shape;
-            Console.WriteLine(shape4[0]);
-            Console.WriteLine(shape4[1]);
-            Console.WriteLine(shape4[2]);
 
-            Console.WriteLine("Layer 5");
             Function down5;
             Function pooled5;
             encoder(pooled4.Output, ks, 8 * BW, 16 * BW, out down5, out pooled5);
-            CNTK.NDShape shape5 = pooled5.Output.Shape;
-            Console.WriteLine(shape5[0]);
-            Console.WriteLine(shape5[1]);
-            Console.WriteLine(shape5[2]);
-
             
-            Console.WriteLine("6");
             Function down6;
             Function pooled6;
             encoder(pooled5.Output, ks, 16 * BW, 32 * BW, out down6, out pooled6);
-            
-            model = pooled6;
 
             //Center block
             Function center1;
             center(pooled6.Output, ks, 32 * BW, 32 * BW, out center1);
 
-            //Decoding path *UPSAMPLING FAILS*
+            //Decoding path
             Function up6;
-            decoder(center1, down6, ks, 64 * BW, 32 * BW, out up6);
-            CNTK.NDShape shapeu6 = up6.Output.Shape;
-            Console.WriteLine(shapeu6[0]);
-            Console.WriteLine(shapeu6[1]);
-            Console.WriteLine(shapeu6[2]);
+            decoder(center1, down6, ks, 64 * BW, 16 * BW, out up6);
 
-            model = up6;
+            Function up5;
+            decoder(up6, down5, ks, 32 * BW, 8 * BW, out up5);
+
+            Function up4;
+            decoder(up5, down4, ks, 16 * BW, 4 * BW, out up4);
+
+            Function up3;
+            decoder(up4, down3, ks, 8 * BW, 2 * BW, out up3);
+
+            Function up2;
+            decoder(up3, down2, ks, 4 * BW, 1 * BW, out up2);
+
+            Function up1;
+            decoder(up2, down1, ks, 2 * BW, 1 * BW, out up1);
+
+            model = up1;
             
 
             Console.WriteLine("Done");
@@ -326,7 +341,7 @@ namespace CNTKUNet.Models
         }
 
         //Inference *NOT TESTED*
-        public void Inference(float[] data)
+        public void Inference(float[] data, int[] dims)
         {
             //Generate batch from input data
             Value inputdata = mapBatch(data);
@@ -341,11 +356,48 @@ namespace CNTKUNet.Models
         private static Value mapBatch(float[] data)
         {
             //Map input data to value
-            Value featureVal;
-
-            featureVal = Value.CreateBatch<float>(new int[] { 256, 256, 1 }, data, DeviceDescriptor.CPUDevice);
+            Value featureVal = Value.CreateBatch<float>(bdims, data, DeviceDescriptor.CPUDevice);
 
             return featureVal;
+        }
+
+        //FOR DEBUGGING UPSAMPLING
+        public float[] bilinear_upsampling(float[] data, int[] dims)
+        {
+            //Input feature
+            Variable feature = Variable.InputVariable(dims, DataType.Float);
+            //Upsampling method
+            Function sampler = UpSampling(feature, 1);
+
+            //Feature maps for input and output
+            Value inputValue = Value.CreateBatch<float>(dims, data, DeviceDescriptor.CPUDevice);
+
+            Dictionary<Variable,Value> inputmap = new Dictionary<Variable, Value> { { feature, inputValue } };
+            Dictionary<Variable, Value> outputmap = new Dictionary<Variable, Value> { { sampler.Output, null } };
+
+            //Evaluate upsampling
+            sampler.Evaluate(inputmap,outputmap, DeviceDescriptor.CPUDevice);
+
+            //Get output to list
+            Value outval = outputmap[sampler.Output];
+
+            NDShape outshape = outval.Shape;
+
+            IList<IList<float>> outdata = outval.GetDenseData<float>(sampler.Output);
+
+            IList<float> outlist = outdata.First();
+
+            //Collect output to float array
+            float[] outarray = new float[outshape[0]*outshape[1]*outshape[2]];
+
+            int k = 0;
+            foreach (float item in outlist)
+            {
+                outarray[k] = item;
+                k++;
+            }
+
+            return outarray;
         }
 
 
