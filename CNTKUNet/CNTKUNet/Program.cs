@@ -16,28 +16,30 @@ namespace CNTKUNet
         //UNet test using simulated data *NOT TESTED WITH ANY DATA, SINCE MODEL INITIALIZATION HAS BUGS*
         static void Main()
         {
+            //Path to weights
+            string wpath = "c:\\users\\jfrondel\\Desktop\\GITS\\UNetE3.h5";
+
             //Parameters for simulated data
             int[] dims = new int[] {384,384,1};
             //Declare new model
             UNet new_unet = new UNet();
-            //Initialize
-            //new_unet.Initialize(24,dims);
+            //Initialize the model
+            new_unet.Initialize(24,dims,wpath);
 
-            int[] dims2 = new int[] { 16, 16, 1};
-            float[] data = new float[16 * 16];
-            for(int k =0; k<16*16; k++)
+            //Generate data
+            float[] data = new float[dims[0] * dims[1]];
+            for(int k =0; k<data.Length; k++)
             {
                 data[k] = (float)k;
             }
-            Console.WriteLine("Works");
 
-            //Test bilinear upsampling
-            float[] upsampled = new_unet.bilinear_upsampling(data,dims2);
-            foreach(float item in upsampled)
-            {
-                Console.WriteLine(item);
-            }
+            //Inference
+            new_unet.Inference(data);
+
+            Console.WriteLine("Inference done!");
+
             Console.ReadKey();
+            
         }
     }
 }
