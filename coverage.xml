@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CoverageSession xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Summary numSequencePoints="0" visitedSequencePoints="0" numBranchPoints="0" visitedBranchPoints="0" sequenceCoverage="0" branchCoverage="0" maxCyclomaticComplexity="0" minCyclomaticComplexity="0" visitedClasses="0" numClasses="0" visitedMethods="0" numMethods="0" />
+  <Modules>
+    <Module skippedDueTo="Filter" hash="36-D8-86-2E-D9-DF-4D-76-6E-C4-1A-AD-30-D5-94-11-A3-E7-D1-C5">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_32\mscorlib\v4.0_4.0.0.0__b77a5c561934e089\mscorlib.dll</ModulePath>
+      <ModuleTime>2018-04-20T01:34:41.3815113Z</ModuleTime>
+      <ModuleName>mscorlib</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="A8-89-72-1D-E7-7B-E5-C9-05-F3-21-A0-ED-13-F3-A3-86-16-C4-A6">
+      <ModulePath>C:\Users\sarytky\source\repos\3D-Histo-Grading\packages\xunit.runner.console.2.4.0\tools\net461\xunit.console.x86.exe</ModulePath>
+      <ModuleTime>2018-07-17T01:18:12Z</ModuleTime>
+      <ModuleName>xunit.console.x86</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="C8-16-F2-BF-5A-ED-B0-98-DC-6E-FF-FA-91-F1-E5-CD-57-4A-95-D8">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Core\v4.0_4.0.0.0__b77a5c561934e089\System.Core.dll</ModulePath>
+      <ModuleTime>2018-02-09T03:12:18.804256Z</ModuleTime>
+      <ModuleName>System.Core</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="EE-80-00-20-4C-2B-80-96-24-CA-CC-7A-89-68-41-50-82-E5-10-A5">
+      <ModulePath>C:\Users\sarytky\Source\Repos\3D-Histo-Grading\packages\xunit.runner.console.2.4.0\tools\net461\xunit.abstractions.dll</ModulePath>
+      <ModuleTime>2018-07-17T01:18:12Z</ModuleTime>
+      <ModuleName>xunit.abstractions</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="DF-FC-FA-5E-CA-20-44-38-81-BE-08-CA-92-EF-95-04-0A-CD-75-81">
+      <ModulePath>C:\Users\sarytky\Source\Repos\3D-Histo-Grading\packages\xunit.runner.console.2.4.0\tools\net461\xunit.runner.utility.net452.dll</ModulePath>
+      <ModuleTime>2018-07-17T01:18:10Z</ModuleTime>
+      <ModuleName>xunit.runner.utility.net452</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="83-F8-6D-C5-F0-9F-9A-9F-6F-7A-6D-44-B5-BE-D0-0E-89-25-CA-C7">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System\v4.0_4.0.0.0__b77a5c561934e089\System.dll</ModulePath>
+      <ModuleTime>2018-02-09T03:12:18.851137Z</ModuleTime>
+      <ModuleName>System</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="81-DE-41-E4-CF-35-79-0F-0A-D0-B6-43-FC-EB-6A-47-5F-D8-69-04">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Configuration\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.Configuration.dll</ModulePath>
+      <ModuleTime>2017-10-04T08:21:36Z</ModuleTime>
+      <ModuleName>System.Configuration</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="58-2A-4C-0C-25-69-3C-E5-E8-8F-0E-35-DB-19-D0-78-0E-D1-10-FA">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Xml\v4.0_4.0.0.0__b77a5c561934e089\System.Xml.dll</ModulePath>
+      <ModuleTime>2017-12-06T01:13:39.585533Z</ModuleTime>
+      <ModuleName>System.Xml</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="D5-3C-8C-FB-BB-FE-00-B8-A3-B9-13-C1-27-74-FD-98-3C-A3-39-92">
+      <ModulePath>C:\Users\sarytky\Source\Repos\3D-Histo-Grading\packages\xunit.runner.console.2.4.0\tools\net461\xunit.runner.reporters.net452.dll</ModulePath>
+      <ModuleTime>2018-07-17T01:18:10Z</ModuleTime>
+      <ModuleName>xunit.runner.reporters.net452</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="72-0F-DC-27-2C-A7-6C-6C-15-7F-68-81-20-4E-A8-75-A3-26-BE-82">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Net.Http\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.Net.Http.dll</ModulePath>
+      <ModuleTime>2018-02-09T03:12:18.8667628Z</ModuleTime>
+      <ModuleName>System.Net.Http</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="43-4E-64-C1-BE-30-F2-65-4E-58-92-92-75-E2-7F-96-43-4E-62-06">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_32\System.Web\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.Web.dll</ModulePath>
+      <ModuleTime>2017-12-05T01:12:42.3431523Z</ModuleTime>
+      <ModuleName>System.Web</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="6B-86-54-62-96-7F-F5-FD-4B-8B-DA-7F-04-D1-BA-43-EC-82-F2-C5">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Xml.Linq\v4.0_4.0.0.0__b77a5c561934e089\System.Xml.Linq.dll</ModulePath>
+      <ModuleTime>2017-10-04T08:21:36Z</ModuleTime>
+      <ModuleName>System.Xml.Linq</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="DF-FC-FA-5E-CA-20-44-38-81-BE-08-CA-92-EF-95-04-0A-CD-75-81">
+      <ModulePath>C:\Users\sarytky\AppData\Local\Temp\de75eae9-9610-4c86-99f6-b3f3fe50e650\de75eae9-9610-4c86-99f6-b3f3fe50e650\assembly\dl3\710e1558\00754d06_6c1dd401\xunit.runner.utility.net452.dll</ModulePath>
+      <ModuleTime>2018-08-27T14:11:23.4898579Z</ModuleTime>
+      <ModuleName>xunit.runner.utility.net452</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="C8-16-F2-BF-5A-ED-B0-98-DC-6E-FF-FA-91-F1-E5-CD-57-4A-95-D8">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Core\v4.0_4.0.0.0__b77a5c561934e089\System.Core.dll</ModulePath>
+      <ModuleTime>2018-02-09T03:12:18.804256Z</ModuleTime>
+      <ModuleName>System.Core</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="83-F8-6D-C5-F0-9F-9A-9F-6F-7A-6D-44-B5-BE-D0-0E-89-25-CA-C7">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System\v4.0_4.0.0.0__b77a5c561934e089\System.dll</ModulePath>
+      <ModuleTime>2018-02-09T03:12:18.851137Z</ModuleTime>
+      <ModuleName>System</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="">
+      <ModulePath>RefEmit_InMemoryManifestModule</ModulePath>
+      <ModuleTime>0001-01-01T00:00:00</ModuleTime>
+      <ModuleName>Anonymously Hosted DynamicMethods Assembly</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="B8-43-69-7D-C2-A5-8F-E5-D8-15-C3-DD-2D-20-18-82-A6-12-90-AB">
+      <ModulePath>C:\Users\sarytky\source\repos\3D-Histo-Grading\3DHistoGrading.UnitTests\bin\Debug\3DHistoGrading.UnitTests.dll</ModulePath>
+      <ModuleTime>2018-08-27T13:14:56.8961658Z</ModuleTime>
+      <ModuleName>3DHistoGrading.UnitTests</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="DF-FC-FA-5E-CA-20-44-38-81-BE-08-CA-92-EF-95-04-0A-CD-75-81">
+      <ModulePath>C:\Users\sarytky\Source\Repos\3D-Histo-Grading\packages\xunit.runner.console.2.4.0\tools\net461\xunit.runner.utility.net452.dll</ModulePath>
+      <ModuleTime>2018-07-17T01:18:10Z</ModuleTime>
+      <ModuleName>xunit.runner.utility.net452</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="A0-50-BB-9A-C3-B1-15-8D-56-ED-0C-B3-CF-F8-54-D6-EF-EC-5C-B1">
+      <ModulePath>C:\Users\sarytky\source\repos\3D-Histo-Grading\3DHistoGrading.UnitTests\bin\Debug\xunit.abstractions.dll</ModulePath>
+      <ModuleTime>2018-07-17T01:18:28Z</ModuleTime>
+      <ModuleName>xunit.abstractions</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="97-2F-BC-60-7A-4D-DA-60-0F-B3-BD-66-57-2D-EE-DA-CC-7A-BB-C5">
+      <ModulePath>C:\Users\sarytky\source\repos\3D-Histo-Grading\3DHistoGrading.UnitTests\bin\Debug\xunit.execution.desktop.dll</ModulePath>
+      <ModuleTime>2018-07-17T01:18:08Z</ModuleTime>
+      <ModuleName>xunit.execution.desktop</ModuleName>
+      <Classes />
+    </Module>
+    <Module skippedDueTo="Filter" hash="83-F8-6D-C5-F0-9F-9A-9F-6F-7A-6D-44-B5-BE-D0-0E-89-25-CA-C7">
+      <ModulePath>C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System\v4.0_4.0.0.0__b77a5c561934e089\System.dll</ModulePath>
+      <ModuleTime>2018-02-09T03:12:18.851137Z</ModuleTime>
+      <ModuleName>System</ModuleName>
+      <Classes />
+    </Module>
+  </Modules>
+</CoverageSession>

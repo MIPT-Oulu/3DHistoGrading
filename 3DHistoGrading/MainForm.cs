@@ -384,15 +384,15 @@ namespace HistoGrading
         // Load Grading model
         private void loadModel_Click(object sender, EventArgs e)
         {
-            sliceLabel.Text = "Loaded model";
-            Grading.LoadModel(ref model);
+            string state = Grading.LoadModel(ref model);
+            sliceLabel.Text = state;
         }
 
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
-            double grade = Grading.Predict(model, ref features);
-            sliceLabel.Text = "OA grade: " + grade.ToString("####.##");
+            string grade = Grading.Predict(model, ref features);
+            sliceLabel.Text = grade;
         }
 
         //Scroll bars
