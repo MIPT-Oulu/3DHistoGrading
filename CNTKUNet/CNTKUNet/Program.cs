@@ -13,7 +13,7 @@ namespace CNTKUNet
 {
     class Program
     {
-        //UNet test using simulated data *NOT TESTED WITH ANY DATA, SINCE MODEL INITIALIZATION HAS BUGS*
+        //UNet test using simulated data
         static void Main()
         {
             //Path to weights
@@ -30,11 +30,12 @@ namespace CNTKUNet
             float[] data = new float[dims[0] * dims[1]];
             for(int k =0; k<data.Length; k++)
             {
-                data[k] = (float)k;
+                data[k] = (float)k/(384*384);
+                //Console.WriteLine(data[k]);
             }
 
             //Inference
-            new_unet.Inference(data);
+            float[] output = new_unet.Inference(data);
 
             Console.WriteLine("Inference done!");
 
