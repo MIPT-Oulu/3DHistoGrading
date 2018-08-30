@@ -2,7 +2,7 @@
 ## About
 Software for 3D grading osteochondral tissue samples. We currently support only Windows.
 
-Current build status:
+Current build status and code coverage:
 
 [![Build status](https://ci.appveyor.com/api/projects/status/6lbb2719xekk5rrx?svg=true "Build status")](https://ci.appveyor.com/project/sarytky/3dhistograding)
 [![codecov](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/branch/grading/graph/badge.svg "Code coverage")](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading)
