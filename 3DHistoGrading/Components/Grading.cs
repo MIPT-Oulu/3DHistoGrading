@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LBPLibrary;
 using System.Windows.Forms;
+using System.Globalization;
 
 using Accord.Math;
 using Accord.Math.Decompositions;
@@ -84,8 +85,8 @@ namespace HistoGrading.Components
 
             double sum = CompareGrades(grade);
 
-            //return "OA grade (sample 1): " + grade[0].ToString("####.##");
-            return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###");
+            //return "OA grade (sample 1): " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
+            return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###", CultureInfo.InvariantCulture);
         }
 
         /// <summary>

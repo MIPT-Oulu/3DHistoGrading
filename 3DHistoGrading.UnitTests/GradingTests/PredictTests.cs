@@ -11,15 +11,15 @@ namespace _3DHistoGrading.UnitTests
     public class PredictTests
     {
         TestImage testImg = new TestImage(); // Initialize testimage function
+        
         //BinaryWriterApp lbpreader = new BinaryWriterApp(Directory.GetCurrentDirectory() + @"\Test.dat");
         //string load = @"C:\temp\test\load";
         //string save = @"C:\temp\test\save";
 
-        //public PredictTests()
-        //{
-        //    Directory.CreateDirectory(@"C:\temp\test\load");
-        //    Directory.CreateDirectory(@"C:\temp\test\save");
-        //}
+        public PredictTests()
+        {
+            
+        }
 
         [Fact]
         public void Predict_NoModel_ReturnsError()
@@ -53,7 +53,24 @@ namespace _3DHistoGrading.UnitTests
             // Predict grade
             state = Grading.Predict(model, ref features);
 
-            Assert.Equal("Sum of differences between pretrained model and actual grade: 12,484", state);
+            Assert.Equal("Sum of differences between pretrained model and actual grade: 12.484", state);
+        }
+
+        [Fact]
+        public void Predict_DefaultModelNoFeatures_EqualsReference()
+        {
+            // Change current directory
+            //Directory.SetCurrentDirectory(Directory.GetCurrentDirectory() + @"\dll");
+            // Grading variables
+            Model model = new Model();
+            int[,] features = new int[0, 0];
+            // Load model
+            string state = Grading.LoadModel(ref model);
+
+            // Predict grade
+            state = Grading.Predict(model, ref features);
+
+            Assert.Equal("Sum of differences between pretrained model and actual grade: 12.484", state);
         }
 
         [Fact]
