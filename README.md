@@ -23,7 +23,7 @@ This software is distributed under the MIT License.
 ## Citation
 ```
 @misc{Rytky2018,
-  author = {Rytky, Santeri and Tiulpin, Aleksei and Frondelius, Tuomas and Saarakkala Simo},
+  author = {Frondelius, Tuomas and Rytky, Santeri and Tiulpin, Aleksei and Saarakkala Simo},
   title = {Local Binary Pattern},
   year = {2018},
   publisher = {GitHub},
