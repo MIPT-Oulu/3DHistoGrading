@@ -10,6 +10,10 @@ using Accord.Math;
 
 namespace _3DHistoGrading.UnitTests
 {
+    /// <summary>
+    /// Class for creating test images. 
+    /// Contains also static methods for displaying arrays and vectors during tests.
+    /// </summary>
     public class TestImage
     {
         // Class properties
@@ -108,6 +112,40 @@ namespace _3DHistoGrading.UnitTests
                 }
             }
             return image;
+        }
+
+        /// <summary>
+        /// Displays 2D array on command line separated by ":".
+        /// Decimal values are shown with 2 digit accuracy.
+        /// </summary>
+        /// <typeparam name="T">Data type can be chosen by user.</typeparam>
+        /// <param name="array">Array to be displayed.</param>
+        public static void DisplayArray<T>(T[,] array)
+        {  
+            for (int k = 0; k < array.GetLength(1); k++)
+            {
+                for (int kk = 0; kk < array.GetLength(0); kk++)
+                {
+                    Console.Write("{0:####.##}:", array[kk, k].ToString());
+                }
+                Console.WriteLine("");
+            }
+            Console.WriteLine("");
+        }
+
+        /// <summary>
+        /// Displays 1D vector on command line separated by ":".
+        /// Decimal values are shown with 2 digit accuracy.
+        /// </summary>
+        /// <typeparam name="T">Data type can be chosen by user.</typeparam>
+        /// <param name="vector">Vector to be displayed.</param>
+        public static void DisplayVector<T>(T[] vector)
+        {   
+            for (int k = 0; k < vector.Length; k++)
+            {
+                Console.Write("{0:####.##}:", vector[k].ToString());
+            }
+            Console.WriteLine("");
         }
     }
 }

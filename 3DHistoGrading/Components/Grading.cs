@@ -29,9 +29,8 @@ namespace HistoGrading.Components
         {
             // Path to model (weights.dat)
             string filename =
-                Directory.GetParent(Directory.GetParent(Directory.GetParent( // Move up 3 directories to project folder
-                Directory.GetCurrentDirectory()
-                ).FullName).FullName).FullName + @"\Components\weights.dat"; // Get path from DirectoryInfo object
+                    new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
+                    .Parent.Parent.Parent.Parent.FullName + @"\Default\weights.dat"; // Move to correct location and add file name
 
             // Read weights from .dat file
             var reader = new BinaryWriterApp(filename);
@@ -54,35 +53,25 @@ namespace HistoGrading.Components
         /// <returns>Returns string containing the OA grade</returns>
         public static string Predict(Model mod, ref int[,] features)
         {
-            
-
-
             // Check if model is not loaded
             if (mod.nComp == 0 || mod.singularValues == null || mod.eigenVectors == null || mod.weights == null)
                 return "Model not loaded";
 
-            // Load LBP features
-            string filename =
-                Directory.GetParent(Directory.GetParent(Directory.GetParent( // Move up 3 directories to project folder
-                Directory.GetCurrentDirectory()
-                ).FullName).FullName).FullName + @"\Components\sample_features.csv"; // Get path from DirectoryInfo object
+            //
+            // LBP features
+            //
+            if (features.Length == 0) // Calculate if doesn't exist already
+            {
+                // Load LBP features
+                string filename = 
+                    new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
+                    .Parent.Parent.Parent.Parent.FullName + @"\Default\sample_features.csv"; // Move to correct location and add file name
 
-            features = LBPLibrary.Functions
-                .ReadCSV(filename)
-                .ToInt32();
-
-            // Load actual grades
-            filename =
-                Directory.GetParent(Directory.GetParent(Directory.GetParent( // Move up 3 directories to project folder
-                Directory.GetCurrentDirectory()
-                ).FullName).FullName).FullName + @"\Components\sample_grades.csv"; // Get path from DirectoryInfo object
-
-            int[] actualGrades =
-                LBPLibrary.Functions.ArrayToVector(
-                LBPLibrary.Functions.ReadCSV(filename))
-                .ToInt32();
-
-            //// LBP features
+                features = LBPLibrary.Functions
+                    .ReadCSV(filename)
+                    .ToInt32();
+            }
+            //
             //if (features.Length == 0) // Calculate if doesn't exist already
             //    features = LBP();
 
@@ -93,19 +82,39 @@ namespace HistoGrading.Components
             // Regression
             double[] grade = PCA.Dot(mod.weights).Add(1.5);
 
-            // Difference between actual grades
-            double[] loss = grade.Subtract(actualGrades.ToDouble());
-            double sum = Matrix.Sum(Elementwise.Abs(loss)); // Absolute sum
+            double sum = CompareGrades(grade);
 
             //return "OA grade (sample 1): " + grade[0].ToString("####.##");
             return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###");
         }
 
         /// <summary>
-        /// Calculates LBP features using LBPLibrary Nuget package.
+        /// Compares predicted grades to reference grades.
         /// </summary>
-        /// <remarks>Currently asks user to input  directories for surface images and save paths.
-        /// When surfaceimages can be calculated in GUI, this should be modified.</remarks>
+        /// <param name="grades">Predicted grades.</param>
+        /// <returns>Sum of absolute differences.</returns>
+        public static double CompareGrades(double[] grades)
+        {
+            // Load actual grades
+            string filename = new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
+                .Parent.Parent.Parent.Parent.FullName + @"\Default\sample_grades.csv"; // Move to correct location and add file name
+
+            int[] actualGrades =
+                LBPLibrary.Functions.ArrayToVector(
+                LBPLibrary.Functions.ReadCSV(filename))
+                .ToInt32();
+
+            // Difference between actual grades
+            double[] loss = grades.Subtract(actualGrades.ToDouble());
+
+            return Matrix.Sum(Elementwise.Abs(loss)); // Absolute sum
+        }
+
+        /// <summary>
+        /// Calculates LBP features using LBPLibrary Nuget package.
+        /// Currently asks user to input  directories for surface images and save paths.
+        /// When surfaceimages can be calculated in GUI, this should be modified.
+        /// </summary>
         /// <returns>Feature array.</returns>
         public static int[,] LBP()
         {
@@ -115,10 +124,7 @@ namespace HistoGrading.Components
             if (fbd.ShowDialog() == DialogResult.OK)
                 path = fbd.SelectedPath;
             else
-            {
-                Console.WriteLine("No directory selected.\n");
                 return new int[0, 0];
-            }
 
             string meanpath = null, stdpath = null, savepath = null;
             // Select mean image path
@@ -126,30 +132,21 @@ namespace HistoGrading.Components
             if (meanfile.ShowDialog() == DialogResult.OK)
                 meanpath = meanfile.FileName;
             else
-            {
-                Console.WriteLine("No directory selected.\n");
                 return new int[0, 0];
-            }
 
             // Select std image path
             var stdfile = new OpenFileDialog() { Title = "Select std image to be calculated" };
             if (stdfile.ShowDialog() == DialogResult.OK)
                 stdpath = stdfile.FileName;
             else
-            {
-                Console.WriteLine("No directory selected.\n");
                 return new int[0, 0];
-            }
 
             // Select save path
             fbd = new FolderBrowserDialog() { Description = "Select the directory to save results" };
             if (fbd.ShowDialog() == DialogResult.OK)
                 savepath = fbd.SelectedPath;
             else
-            {
-                Console.WriteLine("No save path selected.\n");
                 return new int[0, 0];
-            }
 
             // Requires mean and std images from surface volume
             Parameters param = new Parameters() { Meanstd = true, ImageType = ".dat" };

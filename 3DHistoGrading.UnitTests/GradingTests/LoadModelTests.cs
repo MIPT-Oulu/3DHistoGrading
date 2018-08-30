@@ -23,5 +23,16 @@ namespace _3DHistoGrading.UnitTests
 
             Assert.Equal("Model loaded", state);
         }
+
+        [Fact]
+        public void Model_DefaultInput_NullParameters()
+        {
+            Model model = new Model();
+
+            Assert.Null(model.eigenVectors);
+            Assert.Null(model.singularValues);
+            Assert.Equal(0, model.nComp);
+            Assert.Null(model.weights);
+        }
     }
 }
