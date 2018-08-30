@@ -22,12 +22,12 @@ This software is distributed under the MIT License.
 
 ## Citation
 ```
-@misc{Rytky2018,
+@misc{3DGrading2018,
   author = {Frondelius, Tuomas and Rytky, Santeri and Tiulpin, Aleksei and Saarakkala Simo},
   title = {Local Binary Pattern},
   year = {2018},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/MIPT-Oulu/LocalBinaryPattern}},
+  howpublished = {\url{https://github.com/MIPT-Oulu/3D-Histo-Grading}},
 }
 ```
