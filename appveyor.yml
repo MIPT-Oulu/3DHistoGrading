@@ -16,11 +16,11 @@ before_build:
   - nuget restore 3DHistoGrading.sln
   
 ignore:
-- "path/to/folder"  # ignore folders and all its contents
-- "3DHistoGrading/MainForm.cs"
-- "3DHistoGrading/MainForm.Designer.cs"
-- "3DHistoGrading/Program.cs"
-- "3DHistoGrading/Properties"
+  - "path/to/folder"  # ignore folders and all its contents
+  - "3DHistoGrading/MainForm.cs"
+  - "3DHistoGrading/MainForm.Designer.cs"
+  - "3DHistoGrading/Program.cs"
+  - "3DHistoGrading/Properties"
   
 # package Web application project for Web deploy
 build:
