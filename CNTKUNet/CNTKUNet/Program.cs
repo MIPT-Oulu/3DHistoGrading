@@ -14,6 +14,7 @@ using CNTKUNet.Components;
 
 using CNTKUNet.Models;
 
+
 namespace CNTKUNet
 {
     class Program
@@ -22,7 +23,7 @@ namespace CNTKUNet
         static void Main()
         {
             //Path to weights
-            string wpath = "c:\\users\\jfrondel\\Desktop\\GITS\\UNetE3bn.h5";
+            string wpath = "c:\\users\\jfrondel\\Desktop\\GITS\\UNetE3bnf.h5";
 
             //Path to test image
             string impath = "c:\\users\\jfrondel\\desktop\\GITS\\sample.png";
