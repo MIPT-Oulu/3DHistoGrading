@@ -15,13 +15,6 @@ image:
 before_build:
   - nuget restore 3DHistoGrading.sln
 
-ignore:
-  - "path/to/folder"  # ignore folders and all its contents
-  - "3DHistoGrading/MainForm.cs$"
-  - "3DHistoGrading/MainForm.Designer.cs$"
-  - "3DHistoGrading/Program.cs$"
-  - "3DHistoGrading/Properties$"
-  
 # package Web application project for Web deploy
 build:
   verbosity: minimal
@@ -35,3 +28,10 @@ after_test:
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
       bash codecov.sh -f "coverage.xml" -t b0c6c3b1-f3d5-46c6-a9a7-e5797c3e70b2
+
+ignore:
+  - "path/to/folder"  # ignore folders and all its contents
+  - "3DHistoGrading/MainForm.cs$"
+  - "3DHistoGrading/MainForm.Designer.cs$"
+  - "3DHistoGrading/Program.cs$"
+  - "3DHistoGrading/Properties$"
