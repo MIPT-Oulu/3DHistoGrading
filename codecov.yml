@@ -1,5 +1,8 @@
 ignore:
-  - "3DHistoGrading\Properties"
+  - "3DHistoGrading/Properties"
+  - "3DHistoGrading/Program.cs$"
+  - "3DHistoGrading/MainForm.cs$"
+  - "3DHistoGrading/MainForm.Designer.cs$"
   
 coverage:
   precision: 2
