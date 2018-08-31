@@ -44,7 +44,7 @@ namespace _3DHistoGrading.UnitTests
             // Load LBP features
             string filename = new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
                 .Parent.Parent.Parent.Parent.FullName + @"\Default\sample_features.csv"; // Move to correct location and add file name
-            features = Functions
+            features = LBPLibrary.Functions
                 .ReadCSV(filename)
                 .ToInt32();
             // Load model

@@ -7,13 +7,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Kitware.VTK;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
 namespace HistoGrading.Components
 {
-    class Functions
+    /// <summary>
+    /// Utility functions that are used in the software.
+    /// </summary>
+    public class Functions
     {
         //Loader
         public static vtkImageData VTKLoader(string path, string extension)
@@ -346,6 +350,43 @@ namespace HistoGrading.Components
                         return (h, w, c) => h * stride + w;
                 }
             }
+        }
+
+        /// <summary>
+        /// Prompts a folderbrowserdialog with given description.
+        /// </summary>
+        /// <param name="description">Description to be displayed on top of the window.</param>
+        /// <returns>Selected path or empty string.</returns>
+        public static string GetDirectory(string description)
+        {
+            var dlg = new FolderBrowserDialog { Description = description };
+            DialogResult result = dlg.ShowDialog();
+
+            return DirectoryResult(dlg.SelectedPath, result); // Check that path was selected.
+        }
+
+        /// <summary>
+        /// Prompts a folderbrowserdialog with given description.
+        /// </summary>
+        /// <param name="description">Description to be displayed on top of the window.</param>
+        /// <returns>Selected path or empty string.</returns>
+        public static string GetFile(string description)
+        {
+            var dlg = new OpenFileDialog { Title = description };
+            DialogResult result = dlg.ShowDialog();
+
+            return DirectoryResult(dlg.FileName, result); // Check that path was selected.
+        }
+
+        /// <summary>
+        /// Test to see if a path was selected during folderbrowserdialog.
+        /// </summary>
+        /// <param name="selectedPath">Path selected by user.</param>
+        /// <param name="result">Result of the dialog. E.g. OK or cancel</param>
+        /// <returns>Path or empty string.</returns>
+        public static string DirectoryResult(string selectedPath, DialogResult result)
+        {
+            return result == DialogResult.OK ? selectedPath : string.Empty;
         }
     }
 }

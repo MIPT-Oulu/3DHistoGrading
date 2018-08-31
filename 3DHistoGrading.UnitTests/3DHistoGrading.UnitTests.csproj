@@ -81,6 +81,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FunctionTests\DirectoryTests.cs" />
     <Compile Include="GradingTests\LoadModelTests.cs" />
     <Compile Include="GradingTests\PredictTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

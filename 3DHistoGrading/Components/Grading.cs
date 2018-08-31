@@ -113,40 +113,22 @@ namespace HistoGrading.Components
 
         /// <summary>
         /// Calculates LBP features using LBPLibrary Nuget package.
-        /// Currently asks user to input  directories for surface images and save paths.
+        /// Currently asks user to input directories for surface images and save paths.
         /// When surfaceimages can be calculated in GUI, this should be modified.
         /// </summary>
         /// <returns>Feature array.</returns>
         public static int[,] LBP()
         {
             // Select load path
-            string path = null;
-            var fbd = new FolderBrowserDialog() { Description = "Select the directory to load images" };
-            if (fbd.ShowDialog() == DialogResult.OK)
-                path = fbd.SelectedPath;
-            else
-                return new int[0, 0];
+            string path = null, meanpath = null, stdpath = null, savepath = null;
 
-            string meanpath = null, stdpath = null, savepath = null;
-            // Select mean image path
-            var meanfile = new OpenFileDialog() { Title = "Select mean image to be calculated" };
-            if (meanfile.ShowDialog() == DialogResult.OK)
-                meanpath = meanfile.FileName;
-            else
-                return new int[0, 0];
+            //path = Functions.GetDirectory("Select the directory to load images"); // Used in batch calculation
+            meanpath = Functions.GetFile("Select mean image to be calculated"); // Used in single calculation
+            stdpath = Functions.GetFile("Select std image to be calculated"); // Used in single calculation in mean and std calculation
+            //savepath = Functions.GetDirectory("Select the directory to save results");
 
-            // Select std image path
-            var stdfile = new OpenFileDialog() { Title = "Select std image to be calculated" };
-            if (stdfile.ShowDialog() == DialogResult.OK)
-                stdpath = stdfile.FileName;
-            else
-                return new int[0, 0];
-
-            // Select save path
-            fbd = new FolderBrowserDialog() { Description = "Select the directory to save results" };
-            if (fbd.ShowDialog() == DialogResult.OK)
-                savepath = fbd.SelectedPath;
-            else
+            // Is no selection was made, return
+            if (meanpath == null || stdpath == null)
                 return new int[0, 0];
 
             // Requires mean and std images from surface volume
@@ -154,12 +136,12 @@ namespace HistoGrading.Components
             // Calculate single LBP image
             RunLBP run = new RunLBP()
             {
-                path = path,
-                savepath = savepath,
-                param = param,
-
+                //path = path,
+                //savepath = savepath,
                 meanpath = meanpath,
-                stdpath = stdpath
+                stdpath = stdpath,
+              
+                param = param
             };
 
             // Calculate single image
@@ -168,8 +150,7 @@ namespace HistoGrading.Components
             // Calculate batch
             //run.CalculateBatch();
 
-            int[,] features = run.features;
-            return features;
+            return run.features;
         }
 
         /// <summary>
