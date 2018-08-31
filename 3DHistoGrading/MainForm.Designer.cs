@@ -34,9 +34,9 @@
             this.viewLabel = new System.Windows.Forms.Label();
             this.loadModel = new System.Windows.Forms.Button();
             this.predict = new System.Windows.Forms.Button();
-            this.transverse2Button = new System.Windows.Forms.Button();
-            this.transverse1Button = new System.Windows.Forms.Button();
+            this.sagittalButton = new System.Windows.Forms.Button();
             this.coronalButton = new System.Windows.Forms.Button();
+            this.transverseButton = new System.Windows.Forms.Button();
             this.volumeButton = new System.Windows.Forms.Button();
             this.resetButton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -83,9 +83,9 @@
             this.panel1.Controls.Add(this.viewLabel);
             this.panel1.Controls.Add(this.loadModel);
             this.panel1.Controls.Add(this.predict);
-            this.panel1.Controls.Add(this.transverse2Button);
-            this.panel1.Controls.Add(this.transverse1Button);
+            this.panel1.Controls.Add(this.sagittalButton);
             this.panel1.Controls.Add(this.coronalButton);
+            this.panel1.Controls.Add(this.transverseButton);
             this.panel1.Controls.Add(this.volumeButton);
             this.panel1.Controls.Add(this.resetButton);
             this.panel1.Controls.Add(this.label1);
@@ -139,38 +139,41 @@
             this.predict.UseVisualStyleBackColor = true;
             this.predict.Click += new System.EventHandler(this.predict_Click);
             // 
-            // transverse2Button
+            // sagittalButton
             // 
-            this.transverse2Button.Location = new System.Drawing.Point(7, 410);
-            this.transverse2Button.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.transverse2Button.Name = "transverse2Button";
-            this.transverse2Button.Size = new System.Drawing.Size(148, 40);
-            this.transverse2Button.TabIndex = 9;
-            this.transverse2Button.Text = "Transverse, YZ";
-            this.transverse2Button.UseVisualStyleBackColor = true;
-            this.transverse2Button.Click += new System.EventHandler(this.transverse2Button_Click);
-            // 
-            // transverse1Button
-            // 
-            this.transverse1Button.Location = new System.Drawing.Point(7, 362);
-            this.transverse1Button.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.transverse1Button.Name = "transverse1Button";
-            this.transverse1Button.Size = new System.Drawing.Size(148, 40);
-            this.transverse1Button.TabIndex = 8;
-            this.transverse1Button.Text = "Transverse, XZ";
-            this.transverse1Button.UseVisualStyleBackColor = true;
-            this.transverse1Button.Click += new System.EventHandler(this.transverse1Button_Click);
+            this.sagittalButton.Location = new System.Drawing.Point(7, 410);
+            this.sagittalButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.sagittalButton.Name = "sagittalButton";
+            this.sagittalButton.Size = new System.Drawing.Size(148, 40);
+            this.sagittalButton.TabIndex = 9;
+            this.sagittalButton.Text = "Sagittal, YZ";
+            this.sagittalButton.UseVisualStyleBackColor = true;
+            this.sagittalButton.Click += new System.EventHandler(this.sagittalButton_Click);
+            this.sagittalButton.Enabled = false;
             // 
             // coronalButton
             // 
-            this.coronalButton.Location = new System.Drawing.Point(7, 315);
+            this.coronalButton.Location = new System.Drawing.Point(7, 362);
             this.coronalButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.coronalButton.Name = "coronalButton";
             this.coronalButton.Size = new System.Drawing.Size(148, 40);
-            this.coronalButton.TabIndex = 7;
-            this.coronalButton.Text = "Coronal";
+            this.coronalButton.TabIndex = 8;
+            this.coronalButton.Text = "Coronal, XZ";
             this.coronalButton.UseVisualStyleBackColor = true;
             this.coronalButton.Click += new System.EventHandler(this.coronalButton_Click);
+            this.coronalButton.Enabled = false;
+            // 
+            // transverseButton
+            // 
+            this.transverseButton.Location = new System.Drawing.Point(7, 315);
+            this.transverseButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.transverseButton.Name = "transverseButton";
+            this.transverseButton.Size = new System.Drawing.Size(148, 40);
+            this.transverseButton.TabIndex = 7;
+            this.transverseButton.Text = "Transverse, XY";
+            this.transverseButton.UseVisualStyleBackColor = true;
+            this.transverseButton.Click += new System.EventHandler(this.transverseButton_Click);
+            this.transverseButton.Enabled = false;
             // 
             // volumeButton
             // 
@@ -182,6 +185,7 @@
             this.volumeButton.Text = "Volume";
             this.volumeButton.UseVisualStyleBackColor = true;
             this.volumeButton.Click += new System.EventHandler(this.volumeButton_Click);
+            this.volumeButton.Enabled = false;
             // 
             // resetButton
             // 
@@ -193,6 +197,7 @@
             this.resetButton.Text = "Reset Camera";
             this.resetButton.UseVisualStyleBackColor = true;
             this.resetButton.Click += new System.EventHandler(this.resetButton_Click);
+            this.resetButton.Enabled = false;
             // 
             // label1
             // 
@@ -223,6 +228,7 @@
             this.gminBar.Size = new System.Drawing.Size(165, 24);
             this.gminBar.TabIndex = 3;
             this.gminBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.gminBar_Scroll);
+            this.gminBar.Enabled = false;
             // 
             // gmaxBar
             // 
@@ -234,6 +240,7 @@
             this.gmaxBar.TabIndex = 2;
             this.gmaxBar.Value = 255;
             this.gmaxBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.gmaxBar_Scroll);
+            this.gmaxBar.Enabled = false;
             // 
             // maskButton
             // 
@@ -245,6 +252,7 @@
             this.maskButton.Text = "Load Mask";
             this.maskButton.UseVisualStyleBackColor = true;
             this.maskButton.Click += new System.EventHandler(this.maskButton_Click);
+            this.maskButton.Enabled = false;
             // 
             // fileButton
             // 
@@ -270,6 +278,7 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(1172, 80);
             this.panel2.TabIndex = 1;
+            this.panel2.Enabled = false;
             // 
             // sliceLabel
             // 
@@ -311,6 +320,7 @@
             this.sliceBar.TabIndex = 2;
             this.sliceBar.Value = 50;
             this.sliceBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.sliceBar_Scroll);
+            this.sliceBar.Enabled = false;
             // 
             // renderWindowControl
             // 
@@ -323,6 +333,7 @@
             this.renderWindowControl.TabIndex = 3;
             this.renderWindowControl.TestText = null;
             this.renderWindowControl.Load += new System.EventHandler(this.renderWindowControl_Load);
+            this.renderWindowControl.Enabled = false;
             // 
             // fileDialog
             // 
@@ -362,9 +373,9 @@
         private System.Windows.Forms.Label gmaxLabel;
         private System.Windows.Forms.Button resetButton;
         private Kitware.VTK.RenderWindowControl renderWindowControl;
-        private System.Windows.Forms.Button transverse2Button;
-        private System.Windows.Forms.Button transverse1Button;
+        private System.Windows.Forms.Button sagittalButton;
         private System.Windows.Forms.Button coronalButton;
+        private System.Windows.Forms.Button transverseButton;
         private System.Windows.Forms.Button volumeButton;
         private System.Windows.Forms.Label viewLabel;
         private System.Windows.Forms.OpenFileDialog fileDialog;

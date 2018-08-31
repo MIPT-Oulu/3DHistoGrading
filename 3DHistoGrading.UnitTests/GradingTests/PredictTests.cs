@@ -80,8 +80,6 @@ namespace _3DHistoGrading.UnitTests
 
             double[,] imageAdjust = Grading.SubtractMean(testImg.Image.ToDouble());
 
-            TestImage.DisplayArray(imageAdjust);
-            TestImage.DisplayArray(testImg.Image);
             double[,] refArray = new double[6, 6] // Here, actually columns are written out
                 {{ -1, -1, -1, -1, -1, -1},
                 { -1, -1, -1, -1, -1, -1},
@@ -89,7 +87,6 @@ namespace _3DHistoGrading.UnitTests
                 { 1, 1, 1, 1, 1, 1},
                 { 1, 1, 1, 1, 1, 1},
                 { 1, 1, 1, 1, 1, 1} };
-            Console.WriteLine("test2");
             Assert.Equal(refArray, imageAdjust);
         }
     }

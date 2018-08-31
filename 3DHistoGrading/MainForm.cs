@@ -64,17 +64,17 @@ namespace HistoGrading
             //Tell coronal rendering
             if (ori == 2)
             {
-                sliceLabel.Text = String.Format("Coronal | {0} / {1}", sliceN[ori], dims[5]);
+                sliceLabel.Text = String.Format("Transverse, XY | {0} / {1}", sliceN[ori], dims[5]);
             }
             //Tell transverse rendering
             if (ori == 0)
             {
-                sliceLabel.Text = String.Format("Transverse, XZ | {0} / {1}", sliceN[ori], dims[3]);
+                sliceLabel.Text = String.Format("Coronal, XZ | {0} / {1}", sliceN[ori], dims[3]);
             }
             //Tell transverse rendering
             if (ori == 1)
             {
-                sliceLabel.Text = String.Format("Transverse, YZ | {0} / {1}", sliceN[ori], dims[1]);
+                sliceLabel.Text = String.Format("Sagittal, YZ | {0} / {1}", sliceN[ori], dims[1]);
             }
         }
 
@@ -201,6 +201,19 @@ namespace HistoGrading
                 maskLabel.Text = "No Mask Loaded";
                 tellSlice();
 
+                // Enable buttons
+                sagittalButton.Enabled = true;
+                coronalButton.Enabled = true;
+                transverseButton.Enabled = true;
+                volumeButton.Enabled = true;
+                resetButton.Enabled = true;
+                gminBar.Enabled = true;
+                gmaxBar.Enabled = true;
+                maskButton.Enabled = true;
+                panel2.Enabled = true;
+                sliceBar.Enabled = true;
+                renderWindowControl.Enabled = true;
+
                 //renderVolumeControl_Load(this, null);
             }
         }
@@ -315,7 +328,7 @@ namespace HistoGrading
         }
 
         //Render coronal slice
-        private void coronalButton_Click(object sender, EventArgs e)
+        private void transverseButton_Click(object sender, EventArgs e)
         {
             if (is_rendering == 1)
             {
@@ -337,7 +350,7 @@ namespace HistoGrading
         }
 
         //Render transverse slice, XZ plane
-        private void transverse1Button_Click(object sender, EventArgs e)
+        private void coronalButton_Click(object sender, EventArgs e)
         {
             if (is_rendering == 1)
             {
@@ -359,7 +372,7 @@ namespace HistoGrading
         }
 
         //Render transverse slice, YZ plane
-        private void transverse2Button_Click(object sender, EventArgs e)
+        private void sagittalButton_Click(object sender, EventArgs e)
         {
             //Check if rendering
             if(is_rendering==1)
