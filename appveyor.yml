@@ -8,6 +8,7 @@ branches:
   # whitelist
   only:
     - grading
+    - master
 
 # Restore nuget packages before running msbuild
 image: 
