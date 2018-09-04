@@ -54,27 +54,33 @@ namespace HistoGrading.Components
         /// <returns>Returns string containing the OA grade</returns>
         public static string Predict(Model mod, ref int[,] features)
         {
-            // Check if model is not loaded
-            if (mod.nComp == 0 || mod.singularValues == null || mod.eigenVectors == null || mod.weights == null)
-                return "Model not loaded";
+            // Load default model
+            string state = LoadModel(ref mod);
+
+            //// Check if model is not loaded
+            //if (mod.nComp == 0 || mod.singularValues == null || mod.eigenVectors == null || mod.weights == null)
+            //    return "Model not loaded";
 
             //
             // LBP features
             //
-            if (features.Length == 0) // Calculate if doesn't exist already
-            {
-                // Load LBP features
-                string filename = 
-                    new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
-                    .Parent.Parent.Parent.Parent.FullName + @"\Default\sample_features.csv"; // Move to correct location and add file name
 
-                features = LBPLibrary.Functions
-                    .ReadCSV(filename)
-                    .ToInt32();
-            }
-            //
+            //// Load sample features
             //if (features.Length == 0) // Calculate if doesn't exist already
-            //    features = LBP();
+            //{
+            //    // Load LBP features
+            //    string filename = 
+            //        new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
+            //        .Parent.Parent.Parent.Parent.FullName + @"\Default\sample_features.csv"; // Move to correct location and add file name
+
+            //    features = LBPLibrary.Functions
+            //        .ReadCSV(filename)
+            //        .ToInt32();
+            //}
+
+            //Calculate LBP from selected samples
+            //if (features.Length == 0) // Calculate if doesn't exist already
+            features = LBP();
 
             // PCA
             double[,] dataAdjust = SubtractMean(features.ToDouble());
@@ -85,8 +91,8 @@ namespace HistoGrading.Components
 
             double sum = CompareGrades(grade);
 
-            //return "OA grade (sample 1): " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
-            return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###", CultureInfo.InvariantCulture);
+            return "OA grade (sample 1): " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
+            //return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###", CultureInfo.InvariantCulture);
         }
 
         /// <summary>
@@ -167,14 +173,16 @@ namespace HistoGrading.Components
 
             for (int i = 0; i < w; i++)
             {
+                // Select column
                 double[] vector = 
                     LBPLibrary.Functions.ArrayToVector(
                     LBPLibrary.Functions.GetSubMatrix(array, i, i, 0, l - 1));
 
+                // Subtract mean
                 means[i] = vector.Average();
                 vector = Elementwise.Subtract(vector, means[i]);
                 
-
+                // Concatenate
                 dataAdjust = Matrix.Concatenate(dataAdjust, vector);
             }
 
