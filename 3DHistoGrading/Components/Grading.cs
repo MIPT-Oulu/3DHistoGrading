@@ -12,6 +12,10 @@ using Accord.Math;
 using Accord.Math.Decompositions;
 using Accord.Statistics;
 
+using Kitware.VTK;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
+
 namespace HistoGrading.Components
 {
     /// <summary>
@@ -51,11 +55,22 @@ namespace HistoGrading.Components
         /// </summary>
         /// <param name="mod">Loaded model.</param>
         /// <param name="features">LBP features.</param>
+        /// <param name="volume">Data array.</param>
         /// <returns>Returns string containing the OA grade</returns>
         public static string Predict(Model mod, ref int[,] features)
         {
             // Load default model
             string state = LoadModel(ref mod);
+
+            // Thresholding
+            var source = new vtkImageMandelbrotSource();
+            //source.SetInput(volume);
+
+            // Default thresholding limits
+            int upperBound = 255;
+            int lowerBound = 80;
+            //vtkImageData data = Processing.Threshold(volume, upperBound, lowerBound);
+            //data.render
 
             //// Check if model is not loaded
             //if (mod.nComp == 0 || mod.singularValues == null || mod.eigenVectors == null || mod.weights == null)

@@ -19,7 +19,12 @@ namespace HistoGrading.Components
     /// </summary>
     public class Functions
     {
-        //Loader
+        /// <summary>
+        /// Load image files into vtkImageData.
+        /// </summary>
+        /// <param name="path">Path to images.</param>
+        /// <param name="extension">Image extension.</param>
+        /// <returns></returns>
         public static vtkImageData VTKLoader(string path, string extension)
         {   
             /*DEPRECATED!!*/
@@ -66,11 +71,15 @@ namespace HistoGrading.Components
             return data;
         }
 
-        //Slicer
+        /// <summary>
+        /// Gets a 2D slice from the 3D data.
+        /// </summary>
+        /// <param name="volume">Full 3D data.</param>
+        /// <param name="sliceN">Number of slice to be selected.</param>
+        /// <param name="axis">Axis on which selection will be made.</param>
+        /// <returns></returns>
         public static vtkImageData volumeSlicer(vtkImageData volume, int[] sliceN, int axis)
         {
-            /*Gets a 2D slice from the 3D data*/
-
             //Initialize VOI extractor and permuter.
             //Permuter will correct the orientation of the output image
             vtkExtractVOI slicer = vtkExtractVOI.New();
@@ -126,7 +135,7 @@ namespace HistoGrading.Components
         //Prerocessing
         public static vtkImageData scalarCopy(vtkImageData data)
         {
-            /*DEPERCATED!!*/
+            /*DEPRECATED!!*/
             //Get data extent
             int[] dims = data.GetExtent();
             vtkImageData newdata = vtkImageData.New();
@@ -146,11 +155,14 @@ namespace HistoGrading.Components
             return newdata;
         }
 
+        /// <summary>
+        /// Read all images in folder containing file from given path
+        /// Uses ParaLoader class to get the data in vtk format.
+        /// </summary>
+        /// <param name="path">Directory that includes images to be loaded.</param>
+        /// <returns></returns>
         public static vtkImageData loadVTK(string path)
         {
-            /*Read all images in folder containing file from given path
-             *Uses ParaLoader class to get the data in vtk format*/
-
             //Declare loader
             ParaLoader loader = new ParaLoader();
             //Set input path to loader
@@ -162,13 +174,15 @@ namespace HistoGrading.Components
             return data;
         }
 
-        //Find files
+        /// <summary>
+        /// Find all files which correspond to selected file.
+        /// When reading multiple files, files must start with the same name, which ends in a digit,
+        /// as the selected file and have the same extension.
+        /// </summary>
+        /// <param name="file">Name for the file to be checked.</param>
+        /// <returns></returns>
         public static List<string> getFiles(string file)
         {
-            /*Find all files which correspond to selected file.
-             *When reading multiple files, files must start with the same name, which ends in a digit,
-             *as the selected file and have the same extension.*/
-
             //Get file name and extension
             string fileName = Path.GetFileName(file);
             string extension = Path.GetExtension(file);
@@ -228,8 +242,10 @@ namespace HistoGrading.Components
             return names;
         }
 
-        //Image loader, reads images in parallel
-        private class ParaLoader
+        /// <summary>
+        /// Image loader, reads images in parallel 
+        /// </summary>
+        public class ParaLoader
         {
             //Declarations
 
@@ -237,12 +253,15 @@ namespace HistoGrading.Components
             byte[,,] data;
             //Empty image data
             vtkImageData vtkdata = vtkImageData.New();
-            //Data dimensiosn
+            //Data dimensions
             int[] dims = new int[] { 0, 0, 0 };
             //Empty list for files
             List<string> files;
 
-            //Set input files
+            /// <summary>
+            /// Set input files
+            /// </summary>
+            /// <param name="file">File path.</param>
             public void setInput(string file)
             {
                 //Get files
@@ -261,11 +280,13 @@ namespace HistoGrading.Components
                 data = new byte[dims[2], dims[1], dims[0]];
             }
 
-            //Read image
+            /// <summary>
+            /// Read image from file idx. The image is read using OpenCV, and converted to Bitmap.
+            /// Bitmap is then read to the bytearray.
+            /// </summary>
+            /// <param name="idx">File index.</param>
             private void readImage(int idx)
             {
-                //Read image from file idx. The image is read using OpenCV, and converted to Bitmap.
-                //Bitmap is then read to the bytearray.
                 Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
                 Bitmap _image = BitmapConverter.ToBitmap(_tmp);
                 //Lock bits
@@ -297,7 +318,9 @@ namespace HistoGrading.Components
                 });
             }
 
-            //Load all images in parallel
+            /// <summary>
+            /// Load all images in parallel
+            /// </summary>
             public void Load()
             {
                 //Loop over files
@@ -307,7 +330,10 @@ namespace HistoGrading.Components
                 });
             }
 
-            //Extract data as vtkImageData
+            /// <summary>
+            /// Extract data as vtkImageData
+            /// </summary>
+            /// <returns>Converted data as vtkImageData variable.</returns>
             public vtkImageData GetData()
             {
                 //Character array for conversion
@@ -334,7 +360,12 @@ namespace HistoGrading.Components
                 return vtkdata;
             }
 
-            //Function for correctly mapping the pixel values, copied from CNTK examples
+            /// <summary>
+            /// Function for correctly mapping the pixel values, copied from CNTK examples.
+            /// </summary>
+            /// <param name="pixelFormat">Format of the color data.</param>
+            /// <param name="stride">Stride length.</param>
+            /// <returns></returns>
             public static Func<int, int, int, int> GetPixelMapper(PixelFormat pixelFormat, int stride)
             {
                 switch (pixelFormat)
@@ -387,6 +418,42 @@ namespace HistoGrading.Components
         public static string DirectoryResult(string selectedPath, DialogResult result)
         {
             return result == DialogResult.OK ? selectedPath : string.Empty;
+        }
+
+        /// <summary>
+        /// Extract data as vtkImageData
+        /// </summary>
+        /// <returns>Converted data as vtkImageData variable.</returns>
+        public static vtkImageData ByteToVTK(byte[,] data)
+        {
+            //Initialize objects
+            var vtkdata = new vtkImageData();
+            int[] dims = new int[] { 0, 0, 0 };
+            dims[0] = data.GetLength(0);
+            dims[1] = data.GetLength(1);
+
+            //Character array for conversion
+            vtkUnsignedCharArray charArray = vtkUnsignedCharArray.New();
+            //Pin byte array
+            GCHandle pinnedArray = GCHandle.Alloc(data, GCHandleType.Pinned);
+            //Set character array input
+            charArray.SetArray(pinnedArray.AddrOfPinnedObject(), dims[0] * dims[1] * dims[2], 1);
+            //Set vtkdata properties and connect array
+            //Data from char array
+            vtkdata.GetPointData().SetScalars(charArray);
+            //Number of scalars/pixel
+            vtkdata.SetNumberOfScalarComponents(1);
+            //Data extent, 1st and last axis are swapped from the char array
+            //Data is converted back to original orientation
+            vtkdata.SetExtent(0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1);
+            //Scalar type
+            vtkdata.SetScalarTypeToUnsignedChar();
+            vtkdata.Update();
+
+            //Clear memory
+            data = null;
+            //Return vtk data
+            return vtkdata;
         }
     }
 }

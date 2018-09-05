@@ -47,14 +47,18 @@ namespace HistoGrading
         Model model = new Model();
         int[,] features = new int[0,0];
 
-        //Form initialization
+        /// <summary>
+        /// Form that includes all major components in the software.
+        /// </summary>
         public MainForm()
         {
             InitializeComponent();
         }
 
-        //GUI text update
-        public void tellSlice()
+        /// <summary>
+        /// Updates GUI text about current rendering method in use.
+        /// </summary>
+        public void TellSlice()
         {
             //Tell volume rendering
             if(ori == -1)
@@ -142,7 +146,7 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -199,7 +203,7 @@ namespace HistoGrading
                 //Update GUI
                 maskButton.Text = "Load Mask";
                 maskLabel.Text = "No Mask Loaded";
-                tellSlice();
+                TellSlice();
 
                 // Enable buttons
                 sagittalButton.Enabled = true;
@@ -269,12 +273,12 @@ namespace HistoGrading
                     if (ori == -1)
                     {
                         volume.renderVolume();
-                        tellSlice();
+                        TellSlice();
                     }
                     if (ori > -1)
                     {
                         volume.renderImage();
-                        tellSlice();
+                        TellSlice();
                     }
                     is_mask = 0;
                     maskButton.Text = "Load Mask";
@@ -306,7 +310,7 @@ namespace HistoGrading
                         volume.renderImageMask();
                     }
                 }
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -324,7 +328,7 @@ namespace HistoGrading
             {
                 volume.renderVolumeMask();
             }
-            tellSlice();
+            TellSlice();
         }
 
         //Render coronal slice
@@ -345,7 +349,7 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -367,7 +371,7 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -390,7 +394,7 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -417,7 +421,7 @@ namespace HistoGrading
             if (e.Type == ScrollEventType.EndScroll)
             {
                 sliceBar_ValueChanged(this, null);
-                tellSlice();
+                TellSlice();
             }
         }
 
