@@ -62,6 +62,12 @@
     <Reference Include="HDF5DotNet, Version=1.8.9.0, Culture=neutral, PublicKeyToken=a4952c8df86d6e8c, processorArchitecture=AMD64">
       <HintPath>..\packages\HDF5DotNet.x64.1.8.9\lib\Net40\HDF5DotNet.dll</HintPath>
     </Reference>
+    <Reference Include="Kitware.mummy.Runtime, Version=1.0.2.599, Culture=neutral, PublicKeyToken=995c7fb9db2c1b44, processorArchitecture=AMD64">
+      <HintPath>..\packages\Activiz.NET.x64.5.8.0\lib\net20\Kitware.mummy.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitware.VTK, Version=5.8.0.607, Culture=neutral, PublicKeyToken=995c7fb9db2c1b44, processorArchitecture=AMD64">
+      <HintPath>..\packages\Activiz.NET.x64.5.8.0\lib\net20\Kitware.VTK.dll</HintPath>
+    </Reference>
     <Reference Include="OpenCvSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=6adad1e807fea099, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenCvSharp3-AnyCPU.3.4.1.20180319\lib\net46\OpenCvSharp.dll</HintPath>
     </Reference>

@@ -11,13 +11,15 @@ using Kitware.VTK;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
-namespace HistoGrading.Components
+using CNTKIntegration.Components; 
+
+namespace CNTKIntegration.Components
 {
     class Functions
     {
         //Loader
         public static vtkImageData VTKLoader(string path, string extension)
-        {   
+        {
             /*DEPRECATED!!*/
             //Output
             vtkImageData data = vtkImageData.New();
@@ -118,6 +120,35 @@ namespace HistoGrading.Components
             //Return copy of the slice
 
             return permuter.GetOutput();
+        }
+
+        //VOIExtractor
+        public static float[] voiToFloat(vtkImageData volume, int[] extent, int[] orientation)
+        {
+            /*Extracts a VOI from the input volume*/
+
+            //Initialize VOI extractor and permuter.
+            //Permuter will correct the orientation of the output image
+            vtkExtractVOI slicer = vtkExtractVOI.New();
+            vtkImagePermute permuter = vtkImagePermute.New();
+            //Connect data to slicer
+            slicer.SetInput(volume);
+            slicer.Update();
+
+            //Get VOI
+            slicer.SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+            slicer.Update();
+
+            //Set orientation
+            permuter.SetInputConnection(slicer.GetOutputPort());
+            permuter.SetFilteredAxes(orientation[0], orientation[1], orientation[2]);
+
+            //Convert VOI to normalized float
+            float[] floatdata = DataTypes.byteToFloat(
+                DataTypes.vtkToByte(permuter.GetOutput()),
+                (float)113.05652141, (float)39.87462853);
+
+            return floatdata;
         }
 
         //Prerocessing
@@ -253,7 +284,7 @@ namespace HistoGrading.Components
                 _tmp.Dispose();
 
                 //Set data extent. Data extent is set, so z-axis is along the
-                //fisrt dimension, and y-axis is along the last dimension.
+                //first dimension, and y-axis is along the last dimension.
                 //This will be reversed when the data gets converted to vtkImagedata.
                 data = new byte[dims[2], dims[1], dims[0]];
             }
@@ -307,27 +338,8 @@ namespace HistoGrading.Components
             //Extract data as vtkImageData
             public vtkImageData GetData()
             {
-                //Character array for conversion
-                vtkUnsignedCharArray charArray = vtkUnsignedCharArray.New();
-                //Pin byte array
-                GCHandle pinnedArray = GCHandle.Alloc(data, GCHandleType.Pinned);
-                //Set character array input
-                charArray.SetArray(pinnedArray.AddrOfPinnedObject(), dims[0] * dims[1] * dims[2], 1);
-                //Set vtkdata properties and connect array
-                //Data from char array
-                vtkdata.GetPointData().SetScalars(charArray);
-                //Number of scalars/pixel
-                vtkdata.SetNumberOfScalarComponents(1);
-                //Data extent, 1st and last axis are swapped from the char array
-                //Data is converted back to original orientation
-                vtkdata.SetExtent(0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1);
-                //Scalar type
-                vtkdata.SetScalarTypeToUnsignedChar();
-                vtkdata.Update();
-
-                //Clear memory
-                data = null;
-                //Return vtk data
+                //Conver byte data to vtkImageData
+                vtkdata = DataTypes.byteToVTK(data);
                 return vtkdata;
             }
 

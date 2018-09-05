@@ -159,7 +159,7 @@ namespace HistoGrading.Components
             }
         }
 
-        public class imagePipeLine
+        private class imagePipeLine
         {
             //Image variables
             private vtkImageActor actor = vtkImageActor.New();
@@ -446,5 +446,6 @@ namespace HistoGrading.Components
             }
 
         }
+
     }
 }

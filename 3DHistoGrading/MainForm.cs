@@ -426,5 +426,11 @@ namespace HistoGrading
                 gminBar_ValueChanged(this, null);
             }
         }
+
+
+        //New Functions
+        private void voiButton_Click(object sender, EventArgs e)
+        {
+        }
     }
 }
