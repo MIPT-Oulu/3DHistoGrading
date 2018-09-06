@@ -5,21 +5,91 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Kitware.VTK;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
+
+using CNTKIntegration.Components;
+using CNTKIntegration.Models;
 
 namespace CNTKIntegration
 {
     class Program
     {
+        static void visualize_data(vtkImageData data)
+        {
+            //Visualize
+            vtkImageData slice = Functions.volumeSlicer(data, new int[] { 0, 0, 0 }, 1);
+            vtkImageActor actor = vtkImageActor.New();
+            actor.SetInput(slice);
+            vtkRenderWindow renWin = vtkRenderWindow.New();
+            vtkRenderer renderer = vtkRenderer.New();
+            renderer.AddActor(actor);
+            renWin.AddRenderer(renderer);
+            renWin.Render();
+        }
         static void Main(string[] args)
         {
-            //Load CTStack
+            //Load VOI from CTStack
+            string path = "D:\\3D-Histo\\3D_histo_REC_data\\PTAjaCA4+\\13_R3L_2_PTA_48h_Rec\\13_R3L_2_PTA_48h__rec00000044.bmp";
+            int[] input_dims = new int[] { 300, 684, 300, 350, 100, 484 };
+            vtkImageData data = Functions.loadVTK(path,input_dims);
+            vtkImagePermute permuter = vtkImagePermute.New();
+            permuter.SetInput(data);
+            permuter.SetFilteredAxes(0, 2, 1);
+            permuter.Update();
+            vtkImageFlip flipper = vtkImageFlip.New();
+            flipper.SetInput(permuter.GetOutput());
+            flipper.SetFilteredAxes(1);
+            flipper.Update();
+            int[] extent = data.GetExtent();
+            Console.WriteLine("Loaded data");
+            //Convert data to float array
+            //byte[] bytedata = DataTypes.vtkToByte(data);
+            float[] floatdata = DataTypes.byteToFloat(DataTypes.vtkToByte(flipper.GetOutput()), (float)113.05652141, (float)39.87462853);
 
-            //Get VOI
+            Console.WriteLine("Converted to float");
 
             //Load UNet
+            string modelpath = "c:\\users\\jfrondel\\Desktop\\GITS\\UNetE3BN.h5";
+            UNet model = new UNet();
+            model.Initialize(24, new int[] { extent[1]+1, extent[5]+1, 1 }, modelpath, false);
 
             //Inference
+            IList<IList<float>> output = model.Inference(floatdata);
+
+            Console.WriteLine("Inference done!!");
+
+            //Loop over output list and save images
+            int d = 0;
+            foreach(IList<float> image in output)
+            {
+                int[] dims = new int[] { extent[1] + 1, extent[5] + 1 };
+                var src = new Mat(dims[0], dims[1],  MatType.CV_8UC1);
+                var indexer = src.GetGenericIndexer<Vec2b>();
+
+                //Iterator
+                int c = 0;
+                foreach(float k in image)
+                {
+                    int h = c / dims[1];
+                    int w = c - h * dims[0];
+                    
+                    int pos = h * dims[1] + w;
+                    Vec2b value = indexer[w, h];
+                    value.Item0 = (byte)(k*(float)255);
+                    indexer[h, w] = value;
+                    c += 1;
+                }
+                string savestring = string.Format("inference{0}.png", d);
+                src.SaveImage("c:\\users\\jfrondel\\desktop\\GITS\\"+savestring);
+                d += 1;
+            }
+
+            Console.WriteLine("Saving Done");
+
+            Console.ReadKey();
         }
     }
 }

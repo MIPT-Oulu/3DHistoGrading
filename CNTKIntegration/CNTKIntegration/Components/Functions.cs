@@ -174,7 +174,7 @@ namespace CNTKIntegration.Components
             return newdata;
         }
 
-        public static vtkImageData loadVTK(string path)
+        public static vtkImageData loadVTK(string path, int[] dims=null)
         {
             /*Read all images in folder containing file from given path
              *Uses ParaLoader class to get the data in vtk format*/
@@ -182,7 +182,7 @@ namespace CNTKIntegration.Components
             //Declare loader
             ParaLoader loader = new ParaLoader();
             //Set input path to loader
-            loader.setInput(path);
+            loader.setInput(path,dims);
             //Load data
             loader.Load();
             //Extract data to variable
@@ -257,6 +257,7 @@ namespace CNTKIntegration.Components
         }
 
         //Image loader, reads images in parallel
+        //Image loader, reads images in parallel
         private class ParaLoader
         {
             //Declarations
@@ -265,28 +266,40 @@ namespace CNTKIntegration.Components
             byte[,,] data;
             //Empty image data
             vtkImageData vtkdata = vtkImageData.New();
-            //Data dimensiosn
-            int[] dims = new int[] { 0, 0, 0 };
+            //Data dimensions
+            int[] input_dims = new int[3];
+            int[] output_dims = new int[6];
             //Empty list for files
             List<string> files;
 
             //Set input files
-            public void setInput(string file)
+            public void setInput(string file, int[] dims = null)
             {
                 //Get files
                 files = getFiles(file);
                 //Read image and get dimensions
                 Mat _tmp = new Mat(file, ImreadModes.GrayScale);
-                dims[0] = _tmp.Height;
-                dims[1] = _tmp.Width;
-                dims[2] = files.Count;
+                input_dims[0] = _tmp.Height;
+                input_dims[1] = _tmp.Width;
+                input_dims[2] = files.Count;
+                //Set output dimensions
+                if (dims == null)
+                {
+                    output_dims[0] = 0; output_dims[1] = input_dims[0];
+                    output_dims[2] = 0; output_dims[3] = input_dims[1];
+                    output_dims[4] = 0; output_dims[5] = input_dims[2];
+                }
+                else
+                {
+                    output_dims = dims;
+                }
                 //Clear temp file
                 _tmp.Dispose();
 
                 //Set data extent. Data extent is set, so z-axis is along the
                 //first dimension, and y-axis is along the last dimension.
                 //This will be reversed when the data gets converted to vtkImagedata.
-                data = new byte[dims[2], dims[1], dims[0]];
+                data = new byte[output_dims[5] - output_dims[4], output_dims[3] - output_dims[2], output_dims[1] - output_dims[0]];
             }
 
             //Read image
@@ -297,7 +310,7 @@ namespace CNTKIntegration.Components
                 Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
                 Bitmap _image = BitmapConverter.ToBitmap(_tmp);
                 //Lock bits
-                Rectangle _rect = new Rectangle(0, 0, dims[1], dims[0]);
+                Rectangle _rect = new Rectangle(0, 0, input_dims[1], input_dims[0]);
                 BitmapData _bmpData =
                     _image.LockBits(_rect, ImageLockMode.ReadOnly, _image.PixelFormat);
 
@@ -316,11 +329,11 @@ namespace CNTKIntegration.Components
 
                 //Read bits to byte array in parallel
                 //Remember the data orientation
-                Parallel.For(0, dims[0], (int h) =>
+                Parallel.For(output_dims[0], output_dims[1], (int h) =>
                 {
-                    Parallel.For(0, dims[1], (int w) =>
+                    Parallel.For(output_dims[2], output_dims[3], (int w) =>
                     {
-                        data[idx, w, h] = _grayValues[mapPixel(h, w, 0)];
+                        data[idx - output_dims[4], w - output_dims[2], h - output_dims[0]] = _grayValues[mapPixel(h, w, 0)];
                     });
                 });
             }
@@ -329,7 +342,7 @@ namespace CNTKIntegration.Components
             public void Load()
             {
                 //Loop over files
-                Parallel.For(0, dims[2], (int d) =>
+                Parallel.For(output_dims[4], output_dims[5], (int d) =>
                 {
                     readImage(d);
                 });

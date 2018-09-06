@@ -151,6 +151,7 @@ namespace HistoGrading.Components
             //Declare loader
             ParaLoader loader = new ParaLoader();
             //Set input path to loader
+            int[] dims = new int[] { 200, 600, 200, 600, 200, 600 };
             loader.setInput(path);
             //Load data
             loader.Load();
@@ -234,28 +235,40 @@ namespace HistoGrading.Components
             byte[,,] data;
             //Empty image data
             vtkImageData vtkdata = vtkImageData.New();
-            //Data dimensiosn
-            int[] dims = new int[] { 0, 0, 0 };
+            //Data dimensions
+            int[] input_dims = new int[3];
+            int[] output_dims = new int[6];
             //Empty list for files
             List<string> files;
 
             //Set input files
-            public void setInput(string file)
+            public void setInput(string file, int[] dims = null)
             {
                 //Get files
                 files = getFiles(file);
                 //Read image and get dimensions
                 Mat _tmp = new Mat(file, ImreadModes.GrayScale);
-                dims[0] = _tmp.Height;
-                dims[1] = _tmp.Width;
-                dims[2] = files.Count;
+                input_dims[0] = _tmp.Height;
+                input_dims[1] = _tmp.Width;
+                input_dims[2] = files.Count;
+                //Set output dimensions
+                if (dims == null)
+                {
+                    output_dims[0] = 0; output_dims[1] = input_dims[0];
+                    output_dims[2] = 0; output_dims[3] = input_dims[1];
+                    output_dims[4] = 0; output_dims[5] = input_dims[2];
+                }
+                else
+                {
+                    output_dims = dims;                    
+                }
                 //Clear temp file
                 _tmp.Dispose();
 
                 //Set data extent. Data extent is set, so z-axis is along the
-                //fisrt dimension, and y-axis is along the last dimension.
+                //first dimension, and y-axis is along the last dimension.
                 //This will be reversed when the data gets converted to vtkImagedata.
-                data = new byte[dims[2], dims[1], dims[0]];
+                data = new byte[output_dims[5] - output_dims[4], output_dims[3] - output_dims[2], output_dims[1] - output_dims[0]];
             }
 
             //Read image
@@ -266,7 +279,7 @@ namespace HistoGrading.Components
                 Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
                 Bitmap _image = BitmapConverter.ToBitmap(_tmp);
                 //Lock bits
-                Rectangle _rect = new Rectangle(0, 0, dims[1], dims[0]);
+                Rectangle _rect = new Rectangle(0, 0, input_dims[1], input_dims[0]);
                 BitmapData _bmpData =
                     _image.LockBits(_rect, ImageLockMode.ReadOnly, _image.PixelFormat);
 
@@ -285,11 +298,11 @@ namespace HistoGrading.Components
 
                 //Read bits to byte array in parallel
                 //Remember the data orientation
-                Parallel.For(0, dims[0], (int h) =>
+                Parallel.For(output_dims[0], output_dims[1], (int h) =>
                 {
-                    Parallel.For(0, dims[1], (int w) =>
+                    Parallel.For(output_dims[2], output_dims[3], (int w) =>
                     {
-                        data[idx, w, h] = _grayValues[mapPixel(h, w, 0)];
+                        data[idx - output_dims[4], w - output_dims[2], h - output_dims[0]] = _grayValues[mapPixel(h, w, 0)];
                     });
                 });
             }
@@ -298,7 +311,7 @@ namespace HistoGrading.Components
             public void Load()
             {
                 //Loop over files
-                Parallel.For(0, dims[2], (int d) =>
+                Parallel.For(output_dims[4], output_dims[5], (int d) =>
                 {
                     readImage(d);
                 });
@@ -307,27 +320,8 @@ namespace HistoGrading.Components
             //Extract data as vtkImageData
             public vtkImageData GetData()
             {
-                //Character array for conversion
-                vtkUnsignedCharArray charArray = vtkUnsignedCharArray.New();
-                //Pin byte array
-                GCHandle pinnedArray = GCHandle.Alloc(data, GCHandleType.Pinned);
-                //Set character array input
-                charArray.SetArray(pinnedArray.AddrOfPinnedObject(), dims[0] * dims[1] * dims[2], 1);
-                //Set vtkdata properties and connect array
-                //Data from char array
-                vtkdata.GetPointData().SetScalars(charArray);
-                //Number of scalars/pixel
-                vtkdata.SetNumberOfScalarComponents(1);
-                //Data extent, 1st and last axis are swapped from the char array
-                //Data is converted back to original orientation
-                vtkdata.SetExtent(0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1);
-                //Scalar type
-                vtkdata.SetScalarTypeToUnsignedChar();
-                vtkdata.Update();
-
-                //Clear memory
-                data = null;
-                //Return vtk data
+                //Conver byte data to vtkImageData
+                vtkdata = DataTypes.byteToVTK(data);
                 return vtkdata;
             }
 

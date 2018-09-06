@@ -10,7 +10,7 @@ using Kitware.VTK;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
-namespace CNTKIntegration.Components
+namespace HistoGrading.Components
 {
     class DataTypes
     {
@@ -48,7 +48,7 @@ namespace CNTKIntegration.Components
         {
             //Get vtk data dimensions
             int[] extent = vtkdata.GetExtent();
-            int[] dims = new int[] { extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1 };
+            int[] dims = new int[] { extent[1] - extent[0], extent[3] - extent[2], extent[5] - extent[4] };
             //New byte array for conversions
             byte[] bytedata = new byte[dims[0] * dims[1] * dims[2]];
             //pin bytedata to memory
@@ -75,7 +75,7 @@ namespace CNTKIntegration.Components
             float[] floatdata = new float[bytedata.Length];
 
             //Iterate over bytedata
-            Parallel.For(0,bytedata.Length, (int k) =>
+            Parallel.For(0, bytedata.Length, k =>
             {
                 //If normalization parameters are not give, return bytedata cast as float data
                 if (mu == 0)
@@ -85,7 +85,7 @@ namespace CNTKIntegration.Components
                 //Otherwise normalize data
                 else
                 {
-                    floatdata[k] = (float)bytedata[k]-mu;
+                    floatdata[k] = (float)bytedata[k] - mu;
                     if (sd != 0)
                     {
                         floatdata[k] /= sd;

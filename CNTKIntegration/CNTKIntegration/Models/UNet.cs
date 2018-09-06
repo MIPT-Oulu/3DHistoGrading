@@ -462,22 +462,23 @@ namespace CNTKIntegration.Models
 
         //Variable declarations
         public static int BW;
-        public static int[] bdims;
+        public static int[] input_size;
+        public static int n_samples;
         public static string wpath;
         static Function model;
         static Variable feature;
 
         //Model initialization
 
-        public void Initialize(int base_width, int[] batch_dims, string weight_path = null, bool use_bn = true)
+        public void Initialize(int base_width, int[] sample_size, string weight_path = null, bool use_bn = true)
         {
             //Network and data parameters
             BW = base_width;
-            bdims = batch_dims;
+            input_size = sample_size;
             //Path to weights
             wpath = weight_path;
             //Input feature
-            feature = Variable.InputVariable(batch_dims, DataType.Float);
+            feature = Variable.InputVariable(input_size, DataType.Float);
             //Create the model
             create_model(use_bn);
         }
@@ -565,10 +566,12 @@ namespace CNTKIntegration.Models
         }
 
         //Inference
-        public float[] Inference(float[] data)
+        public IList<IList<float>> Inference(float[] data)
         {
+            //Get number of samples
+            n_samples = data.Length / (input_size[0] * input_size[1]);
             //Generate batch from input data
-            Value inputdata = mapBatch(data);
+            Value inputdata = mapBatch(data, n_samples);
             //Map input array to feature
             var inputDataMap = new Dictionary<Variable, Value>() { { feature, inputdata } };
             //Create output featuremap
@@ -576,24 +579,24 @@ namespace CNTKIntegration.Models
             //Forward pass
             model.Evaluate(inputDataMap, outputDataMap, DeviceDescriptor.CPUDevice);
             //Get output
-            float[] outarray = get_output(outputDataMap, bdims);
+            IList<IList<float>> output = get_output(outputDataMap, input_size, n_samples);
 
             //Save the model
             model.Save("C:\\users\\jfrondel\\desktop\\GITS\\cntkunet.model");
-            return outarray;
+            return output;
         }
 
         //Method for mapping float array to minibatch
-        private static Value mapBatch(float[] data)
+        private static Value mapBatch(float[] data, int n_inputs)
         {
             //Map input data to value
-            Value featureVal = Value.CreateBatch<float>(bdims, data, DeviceDescriptor.CPUDevice);
+            Value featureVal = Value.CreateBatch<float>(input_size, data, 0, data.Length, DeviceDescriptor.CPUDevice);
 
             return featureVal;
         }
 
         //Method for extracting inference output
-        private static float[] get_output(Dictionary<Variable, Value> result, int[] dims)
+        private static IList<IList<float>> get_output(Dictionary<Variable, Value> result, int[] dims, int samples)
         {
             //Get dictionary keys
             Dictionary<Variable, Value>.KeyCollection keys = result.Keys;
@@ -605,8 +608,9 @@ namespace CNTKIntegration.Models
             var D = result[key];
             outlist = D.GetDenseData<float>(key);
 
+            /*
             //Output array
-            float[] outarray = new float[dims[0] * dims[1]];
+            float[] outarray = new float[dims[0] * dims[1] * samples];
             //Iterator
             int c = 0;
             //Iterate over list elements and collect to array
@@ -619,8 +623,8 @@ namespace CNTKIntegration.Models
                     c += 1;
                 }
             }
-
-            return outarray;
+            */
+            return outlist;
         }
 
     }
