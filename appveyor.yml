@@ -7,8 +7,9 @@ version: 1.0.{build}
 branches:
   # whitelist
   only:
-    - grading
     - master
+    - grading
+    - sample-processing
 
 # Restore nuget packages before running msbuild
 image: 

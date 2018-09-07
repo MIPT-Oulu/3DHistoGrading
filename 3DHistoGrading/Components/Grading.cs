@@ -12,6 +12,10 @@ using Accord.Math;
 using Accord.Math.Decompositions;
 using Accord.Statistics;
 
+using Kitware.VTK;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
+
 namespace HistoGrading.Components
 {
     /// <summary>
@@ -51,47 +55,41 @@ namespace HistoGrading.Components
         /// </summary>
         /// <param name="mod">Loaded model.</param>
         /// <param name="features">LBP features.</param>
+        /// <param name="volume">Data array.</param>
         /// <returns>Returns string containing the OA grade</returns>
-        public static string Predict(Model mod, ref int[,] features)
+        public static string Predict(Model mod, ref int[,] features, ref Rendering.renderPipeLine volume)
         {
+            // Default variables
+            int threshold = 80;
+            int[] size = { 400, 30 };
+
             // Load default model
             string state = LoadModel(ref mod);
 
-            //// Check if model is not loaded
-            //if (mod.nComp == 0 || mod.singularValues == null || mod.eigenVectors == null || mod.weights == null)
-            //    return "Model not loaded";
+            // Surface extraction
+            Processing.SurfaceExtraction(ref volume, threshold, size, out int[,] surfacecoordinates, out byte[,,] surface);
+
+            // Mean and std images
+            Processing.MeanAndStd(surface, out double[,] meanImage, out double[,] stdImage);
 
             //
             // LBP features
             //
 
-            //// Load sample features
-            //if (features.Length == 0) // Calculate if doesn't exist already
-            //{
-            //    // Load LBP features
-            //    string filename = 
-            //        new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
-            //        .Parent.Parent.Parent.Parent.FullName + @"\Default\sample_features.csv"; // Move to correct location and add file name
-
-            //    features = LBPLibrary.Functions
-            //        .ReadCSV(filename)
-            //        .ToInt32();
-            //}
-
-            //Calculate LBP from selected samples
-            //if (features.Length == 0) // Calculate if doesn't exist already
-            features = LBP();
+            features = LBP(meanImage.Add(stdImage));
+            //LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\mean.png", meanImage, true);
+            //LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\std.png", stdImage, true);
 
             // PCA
-            double[,] dataAdjust = SubtractMean(features.ToDouble());
+            double[,] dataAdjust = Processing.SubtractMean(features.ToDouble());
             double[,] PCA = dataAdjust.Dot(mod.eigenVectors.ToDouble());
 
             // Regression
             double[] grade = PCA.Dot(mod.weights).Add(1.5);
 
-            double sum = CompareGrades(grade);
+            //double sum = CompareGrades(grade);
 
-            return "OA grade (sample 1): " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
+            return "OA grade: " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
             //return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###", CultureInfo.InvariantCulture);
         }
 
@@ -119,74 +117,28 @@ namespace HistoGrading.Components
 
         /// <summary>
         /// Calculates LBP features using LBPLibrary Nuget package.
-        /// Currently asks user to input directories for surface images and save paths.
-        /// When surfaceimages can be calculated in GUI, this should be modified.
+        /// Takes grayscale image as input.
+        /// Currently software inputs sum of mean and standard images of surface VOI.
         /// </summary>
         /// <returns>Feature array.</returns>
-        public static int[,] LBP()
+        public static int[,] LBP(double[,] inputImage)
         {
-            // Select load path
-            string path = null, meanpath = null, stdpath = null, savepath = null;
+            // Get default parameters
+            Parameters param = new Parameters();
 
-            //path = Functions.GetDirectory("Select the directory to load images"); // Used in batch calculation
-            meanpath = Functions.GetFile("Select mean image to be calculated"); // Used in single calculation
-            stdpath = Functions.GetFile("Select std image to be calculated"); // Used in single calculation in mean and std calculation
-            //savepath = Functions.GetDirectory("Select the directory to save results");
+            // Grayscale standardization
+            var standrd = new LocalStandardization(param.W_stand[0], param.W_stand[1], param.W_stand[2], param.W_stand[3]);
+            standrd.Standardize(ref inputImage, param.Method); // standardize given image
 
-            // Is no selection was made, return
-            if (meanpath == null || stdpath == null)
-                return new int[0, 0];
+            // LBP calculation
+            LBPApplication.PipelineMRELBP(inputImage, param,
+                    out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR, out int[] histL, out int[] histS, out int[] histR, out int[] histCenter);
 
-            // Requires mean and std images from surface volume
-            Parameters param = new Parameters() { Meanstd = true, ImageType = ".dat" };
-            // Calculate single LBP image
-            RunLBP run = new RunLBP()
-            {
-                //path = path,
-                //savepath = savepath,
-                meanpath = meanpath,
-                stdpath = stdpath,
-              
-                param = param
-            };
+            // Concatenate histograms
+            int[] f = Matrix.Concatenate(histCenter, Matrix.Concatenate(histL, Matrix.Concatenate(histS, histR)));
+            int[,] features = new int[0, 0];
 
-            // Calculate single image
-            run.CalculateSingle();
-
-            // Calculate batch
-            //run.CalculateBatch();
-
-            return run.features;
-        }
-
-        /// <summary>
-        /// Computes mean along each column of the array
-        /// and subtracts it along the columns.
-        /// </summary>
-        /// <param name="array">Array to be calculated.</param>
-        /// <returns>Subtracted array.</returns>
-        public static double[,] SubtractMean(double[,] array)
-        {
-            int w = array.GetLength(0), l = array.GetLength(1);
-            double[,] dataAdjust = new double[0, 0];
-            double[] means = new double[w];
-
-            for (int i = 0; i < w; i++)
-            {
-                // Select column
-                double[] vector = 
-                    LBPLibrary.Functions.ArrayToVector(
-                    LBPLibrary.Functions.GetSubMatrix(array, i, i, 0, l - 1));
-
-                // Subtract mean
-                means[i] = vector.Average();
-                vector = Elementwise.Subtract(vector, means[i]);
-                
-                // Concatenate
-                dataAdjust = Matrix.Concatenate(dataAdjust, vector);
-            }
-
-            return dataAdjust;
+            return Matrix.Concatenate(features, f); ;
         }
     }
 

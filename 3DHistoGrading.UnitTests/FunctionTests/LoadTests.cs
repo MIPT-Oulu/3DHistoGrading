@@ -34,23 +34,23 @@ namespace _3DHistoGrading.UnitTests.FunctionTests
             Xunit.Assert.Empty(result);
         }
 
-        ////[Theory]
-        ////[InlineData(".png")]
-        ////[InlineData(".bmp")]
-        ////[InlineData(".tiff")]
+        [Xunit.Theory]
+        [InlineData(".png")]
+        [InlineData(".bmp")]
+        [InlineData(".tiff")]
         //[TestCase(".png")]
         //[TestCase(".bmp")]
         //[TestCase(".tiff")]
-        //public void Load_LoadTestImage_EqualsInput(string extension)
-        //{
-        //    string load = @"C:\temp\test\load";
-        //    testImg.New("Quarters", new int[] { 28, 28 });
-        //    LBPLibrary.Functions.Save(load + @"\Test1" + extension, testImg.Image.ToDouble(), false);
-        //    vtkImageData data = Functions.VTKLoader(load + @"\", extension);
-        //    Bitmap bmp = data.ToBitmap();
-        //    var array = LBPLibrary.Functions.BitmapToFloatMatrix(bmp); 
+        public void Load_LoadTestImage_EqualsInput(string extension)
+        {
+            string load = @"C:\temp\test\load";
+            testImg.New("Quarters", new int[] { 28, 28 });
+            LBPLibrary.Functions.Save(load + @"\Test1" + extension, testImg.Image.ToDouble(), false);
 
-        //    NUnit.Framework.Assert.AreEqual(testImg.Image, array);
-        //}
+            //var data = Functions.ByteToVTK(testImg.Image.ToByte());
+
+            //NUnit.Framework.Assert.AreEqual(vt, data);
+            //Xunit.Assert.Equal(data, new vtkImageData());
+        }
     }
 }
