@@ -19,7 +19,11 @@ namespace HistoGrading.Components
     /// </summary>
     public class DataTypes
     {
-        //3D byte array to vtkimagedata
+        /// <summary>
+        /// Converts 3D byte array to vtkImageData.
+        /// </summary>
+        /// <param name="data">Input array.</param>
+        /// <returns>Converted array.</returns>
         public static vtkImageData byteToVTK(byte[,,] data)
         {
             //Get input dimensions
@@ -48,7 +52,12 @@ namespace HistoGrading.Components
             return vtkdata;
         }
 
-        //vtkimagedata to 1d byte array
+        /// <summary>
+        /// Converts 3D vtkImageData to 1D byte array.
+        /// </summary>
+        /// <param name="vtkdata">Input data.</param>
+        /// <param name="dims">Dimensions of the converted array. Give these as input to <seealso cref="VectorToVolume{T}(T[], int[])"/> function to convert from 1D to 3D.</param>
+        /// <returns>Converted 1D array of vtkImageData.</returns>
         public static byte[] vtkToByte(vtkImageData vtkdata, out int[] dims)
         {
             //Get vtk data dimensions

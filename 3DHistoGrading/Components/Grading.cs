@@ -59,45 +59,27 @@ namespace HistoGrading.Components
         /// <returns>Returns string containing the OA grade</returns>
         public static string Predict(Model mod, ref int[,] features, ref Rendering.renderPipeLine volume)
         {
-            // Load default model
-            string state = LoadModel(ref mod);
-
-            //
-            // Surface extraction
-            //
-
             // Default variables
-            //int threshold = 8;
-            //int[] size = {4, 3};
             int threshold = 80;
             int[] size = { 400, 30 };
 
+            // Load default model
+            string state = LoadModel(ref mod);
+
+            // Surface extraction
             Processing.SurfaceExtraction(ref volume, threshold, size, out int[,] surfacecoordinates, out byte[,,] surface);
 
+            // Mean and std images
             Processing.MeanAndStd(surface, out double[,] meanImage, out double[,] stdImage);
 
             //
             // LBP features
             //
 
-            //// Load sample features
-            //if (features.Length == 0) // Calculate if doesn't exist already
-            //{
-            //    // Load LBP features
-            //    string filename = 
-            //        new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
-            //        .Parent.Parent.Parent.Parent.FullName + @"\Default\sample_features.csv"; // Move to correct location and add file name
-
-            //    features = LBPLibrary.Functions
-            //        .ReadCSV(filename)
-            //        .ToInt32();
-            //}
-
-            //Calculate LBP from selected samples
-            //if (features.Length == 0) // Calculate if doesn't exist already
             features = LBP(meanImage.Add(stdImage));
-            LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\mean.png", meanImage, true);
-            LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\std.png", stdImage, true);
+            //LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\mean.png", meanImage, true);
+            //LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\std.png", stdImage, true);
+
             // PCA
             double[,] dataAdjust = Processing.SubtractMean(features.ToDouble());
             double[,] PCA = dataAdjust.Dot(mod.eigenVectors.ToDouble());
@@ -105,9 +87,9 @@ namespace HistoGrading.Components
             // Regression
             double[] grade = PCA.Dot(mod.weights).Add(1.5);
 
-            double sum = CompareGrades(grade);
+            //double sum = CompareGrades(grade);
 
-            return "OA grade (sample 1): " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
+            return "OA grade: " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
             //return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###", CultureInfo.InvariantCulture);
         }
 

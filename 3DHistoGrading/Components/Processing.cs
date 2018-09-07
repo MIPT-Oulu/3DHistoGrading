@@ -48,13 +48,23 @@ namespace HistoGrading.Components
             return threshold.GetOutput();
         }
 
+        /// <summary>
+        /// Calculates size[0] x size[0] x size[1] cubic volume of surface from the center of the sample.
+        /// Currently performs the calculation from upper third of the sample to save memory.
+        /// Creates a copy from the full data array, then crops the copy to 1/3 size.
+        /// </summary>
+        /// <param name="volume">Input sample data that contains vtkImageData.</param>
+        /// <param name="threshold">Grayscale threshold for sample surface and centering.</param>
+        /// <param name="size">Size of the calculated surface volume.</param>
+        /// <param name="surfacecoordinates">Array of z-coordinates of sample surface. These can be used with size parameter to visualize the surface volume.</param>
+        /// <param name="surfacevoi">Calculated surface volume.</param>
         public static void SurfaceExtraction(ref Rendering.renderPipeLine volume, int threshold, int[] size, 
             out int[,] surfacecoordinates, out byte[,,] surfacevoi)
         {
+            // Convert vtkImageData to byte[,,]
             byte[,,] byteVolume =
                 DataTypes.VectorToVolume(
                 DataTypes.vtkToByte(volume.idata, out int[] dims), dims);
-
 
             // Crop to upper third of the sample
             int[] crop = { 0, byteVolume.GetLength(0) - 1, 0, byteVolume.GetLength(1) - 1, 0, (int)Math.Floor((double)byteVolume.GetLength(2) / 3) };
@@ -65,6 +75,9 @@ namespace HistoGrading.Components
 
             // Get surface
             GetSurface(byteVolume, center, size, threshold, out surfacecoordinates, out surfacevoi);
+
+            // Free memory
+            byteVolume = null;
         }
 
         /// <summary>

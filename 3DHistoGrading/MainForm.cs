@@ -398,13 +398,6 @@ namespace HistoGrading
             }
         }
 
-        //// Load Grading model
-        //private void loadModel_Click(object sender, EventArgs e)
-        //{
-        //    string state = Grading.LoadModel(ref model);
-        //    sliceLabel.Text = state;
-        //}
-
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {

@@ -465,7 +465,7 @@ namespace HistoGrading.Components
             }
 
             /// <summary>
-            /// Render image mask, see renderVolumeMask().
+            /// Render image mask, see <seealso cref="renderVolumeMask()"/>.
             /// </summary>
             public void renderImageMask()
             {
