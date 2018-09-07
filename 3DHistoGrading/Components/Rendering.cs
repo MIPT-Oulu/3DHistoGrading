@@ -337,7 +337,10 @@ namespace HistoGrading.Components
             //Renderer
             vtkRenderer renderer = vtkRenderer.New();
             //Volume/image data
-            vtkImageData idata = vtkImageData.New();
+            /// <summary>
+            /// Original loaded image data as vtkImageData object.
+            /// </summary>
+            public vtkImageData idata = vtkImageData.New();
             vtkImageData imask = vtkImageData.New();
             //Rendering pipelines
             volumePipeLine volPipe = new volumePipeLine();

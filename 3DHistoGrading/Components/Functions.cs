@@ -132,7 +132,11 @@ namespace HistoGrading.Components
             return permuter.GetOutput();
         }
 
-        //Prerocessing
+        /// <summary>
+        /// Create scalar copy of vtkImageData.
+        /// </summary>
+        /// <param name="data">Input data.</param>
+        /// <returns>Copied data.</returns>
         public static vtkImageData scalarCopy(vtkImageData data)
         {
             /*DEPRECATED!!*/
@@ -242,123 +246,9 @@ namespace HistoGrading.Components
             return names;
         }
 
-        /// <summary>
-        /// Image loader, reads images in parallel 
-        /// </summary>
-        public class ParaLoader
-        {
-            //Declarations
+        
 
-            //Empty byte array
-            byte[,,] data;
-            //Empty image data
-            vtkImageData vtkdata = vtkImageData.New();
-            //Data dimensions
-            int[] dims = new int[] { 0, 0, 0 };
-            //Empty list for files
-            List<string> files;
-
-            /// <summary>
-            /// Set input files
-            /// </summary>
-            /// <param name="file">File path.</param>
-            public void setInput(string file)
-            {
-                //Get files
-                files = getFiles(file);
-                //Read image and get dimensions
-                Mat _tmp = new Mat(file, ImreadModes.GrayScale);
-                dims[0] = _tmp.Height;
-                dims[1] = _tmp.Width;
-                dims[2] = files.Count;
-                //Clear temp file
-                _tmp.Dispose();
-
-                //Set data extent. Data extent is set, so z-axis is along the
-                //fisrt dimension, and y-axis is along the last dimension.
-                //This will be reversed when the data gets converted to vtkImagedata.
-                data = new byte[dims[2], dims[1], dims[0]];
-            }
-
-            /// <summary>
-            /// Read image from file idx. The image is read using OpenCV, and converted to Bitmap.
-            /// Bitmap is then read to the bytearray.
-            /// </summary>
-            /// <param name="idx">File index.</param>
-            private void readImage(int idx)
-            {
-                Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
-                Bitmap _image = BitmapConverter.ToBitmap(_tmp);
-                //Lock bits
-                Rectangle _rect = new Rectangle(0, 0, dims[1], dims[0]);
-                BitmapData _bmpData =
-                    _image.LockBits(_rect, ImageLockMode.ReadOnly, _image.PixelFormat);
-
-                //Get the address of first line
-                IntPtr _ptr = _bmpData.Scan0;
-
-                //Declare new array for gray scale values
-                int _bytes = Math.Abs(_bmpData.Stride) * _bmpData.Height;
-                byte[] _grayValues = new byte[_bytes];
-
-                //Copy the rgb values to the new array
-                Marshal.Copy(_ptr, _grayValues, 0, _bytes);
-
-                //Method for correct pixel mapping
-                Func<int, int, int, int> mapPixel = GetPixelMapper(_image.PixelFormat, _bmpData.Stride);
-
-                //Read bits to byte array in parallel
-                //Remember the data orientation
-                Parallel.For(0, dims[0], (int h) =>
-                {
-                    Parallel.For(0, dims[1], (int w) =>
-                    {
-                        data[idx, w, h] = _grayValues[mapPixel(h, w, 0)];
-                    });
-                });
-            }
-
-            /// <summary>
-            /// Load all images in parallel
-            /// </summary>
-            public void Load()
-            {
-                //Loop over files
-                Parallel.For(0, dims[2], (int d) =>
-                {
-                    readImage(d);
-                });
-            }
-
-            /// <summary>
-            /// Extract data as vtkImageData
-            /// </summary>
-            /// <returns>Converted data as vtkImageData variable.</returns>
-            public vtkImageData GetData()
-            {
-                //Character array for conversion
-                vtkUnsignedCharArray charArray = vtkUnsignedCharArray.New();
-                //Pin byte array
-                GCHandle pinnedArray = GCHandle.Alloc(data, GCHandleType.Pinned);
-                //Set character array input
-                charArray.SetArray(pinnedArray.AddrOfPinnedObject(), dims[0] * dims[1] * dims[2], 1);
-                //Set vtkdata properties and connect array
-                //Data from char array
-                vtkdata.GetPointData().SetScalars(charArray);
-                //Number of scalars/pixel
-                vtkdata.SetNumberOfScalarComponents(1);
-                //Data extent, 1st and last axis are swapped from the char array
-                //Data is converted back to original orientation
-                vtkdata.SetExtent(0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1);
-                //Scalar type
-                vtkdata.SetScalarTypeToUnsignedChar();
-                vtkdata.Update();
-
-                //Clear memory
-                data = null;
-                //Return vtk data
-                return vtkdata;
-            }
+            
 
             /// <summary>
             /// Function for correctly mapping the pixel values, copied from CNTK examples.
@@ -381,7 +271,7 @@ namespace HistoGrading.Components
                         return (h, w, c) => h * stride + w;
                 }
             }
-        }
+        
 
         /// <summary>
         /// Prompts a folderbrowserdialog with given description.
@@ -421,38 +311,128 @@ namespace HistoGrading.Components
         }
 
         /// <summary>
+        /// Crop volume to selected length.
+        /// </summary>
+        /// <typeparam name="T">Data type can be selected by user.</typeparam>
+        /// <param name="volume">Volume to be cropped.</param>
+        /// <param name="dims">Cropping dimensions. Format: x1, x2, y1, y2, z1, z2.</param>
+        /// <returns>Cropped volume.</returns>
+        public static T[,,] Crop3D<T>(T[,,] volume, int[] dims)
+        {
+            if (dims.Length != 6)
+                throw new Exception("Invalid number of dimensions on dims variable. Include 6 dimensions.");
+            T[,,] croppedVolume = new T[dims[1] - dims[0] + 1, dims[3] - dims[2] + 1, dims[5] - dims[4] + 1];
+
+            Parallel.For(dims[0], dims[1] + 1, x =>
+            {
+                Parallel.For(dims[2], dims[3] + 1, y =>
+                {
+                    Parallel.For(dims[4], dims[5] + 1, z =>
+                    {
+                        croppedVolume[x - dims[0], y - dims[2], z - dims[4]] = volume[x, y, z];
+                    });
+                });
+            });
+            return croppedVolume;
+        }
+    }
+
+    /// <summary>
+    /// Image loader, reads images in parallel 
+    /// </summary>
+    public class ParaLoader
+    {
+        //Declarations
+
+        //Empty byte array
+        byte[,,] data;
+        //Empty image data
+        vtkImageData vtkdata = vtkImageData.New();
+        //Data dimensions
+        int[] dims = new int[] { 0, 0, 0 };
+        //Empty list for files
+        List<string> files;
+
+        /// <summary>
+        /// Set input files
+        /// </summary>
+        /// <param name="file">File path.</param>
+        public void setInput(string file)
+        {
+            //Get files
+            files = Functions.getFiles(file);
+            //Read image and get dimensions
+            Mat _tmp = new Mat(file, ImreadModes.GrayScale);
+            dims[0] = _tmp.Height;
+            dims[1] = _tmp.Width;
+            dims[2] = files.Count;
+            //Clear temp file
+            _tmp.Dispose();
+
+            //Set data extent. Data extent is set, so z-axis is along the
+            //fisrt dimension, and y-axis is along the last dimension.
+            //This will be reversed when the data gets converted to vtkImagedata.
+            data = new byte[dims[2], dims[1], dims[0]];
+        }
+
+        /// <summary>
+        /// Read image from file idx. The image is read using OpenCV, and converted to Bitmap.
+        /// Bitmap is then read to the bytearray.
+        /// </summary>
+        /// <param name="idx">File index.</param>
+        private void readImage(int idx)
+        {
+            Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
+            Bitmap _image = BitmapConverter.ToBitmap(_tmp);
+            //Lock bits
+            Rectangle _rect = new Rectangle(0, 0, dims[1], dims[0]);
+            BitmapData _bmpData =
+                _image.LockBits(_rect, ImageLockMode.ReadOnly, _image.PixelFormat);
+
+            //Get the address of first line
+            IntPtr _ptr = _bmpData.Scan0;
+
+            //Declare new array for gray scale values
+            int _bytes = Math.Abs(_bmpData.Stride) * _bmpData.Height;
+            byte[] _grayValues = new byte[_bytes];
+
+            //Copy the rgb values to the new array
+            Marshal.Copy(_ptr, _grayValues, 0, _bytes);
+
+            //Method for correct pixel mapping
+            Func<int, int, int, int> mapPixel = Functions.GetPixelMapper(_image.PixelFormat, _bmpData.Stride);
+
+            //Read bits to byte array in parallel
+            //Remember the data orientation
+            Parallel.For(0, dims[0], (int h) =>
+            {
+                Parallel.For(0, dims[1], (int w) =>
+                {
+                    data[idx, w, h] = _grayValues[mapPixel(h, w, 0)];
+                });
+            });
+        }
+
+        /// <summary>
+        /// Load all images in parallel
+        /// </summary>
+        public void Load()
+        {
+            //Loop over files
+            Parallel.For(0, dims[2], (int d) =>
+            {
+                readImage(d);
+            });
+        }
+
+        /// <summary>
         /// Extract data as vtkImageData
         /// </summary>
         /// <returns>Converted data as vtkImageData variable.</returns>
-        public static vtkImageData ByteToVTK(byte[,] data)
+        public vtkImageData GetData()
         {
-            //Initialize objects
-            var vtkdata = new vtkImageData();
-            int[] dims = new int[] { 0, 0, 0 };
-            dims[0] = data.GetLength(0);
-            dims[1] = data.GetLength(1);
-
-            //Character array for conversion
-            vtkUnsignedCharArray charArray = vtkUnsignedCharArray.New();
-            //Pin byte array
-            GCHandle pinnedArray = GCHandle.Alloc(data, GCHandleType.Pinned);
-            //Set character array input
-            charArray.SetArray(pinnedArray.AddrOfPinnedObject(), dims[0] * dims[1] * dims[2], 1);
-            //Set vtkdata properties and connect array
-            //Data from char array
-            vtkdata.GetPointData().SetScalars(charArray);
-            //Number of scalars/pixel
-            vtkdata.SetNumberOfScalarComponents(1);
-            //Data extent, 1st and last axis are swapped from the char array
-            //Data is converted back to original orientation
-            vtkdata.SetExtent(0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1);
-            //Scalar type
-            vtkdata.SetScalarTypeToUnsignedChar();
-            vtkdata.Update();
-
-            //Clear memory
-            data = null;
-            //Return vtk data
+            //Conver byte data to vtkImageData
+            vtkdata = DataTypes.byteToVTK(data);
             return vtkdata;
         }
     }

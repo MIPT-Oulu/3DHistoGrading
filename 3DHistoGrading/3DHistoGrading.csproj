@@ -101,6 +101,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\DataTypes.cs" />
     <Compile Include="Components\Functions.cs" />
     <Compile Include="Components\Grading.cs" />
     <Compile Include="Components\Processing.cs" />
