@@ -20,7 +20,7 @@ namespace CNTKIntegration
         static void visualize_data(vtkImageData data)
         {
             //Visualize
-            vtkImageData slice = Functions.volumeSlicer(data, new int[] { 0, 0, 0 }, 1);
+            vtkImageData slice = Functions.volumeSlicer(data, new int[] { 0, 150, 0 }, 1);
             vtkImageActor actor = vtkImageActor.New();
             actor.SetInput(slice);
             vtkRenderWindow renWin = vtkRenderWindow.New();
@@ -33,34 +33,43 @@ namespace CNTKIntegration
         {
             //Load VOI from CTStack
             string path = "D:\\3D-Histo\\3D_histo_REC_data\\PTAjaCA4+\\13_R3L_2_PTA_48h_Rec\\13_R3L_2_PTA_48h__rec00000044.bmp";
-            int[] input_dims = new int[] { 300, 684, 300, 350, 100, 484 };
-            vtkImageData data = Functions.loadVTK(path,input_dims);
-            vtkImagePermute permuter = vtkImagePermute.New();
-            permuter.SetInput(data);
-            permuter.SetFilteredAxes(0, 2, 1);
-            permuter.Update();
-            vtkImageFlip flipper = vtkImageFlip.New();
-            flipper.SetInput(permuter.GetOutput());
-            flipper.SetFilteredAxes(1);
-            flipper.Update();
-            int[] extent = data.GetExtent();
-            Console.WriteLine("Loaded data");
-            //Convert data to float array
-            //byte[] bytedata = DataTypes.vtkToByte(data);
-            float[] floatdata = DataTypes.byteToFloat(DataTypes.vtkToByte(flipper.GetOutput()), (float)113.05652141, (float)39.87462853);
-
-            Console.WriteLine("Converted to float");
-
+            int[] extent = new int[] { 0, 383, 140, 160, 0, 383 };
+            
+            //Rendering pipeline
+            Rendering.renderPipeLine volume = new Rendering.renderPipeLine();
+            volume.connectData(path, new int[] {200, 967, 200, 967, 0, 767});
+            
+            //Connect rendering window
+            vtkRenderWindow renWin = vtkRenderWindow.New();
+            volume.connectWindow(renWin);
+            volume.updateCurrent(new int[] { 150, 150, 150 }, 1, new int[] { 0, 225 });
+            
             //Load UNet
             string modelpath = "c:\\users\\jfrondel\\Desktop\\GITS\\UNetE3BN.h5";
             UNet model = new UNet();
-            model.Initialize(24, new int[] { extent[1]+1, extent[5]+1, 1 }, modelpath, false);
-
-            //Inference
-            IList<IList<float>> output = model.Inference(floatdata);
-
+            model.Initialize(24, new int[] { 384, 384, 1 }, modelpath, false);
+            
+            //Segment vtk data
+            IList<IList<float>> result = Models.IO.segment_sample(volume, model, extent, 1, 8,(float)113.05652141, (float)39.87462853);
             Console.WriteLine("Inference done!!");
 
+            //Convert back to vtk data
+            int[] full_size = volume.getDims();
+            int[] array_size = new int[] { full_size[1]+1, full_size[3] + 1, full_size[5] + 1 };
+            vtkImageData mask = Models.IO.inference_to_vtk(result, array_size, extent, 1);
+            volume.connectMaskFromMemory(mask);
+            volume.updateCurrent(new int[] { 150, 150, 150 }, 1, new int[] { 0, 225 });
+
+            Console.WriteLine("VTK conversion done!!");
+            //Render input data
+            volume.renderVolume();
+            volume.setVolumeColor();
+
+            //Connect mask to  render window
+            volume.connectMaskFromMemory(mask);
+            volume.renderVolumeMask();
+
+            /*
             //Loop over output list and save images
             int d = 0;
             foreach(IList<float> image in output)
@@ -88,7 +97,7 @@ namespace CNTKIntegration
             }
 
             Console.WriteLine("Saving Done");
-
+            */
             Console.ReadKey();
         }
     }

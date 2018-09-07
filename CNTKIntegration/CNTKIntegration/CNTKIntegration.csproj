@@ -93,7 +93,8 @@
     <Compile Include="Components\DataTypes.cs" />
     <Compile Include="Components\Functions.cs" />
     <Compile Include="Components\HDF5Loader.cs" />
-    <Compile Include="Models\Loader.cs" />
+    <Compile Include="Components\Rendering.cs" />
+    <Compile Include="Models\IO.cs" />
     <Compile Include="Models\UNet.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

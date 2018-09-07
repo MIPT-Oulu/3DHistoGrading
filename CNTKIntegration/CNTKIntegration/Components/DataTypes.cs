@@ -15,7 +15,7 @@ namespace CNTKIntegration.Components
     class DataTypes
     {
         //3D byte array to vtkimagedata
-        public static vtkImageData byteToVTK(byte[,,] data)
+        public static vtkImageData byteToVTK(byte[,,] data, int[] orientation = null)
         {
             //Get input dimensions
             int[] dims = new int[] { data.GetLength(0), data.GetLength(1), data.GetLength(2) };
@@ -40,7 +40,19 @@ namespace CNTKIntegration.Components
             vtkdata.Update();
 
             //Return vtk data
-            return vtkdata;
+            if(orientation == null)
+            {
+                return vtkdata;
+            }
+            else
+            {
+                vtkImagePermute permuter = vtkImagePermute.New();
+                permuter.SetInput(vtkdata);
+                permuter.SetFilteredAxes(orientation[0], orientation[1], orientation[2]);
+                permuter.Update();
+                return permuter.GetOutput();
+            }
+            
         }
 
         //vtkimagedata to 1d byte array
@@ -95,6 +107,54 @@ namespace CNTKIntegration.Components
 
             //return float data
             return floatdata;
+        }
+
+        //Minibatch to byte
+        public static byte[,,] batchToByte(IList<IList<float>> batch, int[] output_size = null, int[] extent = null)
+        {
+            //Get number of slices
+            int n_slices = batch.Count();
+            //Get slice dimensions
+            IList<float> tmpL = batch.First();
+            float[] tmpA = tmpL.ToArray();
+            int dim = (int)Math.Sqrt(tmpA.Length);
+
+            //outarray
+            byte[,,] outarray;
+            if(output_size == null)
+            {
+                outarray = new byte[n_slices, dim, dim];
+            }
+            else
+            {
+                outarray = new byte[output_size[0], output_size[1], output_size[2]];
+            }
+
+            if(extent == null)
+            {
+                extent = new int[] {0,n_slices-1,00,dim-1,0,dim-1,0};
+            }
+            //Iterate over the list and collect the data to an array
+            int d = extent[0];
+            int stride = dim * dim;
+            foreach(IList<float> item in batch)
+            {
+                //List to array
+                float[] tmp = item.ToArray();
+                //Iterate over the array in parallel
+                Parallel.For(extent[2], extent[3], (int h) =>
+                {
+                    Parallel.For(extent[4], extent[5], (int w) =>
+                    {
+                        int pos = (h - extent[2]) * dim + w - extent[4];
+                        byte val = (byte)(tmp[pos] * (float)255);
+                        outarray[d, h, w] = val;
+                    });
+                });
+                d++;
+            }
+
+            return outarray;
         }
     }
 }
