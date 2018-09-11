@@ -1,39 +1,41 @@
 ﻿namespace HistoGrading
 {
     partial class MainForm
-{
-    /// <summary>
-    /// Required designer variable.
-    /// </summary>
-    private System.ComponentModel.IContainer components = null;
-
-    /// <summary>
-    /// Clean up any resources being used.
-    /// </summary>
-    /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-    protected override void Dispose(bool disposing)
     {
-        if (disposing && (components != null))
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
         {
-            components.Dispose();
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
         }
-        base.Dispose(disposing);
-    }
 
-    #region Windows Form Designer generated code
+        #region Windows Form Designer generated code
 
-    /// <summary>
-    /// Required method for Designer support - do not modify
-    /// the contents of this method with the code editor.
-    /// </summary>
-    private void InitializeComponent()
-    {
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
             this.viewLabel = new System.Windows.Forms.Label();
-            this.transverse2Button = new System.Windows.Forms.Button();
-            this.transverse1Button = new System.Windows.Forms.Button();
+            this.predict = new System.Windows.Forms.Button();
+            this.sagittalButton = new System.Windows.Forms.Button();
             this.coronalButton = new System.Windows.Forms.Button();
+            this.transverseButton = new System.Windows.Forms.Button();
             this.volumeButton = new System.Windows.Forms.Button();
             this.resetButton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -49,7 +51,7 @@
             this.sliceBar = new System.Windows.Forms.VScrollBar();
             this.renderWindowControl = new Kitware.VTK.RenderWindowControl();
             this.fileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.voiButton = new System.Windows.Forms.Button();
+            this.segmentButton = new System.Windows.Forms.Button();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -58,7 +60,7 @@
             // tableLayoutPanel1
             // 
             this.tableLayoutPanel1.ColumnCount = 3;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 150F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 151F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 60F));
             this.tableLayoutPanel1.Controls.Add(this.panel1, 0, 1);
@@ -67,20 +69,23 @@
             this.tableLayoutPanel1.Controls.Add(this.renderWindowControl, 1, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 70F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 449F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1143, 759);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1080, 693);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.voiButton);
+            this.panel1.Controls.Add(this.segmentButton);
+            this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.viewLabel);
-            this.panel1.Controls.Add(this.transverse2Button);
-            this.panel1.Controls.Add(this.transverse1Button);
+            this.panel1.Controls.Add(this.predict);
+            this.panel1.Controls.Add(this.sagittalButton);
             this.panel1.Controls.Add(this.coronalButton);
+            this.panel1.Controls.Add(this.transverseButton);
             this.panel1.Controls.Add(this.volumeButton);
             this.panel1.Controls.Add(this.resetButton);
             this.panel1.Controls.Add(this.label1);
@@ -90,53 +95,82 @@
             this.panel1.Controls.Add(this.maskButton);
             this.panel1.Controls.Add(this.fileButton);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(3, 73);
+            this.panel1.Location = new System.Drawing.Point(3, 74);
+            this.panel1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(144, 683);
+            this.panel1.Size = new System.Drawing.Size(145, 615);
             this.panel1.TabIndex = 0;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(9, 364);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(59, 17);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Grading";
             // 
             // viewLabel
             // 
             this.viewLabel.AutoSize = true;
-            this.viewLabel.Location = new System.Drawing.Point(9, 217);
+            this.viewLabel.Location = new System.Drawing.Point(9, 193);
             this.viewLabel.Name = "viewLabel";
             this.viewLabel.Size = new System.Drawing.Size(37, 17);
             this.viewLabel.TabIndex = 10;
             this.viewLabel.Text = "View";
             // 
-            // transverse2Button
+            // predict
             // 
-            this.transverse2Button.Location = new System.Drawing.Point(6, 351);
-            this.transverse2Button.Name = "transverse2Button";
-            this.transverse2Button.Size = new System.Drawing.Size(132, 32);
-            this.transverse2Button.TabIndex = 9;
-            this.transverse2Button.Text = "Transverse, YZ";
-            this.transverse2Button.UseVisualStyleBackColor = true;
-            this.transverse2Button.Click += new System.EventHandler(this.transverse2Button_Click);
+            this.predict.Location = new System.Drawing.Point(12, 384);
+            this.predict.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.predict.Name = "predict";
+            this.predict.Size = new System.Drawing.Size(125, 52);
+            this.predict.TabIndex = 2;
+            this.predict.Text = "Grade sample";
+            this.predict.UseVisualStyleBackColor = true;
+            this.predict.Click += new System.EventHandler(this.predict_Click);
             // 
-            // transverse1Button
+            // sagittalButton
             // 
-            this.transverse1Button.Location = new System.Drawing.Point(6, 313);
-            this.transverse1Button.Name = "transverse1Button";
-            this.transverse1Button.Size = new System.Drawing.Size(132, 32);
-            this.transverse1Button.TabIndex = 8;
-            this.transverse1Button.Text = "Transverse, XZ";
-            this.transverse1Button.UseVisualStyleBackColor = true;
-            this.transverse1Button.Click += new System.EventHandler(this.transverse1Button_Click);
+            this.sagittalButton.Enabled = false;
+            this.sagittalButton.Location = new System.Drawing.Point(7, 327);
+            this.sagittalButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.sagittalButton.Name = "sagittalButton";
+            this.sagittalButton.Size = new System.Drawing.Size(132, 32);
+            this.sagittalButton.TabIndex = 9;
+            this.sagittalButton.Text = "Sagittal, YZ";
+            this.sagittalButton.UseVisualStyleBackColor = true;
+            this.sagittalButton.Click += new System.EventHandler(this.sagittalButton_Click);
             // 
             // coronalButton
             // 
-            this.coronalButton.Location = new System.Drawing.Point(6, 275);
+            this.coronalButton.Enabled = false;
+            this.coronalButton.Location = new System.Drawing.Point(7, 289);
+            this.coronalButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.coronalButton.Name = "coronalButton";
             this.coronalButton.Size = new System.Drawing.Size(132, 32);
-            this.coronalButton.TabIndex = 7;
-            this.coronalButton.Text = "Coronal";
+            this.coronalButton.TabIndex = 8;
+            this.coronalButton.Text = "Coronal, XZ";
             this.coronalButton.UseVisualStyleBackColor = true;
             this.coronalButton.Click += new System.EventHandler(this.coronalButton_Click);
             // 
+            // transverseButton
+            // 
+            this.transverseButton.Enabled = false;
+            this.transverseButton.Location = new System.Drawing.Point(7, 252);
+            this.transverseButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.transverseButton.Name = "transverseButton";
+            this.transverseButton.Size = new System.Drawing.Size(132, 32);
+            this.transverseButton.TabIndex = 7;
+            this.transverseButton.Text = "Transverse, XY";
+            this.transverseButton.UseVisualStyleBackColor = true;
+            this.transverseButton.Click += new System.EventHandler(this.transverseButton_Click);
+            // 
             // volumeButton
             // 
-            this.volumeButton.Location = new System.Drawing.Point(6, 237);
+            this.volumeButton.Enabled = false;
+            this.volumeButton.Location = new System.Drawing.Point(7, 214);
+            this.volumeButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.volumeButton.Name = "volumeButton";
             this.volumeButton.Size = new System.Drawing.Size(132, 32);
             this.volumeButton.TabIndex = 6;
@@ -146,7 +180,9 @@
             // 
             // resetButton
             // 
-            this.resetButton.Location = new System.Drawing.Point(9, 139);
+            this.resetButton.Enabled = false;
+            this.resetButton.Location = new System.Drawing.Point(9, 132);
+            this.resetButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.resetButton.Name = "resetButton";
             this.resetButton.Size = new System.Drawing.Size(132, 57);
             this.resetButton.TabIndex = 5;
@@ -158,7 +194,7 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(10, 642);
+            this.label1.Location = new System.Drawing.Point(9, 573);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(65, 17);
             this.label1.TabIndex = 4;
@@ -168,7 +204,7 @@
             // 
             this.gmaxLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.gmaxLabel.AutoSize = true;
-            this.gmaxLabel.Location = new System.Drawing.Point(10, 591);
+            this.gmaxLabel.Location = new System.Drawing.Point(9, 523);
             this.gmaxLabel.Name = "gmaxLabel";
             this.gmaxLabel.Size = new System.Drawing.Size(68, 17);
             this.gmaxLabel.TabIndex = 2;
@@ -177,7 +213,8 @@
             // gminBar
             // 
             this.gminBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.gminBar.Location = new System.Drawing.Point(-3, 659);
+            this.gminBar.Enabled = false;
+            this.gminBar.Location = new System.Drawing.Point(-3, 591);
             this.gminBar.Maximum = 255;
             this.gminBar.Name = "gminBar";
             this.gminBar.Size = new System.Drawing.Size(147, 24);
@@ -187,7 +224,8 @@
             // gmaxBar
             // 
             this.gmaxBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.gmaxBar.Location = new System.Drawing.Point(-3, 608);
+            this.gmaxBar.Enabled = false;
+            this.gmaxBar.Location = new System.Drawing.Point(-3, 540);
             this.gmaxBar.Maximum = 255;
             this.gmaxBar.Name = "gmaxBar";
             this.gmaxBar.Size = new System.Drawing.Size(147, 24);
@@ -197,7 +235,9 @@
             // 
             // maskButton
             // 
-            this.maskButton.Location = new System.Drawing.Point(9, 76);
+            this.maskButton.Enabled = false;
+            this.maskButton.Location = new System.Drawing.Point(9, 68);
+            this.maskButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.maskButton.Name = "maskButton";
             this.maskButton.Size = new System.Drawing.Size(132, 57);
             this.maskButton.TabIndex = 1;
@@ -207,7 +247,8 @@
             // 
             // fileButton
             // 
-            this.fileButton.Location = new System.Drawing.Point(9, 13);
+            this.fileButton.Location = new System.Drawing.Point(9, 5);
+            this.fileButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.fileButton.Name = "fileButton";
             this.fileButton.Size = new System.Drawing.Size(132, 57);
             this.fileButton.TabIndex = 0;
@@ -223,9 +264,11 @@
             this.panel2.Controls.Add(this.maskLabel);
             this.panel2.Controls.Add(this.fileLabel);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(3, 3);
+            this.panel2.Enabled = false;
+            this.panel2.Location = new System.Drawing.Point(3, 4);
+            this.panel2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(1137, 64);
+            this.panel2.Size = new System.Drawing.Size(1074, 62);
             this.panel2.TabIndex = 1;
             // 
             // sliceLabel
@@ -243,7 +286,7 @@
             // maskLabel
             // 
             this.maskLabel.AutoSize = true;
-            this.maskLabel.Location = new System.Drawing.Point(10, 37);
+            this.maskLabel.Location = new System.Drawing.Point(9, 37);
             this.maskLabel.Name = "maskLabel";
             this.maskLabel.Size = new System.Drawing.Size(115, 17);
             this.maskLabel.TabIndex = 1;
@@ -252,7 +295,7 @@
             // fileLabel
             // 
             this.fileLabel.AutoSize = true;
-            this.fileLabel.Location = new System.Drawing.Point(10, 10);
+            this.fileLabel.Location = new System.Drawing.Point(9, 10);
             this.fileLabel.Name = "fileLabel";
             this.fileLabel.Size = new System.Drawing.Size(112, 17);
             this.fileLabel.TabIndex = 0;
@@ -262,9 +305,10 @@
             // 
             this.sliceBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
-            this.sliceBar.Location = new System.Drawing.Point(1083, 70);
+            this.sliceBar.Enabled = false;
+            this.sliceBar.Location = new System.Drawing.Point(1020, 70);
             this.sliceBar.Name = "sliceBar";
-            this.sliceBar.Size = new System.Drawing.Size(60, 689);
+            this.sliceBar.Size = new System.Drawing.Size(45, 623);
             this.sliceBar.TabIndex = 2;
             this.sliceBar.Value = 50;
             this.sliceBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.sliceBar_Scroll);
@@ -273,10 +317,11 @@
             // 
             this.renderWindowControl.AddTestActors = false;
             this.renderWindowControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.renderWindowControl.Location = new System.Drawing.Point(154, 74);
-            this.renderWindowControl.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.renderWindowControl.Enabled = false;
+            this.renderWindowControl.Location = new System.Drawing.Point(156, 75);
+            this.renderWindowControl.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
             this.renderWindowControl.Name = "renderWindowControl";
-            this.renderWindowControl.Size = new System.Drawing.Size(925, 681);
+            this.renderWindowControl.Size = new System.Drawing.Size(859, 613);
             this.renderWindowControl.TabIndex = 3;
             this.renderWindowControl.TestText = null;
             this.renderWindowControl.Load += new System.EventHandler(this.renderWindowControl_Load);
@@ -285,22 +330,24 @@
             // 
             this.fileDialog.FileName = "openFileDialog1";
             // 
-            // voiButton
+            // segmentButton
             // 
-            this.voiButton.Location = new System.Drawing.Point(6, 424);
-            this.voiButton.Name = "voiButton";
-            this.voiButton.Size = new System.Drawing.Size(132, 41);
-            this.voiButton.TabIndex = 3;
-            this.voiButton.Text = "Select VOI";
-            this.voiButton.UseVisualStyleBackColor = true;
-            this.voiButton.Click += new System.EventHandler(this.voiButton_Click);
+            this.segmentButton.Location = new System.Drawing.Point(12, 456);
+            this.segmentButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.segmentButton.Name = "segmentButton";
+            this.segmentButton.Size = new System.Drawing.Size(125, 52);
+            this.segmentButton.TabIndex = 11;
+            this.segmentButton.Text = "BCI Segmentation";
+            this.segmentButton.UseVisualStyleBackColor = true;
+            this.segmentButton.Click += new System.EventHandler(this.segmentButton_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1143, 759);
+            this.ClientSize = new System.Drawing.Size(1080, 693);
             this.Controls.Add(this.tableLayoutPanel1);
+            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MainForm";
             this.Text = "CTVisualization";
             this.tableLayoutPanel1.ResumeLayout(false);
@@ -310,32 +357,34 @@
             this.panel2.PerformLayout();
             this.ResumeLayout(false);
 
-    }
+        }
 
-    #endregion
+        #endregion
 
-    private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-    private System.Windows.Forms.Panel panel1;
-    private System.Windows.Forms.Button fileButton;
-    private System.Windows.Forms.Panel panel2;
-    private System.Windows.Forms.Label maskLabel;
-    private System.Windows.Forms.Label fileLabel;
-    private System.Windows.Forms.Button maskButton;
-    private System.Windows.Forms.VScrollBar sliceBar;
-    private System.Windows.Forms.HScrollBar gminBar;
-    private System.Windows.Forms.HScrollBar gmaxBar;
-    private System.Windows.Forms.Label label1;
-    private System.Windows.Forms.Label gmaxLabel;
-    private System.Windows.Forms.Button resetButton;
-    private Kitware.VTK.RenderWindowControl renderWindowControl;
-    private System.Windows.Forms.Button transverse2Button;
-    private System.Windows.Forms.Button transverse1Button;
-    private System.Windows.Forms.Button coronalButton;
-    private System.Windows.Forms.Button volumeButton;
-    private System.Windows.Forms.Label viewLabel;
-    private System.Windows.Forms.OpenFileDialog fileDialog;
-    private System.Windows.Forms.Label sliceLabel;
-        private System.Windows.Forms.Button voiButton;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Button fileButton;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Label maskLabel;
+        private System.Windows.Forms.Label fileLabel;
+        private System.Windows.Forms.Button maskButton;
+        private System.Windows.Forms.VScrollBar sliceBar;
+        private System.Windows.Forms.HScrollBar gminBar;
+        private System.Windows.Forms.HScrollBar gmaxBar;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label gmaxLabel;
+        private System.Windows.Forms.Button resetButton;
+        private Kitware.VTK.RenderWindowControl renderWindowControl;
+        private System.Windows.Forms.Button sagittalButton;
+        private System.Windows.Forms.Button coronalButton;
+        private System.Windows.Forms.Button transverseButton;
+        private System.Windows.Forms.Button volumeButton;
+        private System.Windows.Forms.Label viewLabel;
+        private System.Windows.Forms.OpenFileDialog fileDialog;
+        private System.Windows.Forms.Label sliceLabel;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button predict;
+        private System.Windows.Forms.Button segmentButton;
     }
 }
 

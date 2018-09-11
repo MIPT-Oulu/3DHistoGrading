@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using Kitware.VTK;
 
 using HistoGrading.Components;
+using HistoGrading.Models;
 
 namespace HistoGrading
 {
@@ -46,14 +47,22 @@ namespace HistoGrading
         bool mouseDown1 = false;
         bool mouseDown2 = false;
 
-        //Form initialization
+        // Grading variables
+        Model model = new Model();
+        int[,] features = new int[0,0];
+
+        /// <summary>
+        /// Form that includes all major components in the software.
+        /// </summary>
         public MainForm()
         {
             InitializeComponent();
         }
 
-        //GUI text update
-        public void tellSlice()
+        /// <summary>
+        /// Updates GUI text about current rendering method in use.
+        /// </summary>
+        public void TellSlice()
         {
             //Tell volume rendering
             if(ori == -1)
@@ -63,17 +72,17 @@ namespace HistoGrading
             //Tell coronal rendering
             if (ori == 2)
             {
-                sliceLabel.Text = String.Format("Coronal | {0} / {1}", sliceN[ori], dims[5]);
+                sliceLabel.Text = String.Format("Transverse, XY | {0} / {1}", sliceN[ori], dims[5]);
             }
             //Tell transverse rendering
             if (ori == 0)
             {
-                sliceLabel.Text = String.Format("Transverse, XZ | {0} / {1}", sliceN[ori], dims[3]);
+                sliceLabel.Text = String.Format("Coronal, XZ | {0} / {1}", sliceN[ori], dims[3]);
             }
             //Tell transverse rendering
             if (ori == 1)
             {
-                sliceLabel.Text = String.Format("Transverse, YZ | {0} / {1}", sliceN[ori], dims[1]);
+                sliceLabel.Text = String.Format("Sagittal, YZ | {0} / {1}", sliceN[ori], dims[1]);
             }
         }
 
@@ -141,7 +150,7 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -151,7 +160,7 @@ namespace HistoGrading
             //Set renderwindow
             renWin = renderWindowControl.RenderWindow;
 
-            //Get default mouse behaviour amd render window interactor
+            //Initialize interactor
             iactor = renWin.GetInteractor();
             iactor.Initialize();
         }
@@ -188,7 +197,6 @@ namespace HistoGrading
 
                 //Render
                 volume.renderVolume();
-                volume.setVolumeColor();
 
                 //Flags for GUI components
                 is_rendering = 1;
@@ -198,13 +206,29 @@ namespace HistoGrading
                 ori = -1;
                 //Update pipeline parameters
                 volume.updateCurrent(sliceN, ori, gray);
+                volume.setVolumeColor();
 
                 //Update GUI
                 maskButton.Text = "Load Mask";
                 maskLabel.Text = "No Mask Loaded";
-                tellSlice();
+                TellSlice();
 
                 iactor.Enable();
+
+                // Enable buttons
+                sagittalButton.Enabled = true;
+                coronalButton.Enabled = true;
+                transverseButton.Enabled = true;
+                volumeButton.Enabled = true;
+                resetButton.Enabled = true;
+                gminBar.Enabled = true;
+                gmaxBar.Enabled = true;
+                maskButton.Enabled = true;
+                panel2.Enabled = true;
+                sliceBar.Enabled = true;
+                renderWindowControl.Enabled = true;
+
+                //renderVolumeControl_Load(this, null);
             }
         }
 
@@ -221,7 +245,9 @@ namespace HistoGrading
                         //Select a file
                         if (fileDialog.ShowDialog() == DialogResult.OK)
                         {
-                            
+                            //Clear Memory
+                            //GC.Collect();
+
                             //Get path and files
                             string impath = fileDialog.FileName;
                             string extension = Path.GetExtension(@impath);
@@ -237,6 +263,7 @@ namespace HistoGrading
                         if (ori == -1)
                             {
                                 volume.renderVolumeMask();
+                                volume.setVolumeColor();
                             }
                             if (ori > -1)
                             {
@@ -256,14 +283,12 @@ namespace HistoGrading
                     if (ori == -1)
                     {
                         volume.renderVolume();
-                        volume.setVolumeColor();
-
-                        tellSlice();
+                        TellSlice();
                     }
                     if (ori > -1)
                     {
                         volume.renderImage();
-                        tellSlice();
+                        TellSlice();
                     }
                     is_mask = 0;
                     maskButton.Text = "Load Mask";
@@ -275,6 +300,8 @@ namespace HistoGrading
         //Reset camera
         private void resetButton_Click(object sender, EventArgs e)
         {
+            //Memory management
+            //GC.Collect();
             if (is_rendering == 1)
             {
                 volume.resetCamera();
@@ -293,7 +320,7 @@ namespace HistoGrading
                         volume.renderImageMask();
                     }
                 }
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -306,18 +333,17 @@ namespace HistoGrading
             //Render volume
             volume.renderVolume();
             volume.setVolumeColor();
+
             if (is_mask==1)
             {
                 volume.renderVolumeMask();
             }
-            tellSlice();
-
-            //Enable interactor
+            TellSlice();
             iactor.Enable();
         }
 
         //Render coronal slice
-        private void coronalButton_Click(object sender, EventArgs e)
+        private void transverseButton_Click(object sender, EventArgs e)
         {
             if (is_rendering == 1)
             {
@@ -334,15 +360,13 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
-
-                //Disable interactor
+                TellSlice();
                 iactor.Disable();
             }
         }
 
         //Render transverse slice, XZ plane
-        private void transverse1Button_Click(object sender, EventArgs e)
+        private void coronalButton_Click(object sender, EventArgs e)
         {
             if (is_rendering == 1)
             {
@@ -359,16 +383,13 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
-
-                //Disable interactor
+                TellSlice();
                 iactor.Disable();
-
             }
         }
 
         //Render transverse slice, YZ plane
-        private void transverse2Button_Click(object sender, EventArgs e)
+        private void sagittalButton_Click(object sender, EventArgs e)
         {
             //Check if rendering
             if(is_rendering==1)
@@ -386,12 +407,16 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
-
-                //Disable interactor
+                TellSlice();
                 iactor.Disable();
-
             }
+        }
+
+        // Predict OA grade
+        private void predict_Click(object sender, EventArgs e)
+        {
+            string grade = Grading.Predict(model, ref features, ref volume);
+            sliceLabel.Text = grade;
         }
 
         //Scroll bars
@@ -403,7 +428,7 @@ namespace HistoGrading
             if (e.Type == ScrollEventType.EndScroll)
             {
                 sliceBar_ValueChanged(this, null);
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -427,10 +452,46 @@ namespace HistoGrading
             }
         }
 
-
-        //New Functions
-        private void voiButton_Click(object sender, EventArgs e)
+        private void segmentButton_Click(object sender, EventArgs e)
         {
+            //VOI for segmentation
+
+            //Get sample dimensions
+            //int[] cur_extent = volume.getDims();
+            //Get center from XY plane
+            //int[] c = new int[] { (cur_extent[1]- cur_extent[0]) / 2, (cur_extent[3] - cur_extent[2]) / 2};
+
+            //768*768 VOI from the center
+            int[] voi_extent = new int[] { 380, 420, 141, 908, 0, 767 };
+            int[] batch_dims = new int[] { 768, 768, 1 };
+
+            //Segment along axis 1
+            vtkImageData BCI = IO.segmentation_pipeline(volume, batch_dims, voi_extent, 0, 4);
+
+            //Update rendering pipeline
+            maskLabel.Text = "Automatic";
+
+            //Connect mask to segmentation pipeline
+            volume.connectMaskFromData(BCI);
+            //Update pipeline
+            volume.updateCurrent(sliceN, ori, gray);
+
+            GC.Collect();
+
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolumeMask();
+                volume.setVolumeColor();
+            }
+            if (ori > -1)
+            {
+                volume.renderImageMask();
+            }
+
+            //Update flags
+            is_mask = 1;
+            maskButton.Text = "Remove Mask";
         }
     }
 }

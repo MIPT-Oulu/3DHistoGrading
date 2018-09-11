@@ -33,11 +33,11 @@ namespace CNTKIntegration
         {
             //Load VOI from CTStack
             string path = "D:\\3D-Histo\\3D_histo_REC_data\\PTAjaCA4+\\13_R3L_2_PTA_48h_Rec\\13_R3L_2_PTA_48h__rec00000044.bmp";
-            int[] extent = new int[] { 0, 383, 140, 160, 0, 383 };
+            int[] extent = new int[] { 140, 160, 141, 908, 0, 767 };
             
             //Rendering pipeline
             Rendering.renderPipeLine volume = new Rendering.renderPipeLine();
-            volume.connectData(path, new int[] {200, 967, 200, 967, 0, 767});
+            volume.connectData(path);
             
             //Connect rendering window
             vtkRenderWindow renWin = vtkRenderWindow.New();
@@ -47,10 +47,10 @@ namespace CNTKIntegration
             //Load UNet
             string modelpath = "c:\\users\\jfrondel\\Desktop\\GITS\\UNetE3BN.h5";
             UNet model = new UNet();
-            model.Initialize(24, new int[] { 384, 384, 1 }, modelpath, false);
+            model.Initialize(24, new int[] { 768, 768, 1 }, modelpath, false);
             
             //Segment vtk data
-            IList<IList<float>> result = Models.IO.segment_sample(volume, model, extent, 1, 8,(float)113.05652141, (float)39.87462853);
+            IList<IList<float>> result = Models.IO.segment_sample(volume, model, extent, 0, 4,(float)113.05652141, (float)39.87462853);
             Console.WriteLine("Inference done!!");
 
             //Convert back to vtk data
