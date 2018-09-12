@@ -11,27 +11,40 @@ namespace _3DHistoGrading.UnitTests
     public class PredictTests
     {
         TestImage testImg = new TestImage(); // Initialize testimage function
-        
+
         //BinaryWriterApp lbpreader = new BinaryWriterApp(Directory.GetCurrentDirectory() + @"\Test.dat");
         //string load = @"C:\temp\test\load";
         //string save = @"C:\temp\test\save";
 
-        public PredictTests()
+        [Fact]
+        public void Subtractmean_SubtractFromTestImage_ReturnsCorrectvalues()
         {
-            
+            testImg.New("Quarters", new int[] { 6, 6 });
+
+            double[,] imageAdjust = Processing.SubtractMean(testImg.Image.ToDouble());
+
+            double[,] refArray = new double[6, 6] // Here, actually columns are written out
+                {{ -1, -1, -1, -1, -1, -1},
+                { -1, -1, -1, -1, -1, -1},
+                { -1, -1, -1, -1, -1, -1},
+                { 1, 1, 1, 1, 1, 1},
+                { 1, 1, 1, 1, 1, 1},
+                { 1, 1, 1, 1, 1, 1} };
+            Assert.Equal(refArray, imageAdjust);
         }
 
-        //[Fact]
-        //public void Predict_NoModel_ReturnsError()
-        //{
-        //    // Grading variables
-        //    Model model = new Model();
-        //    int[,] features = new int[0, 0];
+        [Fact]
+        public void LBP_FeaturesFromTestArray_EqualsReference()
+        {
+            testImg.New("Quarters", new int[] { 40, 40 });
 
-        //    string state = Grading.Predict(model, ref features);
+            int[,] features = Grading.LBP(testImg.Image.ToDouble());
 
-        //    Assert.Equal("Model not loaded", state);
-        //}
+            int[,] refArray = new int[1, 32] // Here, actually columns are written out
+                {{ 162, 162, 0, 0, 0, 14, 4, 14, 0, 0, 0, 292, 0, 10, 18, 94, 56, 94, 18, 10, 0, 24, 5, 36, 9, 12, 16, 12, 9, 37, 5, 183} }
+                .Transpose();
+            Assert.Equal(refArray, features);
+        }
 
         //[Fact]
         //public void Predict_DefaultModelAndFeatures_EqualsReference()
@@ -72,22 +85,5 @@ namespace _3DHistoGrading.UnitTests
 
         //    Assert.Equal("Sum of differences between pretrained model and actual grade: 12.484", state);
         //}
-
-        [Fact]
-        public void Subtractmean_SubtractFromTestImage_ReturnsCorrectvalues()
-        {
-            testImg.New("Quarters", new int[] { 6, 6 });
-
-            double[,] imageAdjust = Processing.SubtractMean(testImg.Image.ToDouble());
-
-            double[,] refArray = new double[6, 6] // Here, actually columns are written out
-                {{ -1, -1, -1, -1, -1, -1},
-                { -1, -1, -1, -1, -1, -1},
-                { -1, -1, -1, -1, -1, -1},
-                { 1, 1, 1, 1, 1, 1},
-                { 1, 1, 1, 1, 1, 1},
-                { 1, 1, 1, 1, 1, 1} };
-            Assert.Equal(refArray, imageAdjust);
-        }
     }
 }
