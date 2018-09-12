@@ -40,6 +40,9 @@ namespace HistoGrading
         //Render window
         private vtkRenderWindow renWin;
 
+        //Interactor
+        vtkRenderWindowInteractor iactor;
+
         //Mouse interactor
         bool mouseDown1 = false;
         bool mouseDown2 = false;
