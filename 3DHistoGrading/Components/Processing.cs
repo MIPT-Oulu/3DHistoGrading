@@ -117,7 +117,7 @@ namespace HistoGrading.Components
         /// <param name="volume">Input volume.</param>
         /// <param name="threshold">Gray value threshold.</param>
         /// <returns>Center pixel coordinates.</returns>
-        private static int[] GetCenter(byte[,,] volume, int threshold)
+        public static int[] GetCenter(byte[,,] volume, int threshold)
         {
             int[] center = new int[2];
             int[] dims = new int[] { volume.GetLength(0), volume.GetLength(1), volume.GetLength(2) };
@@ -173,7 +173,7 @@ namespace HistoGrading.Components
         /// <param name="threshold">Surface threshold gray value.</param>
         /// <param name="surfaceCoordinates">Surface z-coordinate array.</param>
         /// <param name="surfaceVOI">Surface volume array.</param>
-        private static void GetSurface(byte[,,] volume, int[] center, int[] size, int threshold, 
+        public static void GetSurface(byte[,,] volume, int[] center, int[] size, int threshold, 
             out int[,] surfaceCoordinates, out byte[,,] surfaceVOI)
         {
             int[,] coordinates = new int[size[0], size[0]];

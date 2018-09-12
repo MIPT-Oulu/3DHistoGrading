@@ -1,0 +1,32 @@
+#configuration: debug
+
+# version format
+version: 1.0.{build}
+
+# branches to build
+branches:
+  # whitelist
+  only:
+    - master
+    - grading
+    - sample-processing
+
+# Restore nuget packages before running msbuild
+image: 
+  - Visual Studio 2017
+before_build:
+  - nuget restore 3DHistoGrading.sln
+
+# package Web application project for Web deploy
+build:
+  verbosity: minimal
+  publish_wap: true
+  project: 3DHistoGrading.sln
+
+test_script:
+ - packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -register:user -target:"%xunit20%\xunit.console.exe" -targetargs:"3DHistoGrading.UnitTests\bin\Debug\3DHistoGrading.UnitTests.dll -noshadow" -output:"coverage.xml" -filter:"+[3DHistoGrading*]* -[3DHistoGrading.UnitTests*]*"
+after_test:
+  - ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+      bash codecov.sh -f "coverage.xml" -t b0c6c3b1-f3d5-46c6-a9a7-e5797c3e70b2
