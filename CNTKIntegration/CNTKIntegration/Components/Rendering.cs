@@ -6,22 +6,15 @@ using System.Threading.Tasks;
 
 using Kitware.VTK;
 
-namespace HistoGrading.Components
+namespace CNTKIntegration.Components
 {
-    /// <summary>
-    /// Class for rendering vtkImageData
-    /// </summary>
-    public class Rendering
+    class Rendering
     {
         //PipeLines
-
-        /// <summary>
-        /// Volume rendering pipeline. Contains methods for connecting components
-        /// and memory management.
-        /// </summary>
-        public class volumePipeLine
+        private class volumePipeLine
         {
-            /**/
+            /*Volume rendering pipeline. Contains methods for connecting components
+             *and memory management.*/
 
             //Volume components
 
@@ -47,48 +40,48 @@ namespace HistoGrading.Components
             public void Initialize()
             {
                 //Initialize new volume components
-                vol = vtkVolume.New();
-                mapper = vtkFixedPointVolumeRayCastMapper.New();
-                ctf = vtkColorTransferFunction.New();
-                spwf = vtkPiecewiseFunction.New();
-                renderer = vtkRenderer.New();
+                this.vol = vtkVolume.New();
+                this.mapper = vtkFixedPointVolumeRayCastMapper.New();
+                this.ctf = vtkColorTransferFunction.New();
+                this.spwf = vtkPiecewiseFunction.New();
+                this.renderer = vtkRenderer.New();
 
                 //Initialize new mask components
-                maskvol = vtkVolume.New();
-                maskmapper = vtkFixedPointVolumeRayCastMapper.New();
-                maskctf = vtkColorTransferFunction.New();
-                maskspwf = vtkPiecewiseFunction.New();
+                this.maskvol = vtkVolume.New();
+                this.maskmapper = vtkFixedPointVolumeRayCastMapper.New();
+                this.maskctf = vtkColorTransferFunction.New();
+                this.maskspwf = vtkPiecewiseFunction.New();
             }
 
             //Method for disposing components, useful for memory management
             public void Dispose()
             {
                 //Dispose volume components
-                vol.Dispose();
-                mapper.Dispose();
-                ctf.Dispose();
-                spwf.Dispose();
-                renderer.Dispose();
+                this.vol.Dispose();
+                this.mapper.Dispose();
+                this.ctf.Dispose();
+                this.spwf.Dispose();
+                this.renderer.Dispose();
             }
 
             //Method for initializing mask components
             public void InitializeMask()
             {
                 //Initialize mask
-                maskvol = vtkVolume.New();
-                maskmapper = vtkFixedPointVolumeRayCastMapper.New();
-                maskctf = vtkColorTransferFunction.New();
-                maskspwf = vtkPiecewiseFunction.New();
+                this.maskvol = vtkVolume.New();
+                this.maskmapper = vtkFixedPointVolumeRayCastMapper.New();
+                this.maskctf = vtkColorTransferFunction.New();
+                this.maskspwf = vtkPiecewiseFunction.New();
             }
 
             //Method for disposing mask components, useful for memory management
             public void DisposeMask()
             {
                 //Dispose mask components
-                maskvol.Dispose();
-                maskmapper.Dispose();
-                maskctf.Dispose();
-                maskspwf.Dispose();
+                this.maskvol.Dispose();
+                this.maskmapper.Dispose();
+                this.maskctf.Dispose();
+                this.maskspwf.Dispose();
             }
 
             //Method for updating volume color
@@ -96,44 +89,40 @@ namespace HistoGrading.Components
             {
                 /*Takes gray value range as input arguments*/
                 //Clear ctf
-                ctf.Dispose();
-                ctf = vtkColorTransferFunction.New();
+                this.ctf.Dispose();
+                this.ctf = vtkColorTransferFunction.New();
                 //New range for gray values
-                ctf.AddRGBPoint(cmin, 0, 0, 0);
-                ctf.AddRGBPoint(cmax, 0.8, 0.8, 0.8);
+                this.ctf.AddRGBPoint(cmin, 0, 0, 0);
+                this.ctf.AddRGBPoint(cmax, 0.8, 0.8, 0.8);
                 //Update volume color
-                vol.GetProperty().SetColor(ctf);
-                vol.Update();
+                this.vol.GetProperty().SetColor(ctf);
+                this.vol.Update();
             }
 
-            /// <summary>
-            /// Method for connecting volume rendering components.
-            /// </summary>
-            /// <param name="input">Volume data input.</param>
-            /// <param name="inputRenderer">Renderer object.</param>
+            //Method for connecting volume rendering components
             public void connectComponents(vtkImageData input, vtkRenderer inputRenderer)
             {
                 /*Arguments: volumetric data and renderer*/
 
                 //Set renderer
-                renderer = inputRenderer;
+                this.renderer = inputRenderer;
                 //Mapper
-                mapper.SetInput(input);
-                mapper.Update();
+                this.mapper.SetInput(input);
+                this.mapper.Update();
                 //Color
-                ctf.AddRGBPoint(0, 0.0, 0.0, 0.0);
-                ctf.AddRGBPoint(255, 0.8, 0.8, 0.8);
+                this.ctf.AddRGBPoint(0, 0.0, 0.0, 0.0);
+                this.ctf.AddRGBPoint(255, 0.8, 0.8, 0.8);
                 //Opacity, background in microCT data is < 70
-                spwf.AddPoint(0, 0);
-                spwf.AddPoint(70, 0.0);
-                spwf.AddPoint(80, 0.7);
-                spwf.AddPoint(150, 0.9);
-                spwf.AddPoint(255, 0.95);
+                this.spwf.AddPoint(0, 0);
+                this.spwf.AddPoint(70, 0.0);
+                this.spwf.AddPoint(80, 0.7);
+                this.spwf.AddPoint(150, 0.9);
+                this.spwf.AddPoint(255, 0.95);
                 //Volume parameters
-                vol.GetProperty().SetColor(ctf);
-                vol.GetProperty().SetScalarOpacity(spwf);
-                vol.SetMapper(mapper);
-                vol.Update();
+                this.vol.GetProperty().SetColor(ctf);
+                this.vol.GetProperty().SetScalarOpacity(spwf);
+                this.vol.SetMapper(this.mapper);
+                this.vol.Update();
                 //Renderer back ground
                 renderer.SetBackground(0, 0, 0);
                 renderer.AddVolume(vol);
@@ -144,40 +133,33 @@ namespace HistoGrading.Components
                 renderer.ResetCamera();
             }
 
-            /// <summary>
-            /// Method for connecting mask components.
-            /// </summary>
-            /// <param name="mask"></param>
+            //Method for connecting mask components
             public void connectMask(vtkImageData mask)
             {
                 /*Takes bone mask data as input*/
                 //Mapper
-                maskmapper.SetInput(mask);
-                maskmapper.Update();
+                this.maskmapper.SetInput(mask);
+                this.maskmapper.Update();
                 //Color
-                maskctf.AddRGBPoint(0, 0, 0, 0);
-                maskctf.AddRGBPoint(255, 0.6, 0, 0);
+                this.maskctf.AddRGBPoint(0, 0, 0, 0);
+                this.maskctf.AddRGBPoint(128, 0.6, 0, 0);
                 //Opacity
-                maskspwf.AddPoint(0, 0);
-                maskspwf.AddPoint(180, 0);
-                maskspwf.AddPoint(181, 0.1);
-                maskspwf.AddPoint(255, 0.15);
+                this.maskspwf.AddPoint(0, 0);
+                this.maskspwf.AddPoint(180, 0);
+                this.maskspwf.AddPoint(181, 0.5);
+                this.maskspwf.AddPoint(255, 0.5);
                 //
                 //Volume parameters
-                maskvol.GetProperty().SetColor(maskctf);
-                maskvol.GetProperty().SetScalarOpacity(maskspwf);
-                maskvol.SetMapper(maskmapper);
-                maskvol.Update();
+                this.maskvol.GetProperty().SetColor(maskctf);
+                this.maskvol.GetProperty().SetScalarOpacity(maskspwf);
+                this.maskvol.SetMapper(this.maskmapper);
+                this.maskvol.Update();
                 //Renderer back ground
                 renderer.AddVolume(maskvol);
             }
         }
 
-        /// <summary>
-        /// Pipeline for image rendering. Contains methods for connecting components
-        /// and memory management.
-        /// </summary>
-        public class imagePipeLine
+        private class imagePipeLine
         {
             //Image variables
             private vtkImageActor actor = vtkImageActor.New();
@@ -189,97 +171,47 @@ namespace HistoGrading.Components
             private vtkLookupTable maskcolorTable = vtkLookupTable.New();
             private vtkImageMapToColors maskcolorMapper = vtkImageMapToColors.New();
 
-            /// <summary>
-            /// Renderer object.
-            /// </summary>
+            //Renderer
             public vtkRenderer renderer = vtkRenderer.New();
 
-            /// <summary>
-            /// Initialize components, similar as in volume pipeline
-            /// </summary>
+            //Initialize components, similar as in volume pipeline
             public void Initialize()
             {
-                actor = vtkImageActor.New();
-                colorTable = vtkLookupTable.New();
-                colorMapper = vtkImageMapToColors.New();
+                this.actor = vtkImageActor.New();
+                this.colorTable = vtkLookupTable.New();
+                this.colorMapper = vtkImageMapToColors.New();
             }
 
-            /// <summary>
-            /// Dispose, memory management
-            /// </summary>
+            //Dispose, memory management
             public void Dispose()
             {
-                actor.Dispose();
-                colorTable.Dispose();
-                colorMapper.Dispose();
+                this.actor.Dispose();
+                this.colorTable.Dispose();
+                this.colorMapper.Dispose();
             }
 
-            /// <summary>
-            /// Initialize mask components
-            /// </summary>
+            //Initialize mask components
             public void InitializeMask()
             {
-                maskactor = vtkImageActor.New();
-                maskcolorTable = vtkLookupTable.New();
-                maskcolorMapper = vtkImageMapToColors.New();
+                this.maskactor = vtkImageActor.New();
+                this.maskcolorTable = vtkLookupTable.New();
+                this.maskcolorMapper = vtkImageMapToColors.New();
             }
 
-            /// <summary>
-            /// Dispose mask components, memory management
-            /// </summary>
+            //Dispose mask components, memory management
             public void DisposeMask()
             {
-                maskactor.Dispose();
-                maskcolorTable.Dispose();
-                maskcolorMapper.Dispose();
+                this.maskactor.Dispose();
+                this.maskcolorTable.Dispose();
+                this.maskcolorMapper.Dispose();
             }
 
-            /// <summary>
-            /// Method for setting color table.
-            /// Creates lookup table for grayvalues.
-            /// </summary>
-            /// <param name="cmin">Lower limit for color table.</param>
-            /// <param name="cmax">Upper limit for color table.</param>
+            //Method for setting color table
             public void setGrayLevel(int cmin, int cmax)
             {
+                /*Creates lookup table for grayvalues*/
                 //Set lookup table range
-                colorTable.SetTableRange(cmin, cmax);
-                //Loop over range and add points to the table
-                for (int cvalue = 0; cvalue <= 255; cvalue++)
-                {
-                    //Current int value / max value
-                    double val = cvalue / cmax;
-                    //Values below maximum are set to appropriate value
-                    if (val < 1.0 && cvalue >= cmin)
-                    {
-                        colorTable.SetTableValue(cvalue, val, val, val, 1);
-                    }
-                    if (val < 1.0 && cvalue < cmin)
-                    {
-                        colorTable.SetTableValue(cvalue, 0, 0, 0, 1);
-                    }
-                    //Values over maximum are set to 1
-                    if (val >= 1 && cvalue >= cmin)
-                    {
-                        colorTable.SetTableValue(cvalue, 1.0, 1.0, 1.0, 1);
-                    }
-                }
-                //Build the table
-                colorTable.Build();
-                //Attach to color mapper
-                colorMapper.SetLookupTable(colorTable);
-            }
-
-            /// <summary>
-            /// Method for setting mask color table.
-            /// Creates lookup table for grayvalues.
-            /// </summary>
-            /// <param name="cmin">Lower limit for color table.</param>
-            /// <param name="cmax">Upper limit for color table.</param>
-            public void setMaskGrayLevel(int cmin, int cmax)
-            {
-                //Set lookup table range
-                maskcolorTable.SetTableRange(cmin, cmax);
+                this.colorTable.SetTableRange(cmin, cmax);
                 //Loop over range and add points to the table
                 for (int cvalue = 0; cvalue <= 255; cvalue++)
                 {
@@ -288,35 +220,36 @@ namespace HistoGrading.Components
                     //Values below maximum are set to appropriate value
                     if (val < 1.0 && cvalue >= cmin)
                     {
-                        maskcolorTable.SetTableValue(cvalue, 1, 0, 0, 0.6);
+                        this.colorTable.SetTableValue(cvalue, val, val, val, 1);
                     }
                     if (val < 1.0 && cvalue < cmin)
                     {
-                        maskcolorTable.SetTableValue(cvalue, 0, 0, 0, 0);
+                        this.colorTable.SetTableValue(cvalue, 0, 0, 0, 1);
                     }
                     //Values over maximum are set to 1
                     if (val >= 1 && cvalue >= cmin)
                     {
-                        maskcolorTable.SetTableValue(cvalue, 1.0, 0, 0, 0.6);
+                        this.colorTable.SetTableValue(cvalue, 1.0, 1.0, 1.0, 1);
                     }
                 }
                 //Build the table
-                maskcolorTable.Build();
+                this.colorTable.Build();
                 //Attach to color mapper
-                maskcolorMapper.SetLookupTable(maskcolorTable);
+                this.colorMapper.SetLookupTable(this.colorTable);
+            }
 
-                /*
-                //###//
+            //Method for setting gray mask color table
+            public void setMaskGrayLevel(int cmin, int cmax)
+            {
                 //Create lookup table
-                maskcolorTable.SetTableRange(cmin, cmax);
+                this.maskcolorTable.SetTableRange(cmin, cmax);
                 //Min value is set to 0, max value is set 1 => binary table
-                maskcolorTable.SetTableValue(cmin, 0.0, 0.0, 0.0, 0.0);
-                maskcolorTable.SetTableValue(cmax, 1.0, 0.0, 0.0, 1.0);
+                this.maskcolorTable.SetTableValue(cmin, 0.0, 0.0, 0.0, 0.0);
+                this.maskcolorTable.SetTableValue(cmax, 1.0, 0.0, 0.0, 1.0);
                 //Build table
-                maskcolorTable.Build();
+                this.maskcolorTable.Build();
                 //Attach to color mapper
-                maskcolorMapper.SetLookupTable(maskcolorTable);
-                */
+                this.maskcolorMapper.SetLookupTable(this.maskcolorTable);
             }
 
             //Method for connecting image components
@@ -325,41 +258,37 @@ namespace HistoGrading.Components
                 /*Arguments: input image, renderer, color range*/
 
                 //Set renderer
-                renderer = inputRenderer;
+                this.renderer = inputRenderer;
                 //Set color
                 setGrayLevel(cmin, cmax);
-                colorMapper.SetInput(I);
-                colorMapper.Update();
+                this.colorMapper.SetInput(I);
+                this.colorMapper.Update();
                 //Set mapper
-                actor.SetInput(colorMapper.GetOutput());
+                this.actor.SetInput(colorMapper.GetOutput());
                 //Connect to renderer
-                renderer.AddActor(actor);
+                renderer.AddActor(this.actor);
                 renderer.SetBackground(0.0, 0.0, 0.0);
             }
 
-            /// <summary>
-            /// Method for connecting mask components
-            /// </summary>
-            /// <param name="mask">Mask image data.</param>
+            //Method for connecting mask components
             public void connectMask(vtkImageData mask)
             {
                 //Set mask color and mapper
-                setMaskGrayLevel(100, 255);
-                maskcolorMapper.SetInput(mask);
-                maskcolorMapper.Update();
+                setMaskGrayLevel(0, 255);
+                this.maskcolorMapper.SetInput(mask);
+                this.maskcolorMapper.Update();
                 //Connect mapper
-                maskactor.SetInput(maskcolorMapper.GetOutput());
+                this.maskactor.SetInput(this.maskcolorMapper.GetOutput());
                 //Connect to renderer
-                renderer.AddActor(maskactor);
+                this.renderer.AddActor(this.maskactor);
             }
         }
 
-        /// <summary>
-        /// Class for rendering images and 3D volumes. Volume and image pipelines defined above are called,
-        /// depending on the input.
-        /// </summary>
         public class renderPipeLine
         {
+            /*Class for rendering images and 3D volumes. Volume and image pipelines defined above are called¨,
+             depending on the input*/
+
             //Declarations
 
             //Renderwindow
@@ -367,10 +296,7 @@ namespace HistoGrading.Components
             //Renderer
             vtkRenderer renderer = vtkRenderer.New();
             //Volume/image data
-            /// <summary>
-            /// Original loaded image data as vtkImageData object.
-            /// </summary>
-            public vtkImageData idata = vtkImageData.New();
+            vtkImageData idata = vtkImageData.New();
             vtkImageData imask = vtkImageData.New();
             //Rendering pipelines
             volumePipeLine volPipe = new volumePipeLine();
@@ -383,48 +309,31 @@ namespace HistoGrading.Components
 
             //Methods for communicating with GUI
 
-            /// <summary>
-            /// Connect renderwindow.
-            /// </summary>
-            /// <param name="input"></param>
+            //Connect renderwindow
             public void connectWindow(vtkRenderWindow input)
             {
                 renWin = input;
             }
 
-            /// <summary>
-            /// Connect input volume.
-            /// </summary>
-            /// <param name="input">Data input to be connected.</param>
-            public void connectData(string input)
+            //Connect input volume
+            public void connectData(string input, int[] extent = null)
             {
-                idata = Functions.loadVTK(input);
+                idata = Functions.loadVTK(input, extent);
             }
 
-            /// <summary>
-            /// Connect bone mask.
-            /// </summary>
-            /// <param name="input">Bone mask input to be connected.</param>
+            //Connect bone mask
             public void connectMask(string input)
             {
                 imask = Functions.loadVTK(input);
             }
 
-            /// <summary>
-            /// Connect bone mask from memory.
-            /// </summary>
-            /// <param name="input_mask">Bone mask input to be connected.</param>
-            public void connectMaskFromData(vtkImageData input_mask)
+            //Connect mask from memory
+            public void connectMaskFromMemory(vtkImageData input_mask)
             {
                 imask = input_mask;
             }
 
-            /// <summary>
-            /// Update slice.
-            /// </summary>
-            /// <param name="inpSlice">Slice number.</param>
-            /// <param name="inpAx">Current axis.</param>
-            /// <param name="inpGray">Gray values.</param>
+            //Update slice
             public void updateCurrent(int[] inpSlice, int inpAx, int[] inpGray)
             {
                 sliceN = inpSlice;
@@ -432,9 +341,7 @@ namespace HistoGrading.Components
                 gray = inpGray;
             }
 
-            /// <summary>
-            /// 3D volume rendering.
-            /// </summary>
+            //Volume rendering
             public void renderVolume()
             {
                 //Detach first renderer from render window. Prevents multiple images from being
@@ -458,10 +365,7 @@ namespace HistoGrading.Components
                 renWin.Render();
 
             }
-
-            /// <summary>
-            /// 2D Image rendering.
-            /// </summary>
+            //Image rendering
             public void renderImage()
             {
                 //Detach first renderer from render window. Prevents multiple images from being
@@ -488,12 +392,11 @@ namespace HistoGrading.Components
                 renWin.Render();
             }
 
-            /// <summary>
-            /// Render 3D bone mask, follows similar pipeline as regular volume rendering.
-            /// Doesn't require new renderers to be initialized/connected
-            /// </summary>
+            //Volume mask rendering
             public void renderVolumeMask()
             {
+                /*Render 3D bone mask, follows similar pipeline as regular volume rendering.
+                  Doesn't require new renderers to be initialized/connected*/
                 volPipe.DisposeMask();
                 volPipe.InitializeMask();
 
@@ -502,10 +405,7 @@ namespace HistoGrading.Components
                 //Render volume
                 renWin.Render();
             }
-
-            /// <summary>
-            /// Render image mask, see <seealso cref="renderVolumeMask()"/>.
-            /// </summary>
+            //Image mask rendering
             public void renderImageMask()
             {
                 /*Connect 2D mask to image rendering pipeline*/
@@ -520,18 +420,14 @@ namespace HistoGrading.Components
                 renWin.Render();
             }
 
-            /// <summary>
-            /// Set color for volume.
-            /// </summary>
+            //Set color
             public void setVolumeColor()
             {
                 volPipe.setColor(gray[0], gray[1]);
                 renWin.Render();
             }
 
-            /// <summary>
-            /// Reset camera.
-            /// </summary>
+            //Reset camera
             public void resetCamera()
             {
                 renderer.GetActiveCamera().SetPosition(0.5, 1, 0);
@@ -541,50 +437,37 @@ namespace HistoGrading.Components
                 renWin.Render();
             }
 
-            /// <summary>
-            /// Remove bone mask
-            /// </summary>
+            //Remove bone mask
             public void removeMask()
             {
                 imask.Dispose();
                 imask = vtkImageData.New();
             }
 
-            /// <summary>
-            /// Get data dimensions
-            /// </summary>
-            /// <returns>Data dimensions.</returns>
+            //Get data dimensions
             public int[] getDims()
             {
                 int[] dims = idata.GetExtent();
                 return dims;
             }
 
-            /// <summary>
-            /// Get VOI from the data
-            /// </summary>
-            /// <returns> VOI</returns>
+            //Get data as float array
             public vtkImageData getVOI(int[] extent = null, int[] orientation = null)
             {
-                //Empty output data
                 vtkImageData voi;
-
-                //If no VOI is specified, full data is returned
-                if (extent == null)
+                if(extent == null)
                 {
                     voi = idata;
                 }
                 else
                 {
-                    //Extract VOI
                     vtkExtractVOI extractor = vtkExtractVOI.New();
                     extractor.SetInput(idata);
                     extractor.SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
                     extractor.Update();
                     voi = extractor.GetOutput();
                 }
-                //If order of the axes is specified, the return array is permuted
-                if (orientation != null)
+                if(orientation != null)
                 {
                     vtkImagePermute permuter = vtkImagePermute.New();
                     permuter.SetInput(voi);
@@ -594,6 +477,8 @@ namespace HistoGrading.Components
                 }
                 return voi;
             }
+
         }
+
     }
 }

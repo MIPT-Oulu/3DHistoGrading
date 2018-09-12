@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using Kitware.VTK;
 
 using HistoGrading.Components;
+using HistoGrading.Models;
 
 namespace HistoGrading
 {
@@ -155,6 +156,9 @@ namespace HistoGrading
         {
             //Set renderwindow
             renWin = renderWindowControl.RenderWindow;
+            //Initialize interactor
+            iactor = renWin.GetInteractor();
+            iactor.Initialize();
         }
 
         //Buttons
@@ -204,6 +208,8 @@ namespace HistoGrading
                 maskButton.Text = "Load Mask";
                 maskLabel.Text = "No Mask Loaded";
                 TellSlice();
+
+                iactor.Enable();
 
                 // Enable buttons
                 sagittalButton.Enabled = true;
@@ -329,6 +335,7 @@ namespace HistoGrading
                 volume.renderVolumeMask();
             }
             TellSlice();
+            iactor.Enable();
         }
 
         //Render coronal slice
@@ -350,6 +357,7 @@ namespace HistoGrading
                     volume.renderImageMask();
                 }
                 TellSlice();
+                iactor.Disable();
             }
         }
 
@@ -372,6 +380,7 @@ namespace HistoGrading
                     volume.renderImageMask();
                 }
                 TellSlice();
+                iactor.Disable();
             }
         }
 
@@ -395,6 +404,7 @@ namespace HistoGrading
                     volume.renderImageMask();
                 }
                 TellSlice();
+                iactor.Disable();
             }
         }
 
@@ -436,6 +446,48 @@ namespace HistoGrading
             {
                 gminBar_ValueChanged(this, null);
             }
+        }
+
+        private void segmentButton_Click(object sender, EventArgs e)
+        {
+            //VOI for segmentation
+
+            //Get sample dimensions
+            //int[] cur_extent = volume.getDims();
+            //Get center from XY plane
+            //int[] c = new int[] { (cur_extent[1]- cur_extent[0]) / 2, (cur_extent[3] - cur_extent[2]) / 2};
+
+            //768*768 VOI from the center
+            int[] voi_extent = new int[] { 380, 420, 141, 908, 0, 767 };
+            int[] batch_dims = new int[] { 768, 768, 1 };
+
+            //Segment along axis 1
+            vtkImageData BCI = IO.segmentation_pipeline(volume, batch_dims, voi_extent, 0, 4);
+
+            //Update rendering pipeline
+            maskLabel.Text = "Automatic";
+
+            //Connect mask to segmentation pipeline
+            volume.connectMaskFromData(BCI);
+            //Update pipeline
+            volume.updateCurrent(sliceN, ori, gray);
+
+            GC.Collect();
+
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolumeMask();
+                volume.setVolumeColor();
+            }
+            if (ori > -1)
+            {
+                volume.renderImageMask();
+            }
+
+            //Update flags
+            is_mask = 1;
+            maskButton.Text = "Remove Mask";
         }
     }
 }
