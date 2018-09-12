@@ -49,8 +49,7 @@ namespace HistoGrading.Models
                 }
 
                 //Extract VOI to float array
-                int[] _tmp;
-                float[] input_array = DataTypes.byteToFloat(DataTypes.vtkToByte(vtkObject.getVOI(_curext, _ori), out _tmp), mu, sd);
+                float[] input_array = DataTypes.byteToFloat(DataTypes.vtkToByte(vtkObject.getVOI(_curext, _ori)), mu, sd);
 
                 //Segment current slice
                 IList<IList<float>> _cur = model.Inference(input_array);

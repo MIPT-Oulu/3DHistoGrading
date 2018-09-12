@@ -74,5 +74,35 @@ namespace _3DHistoGrading.UnitTests.GradingTests
             Assert.Equal(new int[,] { { 1, 1 }, { 1, 1 } }, surfaceCoordinates);
             Assert.Equal(refSurface, surfaceVOI);
         }
+
+        [Fact]
+        public void MeanAndStd_TestImage_EqualsReference()
+        {
+            testImg.New("Quarters", new int[] { 4, 4 });
+            byte[,] slice = testImg.Image.ToByte();
+            byte[,,] volume = new byte[4, 4, 3];
+            for (int i = 0; i < slice.GetLength(0); i++)
+            {
+                for (int j = 0; j < slice.GetLength(1); j++)
+                {
+                    volume[i, j, 1] = slice[i, j];
+                }
+            }
+
+            Processing.MeanAndStd(volume, out double[,] meanImage, out double[,] stdImage);
+
+            double[,] refMean = new double[4, 4]
+                { { 0.33333333333333331, 0.33333333333333331, 1, 1},
+                { 0.33333333333333331, 0.33333333333333331, 1, 1},
+                { 0.66666666666666663, 0.66666666666666663, 1.3333333333333333, 1.3333333333333333},
+                { 0.66666666666666663, 0.66666666666666663, 1.3333333333333333, 1.3333333333333333} };
+            double[,] refStd = new double[4, 4]
+                { { 0.57735026918962584, 0.57735026918962584, 1.7320508075688772, 1.7320508075688772},
+                { 0.57735026918962584, 0.57735026918962584, 1.7320508075688772, 1.7320508075688772},
+                { 1.1547005383792517, 1.1547005383792517, 2.3094010767585034, 2.3094010767585034},
+                { 1.1547005383792517, 1.1547005383792517, 2.3094010767585034, 2.3094010767585034} };
+            Assert.Equal(refMean, meanImage);
+            Assert.Equal(refStd, stdImage);
+        }
     }
 }

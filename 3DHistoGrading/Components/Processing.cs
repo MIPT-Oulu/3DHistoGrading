@@ -62,9 +62,10 @@ namespace HistoGrading.Components
             out int[,] surfacecoordinates, out byte[,,] surfacevoi)
         {
             // Convert vtkImageData to byte[,,]
+            int[] dims = volume.getDims();
             byte[,,] byteVolume =
                 DataTypes.VectorToVolume(
-                DataTypes.vtkToByte(volume.idata, out int[] dims), dims);
+                DataTypes.vtkToByte(volume.idata), dims);
 
             // Crop to upper third of the sample
             int[] crop = { 0, byteVolume.GetLength(0) - 1, 0, byteVolume.GetLength(1) - 1, 0, (int)Math.Floor((double)byteVolume.GetLength(2) / 3) };
@@ -226,12 +227,12 @@ namespace HistoGrading.Components
             int[] dims = new int[] { surfaceVOI.GetLength(0), surfaceVOI.GetLength(1), surfaceVOI.GetLength(2) };
             double[,] mean = new double[dims[0], dims[1]];
             double[,] std = new double[dims[0], dims[1]];
-            double[] temp = new double[dims[2]];
 
             Parallel.For(0, dims[0], i =>
             {
                 Parallel.For(0, dims[1], j =>
                 {
+                    double[] temp = new double[dims[2]]; // has to be initialized in the loop
                     for (int k = 0; k < dims[2]; k++)
                     {
                         temp[k] = surfaceVOI[i, j, k];

@@ -69,11 +69,11 @@ namespace HistoGrading.Components
         /// <param name="vtkdata">Input data.</param>
         /// <param name="dims">Dimensions of the converted array. Give these as input to <seealso cref="VectorToVolume{T}(T[], int[])"/> function to convert from 1D to 3D.</param>
         /// <returns>Converted 1D array of vtkImageData.</returns>
-        public static byte[] vtkToByte(vtkImageData vtkdata, out int[] dims)
+        public static byte[] vtkToByte(vtkImageData vtkdata)
         {
             //Get vtk data dimensions
             int[] extent = vtkdata.GetExtent();
-            dims = new int[] { extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1 };
+            int[] dims = new int[] { extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1 };
             //New byte array for conversions
             byte[] bytedata = new byte[dims[0] * dims[1] * dims[2]];
             //pin bytedata to memory
@@ -181,7 +181,7 @@ namespace HistoGrading.Components
         /// parameters (mean and standard deviation) are given
         /// </summary>
         /// <returns>Float array.</returns>
-        public static float[] byteToFloat(byte[] bytedata, float mu = (float)0, float sd = (float)0)
+        public static float[] byteToFloat(byte[] bytedata, float mu = 0, float sd = 0)
         {
             //Empty array for putput
             float[] floatdata = new float[bytedata.Length];
@@ -192,12 +192,12 @@ namespace HistoGrading.Components
                 //If normalization parameters are not give, return bytedata cast as float data
                 if (mu == 0)
                 {
-                    floatdata[k] = (float)bytedata[k];
+                    floatdata[k] = bytedata[k];
                 }
                 //Otherwise normalize data
                 else
                 {
-                    floatdata[k] = (float)bytedata[k] - mu;
+                    floatdata[k] = bytedata[k] - mu;
                     if (sd != 0)
                     {
                         floatdata[k] /= sd;
@@ -250,7 +250,7 @@ namespace HistoGrading.Components
                     Parallel.For(extent[4], extent[5], (int w) =>
                     {
                         int pos = (h - extent[2]) * dim + w - extent[4];
-                        byte val = (byte)(tmp[pos] * (float)255);
+                        byte val = (byte)(tmp[pos] * 255);
                         outarray[d, h, w] = val;
                     });
                 });
