@@ -78,7 +78,7 @@ namespace _3DHistoGrading.UnitTests
         {
             testImg.New("Quarters", new int[] { 6, 6 });
 
-            double[,] imageAdjust = Grading.SubtractMean(testImg.Image.ToDouble());
+            double[,] imageAdjust = Processing.SubtractMean(testImg.Image.ToDouble());
 
             double[,] refArray = new double[6, 6] // Here, actually columns are written out
                 {{ -1, -1, -1, -1, -1, -1},
