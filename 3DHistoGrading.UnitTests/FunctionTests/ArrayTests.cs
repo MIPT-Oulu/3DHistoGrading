@@ -8,8 +8,6 @@ using HistoGrading.Components;
 using System.Windows.Forms;
 using Accord.Math;
 using System.Drawing;
-using NUnit.Framework;
-using NUnit.Extensions.Forms;
 
 using Kitware.VTK;
 using OpenCvSharp;
@@ -24,13 +22,22 @@ namespace _3DHistoGrading.UnitTests.FunctionTests
         [Fact]
         public void VectorToVolume_Samplevector_Returns3DVolume()
         {
-            string selectedPath = "Testpath";
-            var check = new DialogResult();
+            testImg.New("Quarters", new int[] { 27, 27 });
+            float[] vector = LBPLibrary.Functions.ArrayToVector(testImg.Image);
 
+            float[,,] volume = DataTypes.VectorToVolume(vector, new int[] { 3, 3, 3 });
 
-            string result = Functions.DirectoryResult(selectedPath, check);
-
-            Xunit.Assert.Empty(result);
+            float[,,] refArray = new float[3, 3, 3] // Here, actually columns are written out
+                { {{ -1, -1, -1},
+                { 1, 1, 1},
+                { 1, 1, 1,} } ,
+                {{ -1, -1, -1},
+                { 1, 1, 1},
+                { 1, 1, 1,} } ,
+                {{ -1, -1, -1},
+                { 1, 1, 1},
+                { 1, 1, 1,} }};
+            Assert.Equal(refArray, volume);
         }
     }
 }

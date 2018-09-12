@@ -109,7 +109,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FunctionTests\ArrayTests.cs" />
-    <Compile Include="FunctionTests\DirectoryTests.cs" />
     <Compile Include="FunctionTests\LoadTests.cs" />
     <Compile Include="GradingTests\LoadModelTests.cs" />
     <Compile Include="GradingTests\PredictTests.cs" />
