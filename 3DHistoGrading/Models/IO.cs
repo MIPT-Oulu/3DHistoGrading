@@ -13,7 +13,7 @@ namespace HistoGrading.Models
 {
     class IO
     {
-        public static IList<IList<float>> segment_sample(Rendering.renderPipeLine vtkObject, Models.UNet model, int[] extent, int axis,
+        public static IList<IList<float>> segment_sample(Rendering.renderPipeLine vtkObject, UNet model, int[] extent, int axis,
             int step = 1, float mu = 0, float sd = 0)
         {
             //Segmentation range

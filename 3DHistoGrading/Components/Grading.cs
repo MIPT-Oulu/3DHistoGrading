@@ -60,8 +60,10 @@ namespace HistoGrading.Components
         public static string Predict(Model mod, ref int[,] features, ref Rendering.renderPipeLine volume)
         {
             // Default variables
-            int threshold = 80;
+            int threshold = 50;
             int[] size = { 400, 30 };
+            //int threshold = 5;
+            //int[] size = { 10, 3 };
 
             // Load default model
             string state = LoadModel(ref mod);
@@ -76,9 +78,9 @@ namespace HistoGrading.Components
             // LBP features
             //
 
+            LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\mean.png", meanImage, true);
+            LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\std.png", stdImage, true);
             features = LBP(meanImage.Add(stdImage));
-            //LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\mean.png", meanImage, true);
-            //LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\std.png", stdImage, true);
 
             // PCA
             double[,] dataAdjust = Processing.SubtractMean(features.ToDouble());

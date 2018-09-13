@@ -63,6 +63,7 @@ namespace HistoGrading.Components
         {
             // Convert vtkImageData to byte[,,]
             int[] dims = volume.getDims();
+            dims = new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 };
             byte[,,] byteVolume =
                 DataTypes.VectorToVolume(
                 DataTypes.vtkToByte(volume.idata), dims);
@@ -190,6 +191,7 @@ namespace HistoGrading.Components
                 Parallel.For(start[1], start[1] + size[0], x =>
                 {
                     for (int z = 0; z < dims[2]; z++)
+                    //for (int z = dims[2]; z <= 0; z--)
                     {
                         if (volume[y, x, z] > threshold)
                         {
@@ -198,11 +200,13 @@ namespace HistoGrading.Components
 
                             // Update surface VOI
                             int zlim = z + size[1];
+                            //int zlim = z - size[1];
                             if (zlim > dims[2]) // avoid exceeding array
                             {
                                 zlim = dims[2];
                             }
                             for (int zz = z; zz < zlim; zz++)
+                            //for (int zz = z; zz < zlim; zz--)
                             {
                                 VOI[y - start[0], x - start[1], zz - z] = volume[y, x, zz];
                             }
