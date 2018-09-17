@@ -61,16 +61,30 @@ namespace HistoGrading.Components
         public static void SurfaceExtraction(ref Rendering.renderPipeLine volume, int threshold, int[] size, 
             out int[,] surfacecoordinates, out byte[,,] surfacevoi)
         {
+            // Get cropping dimensions
+            int[] crop = volume.idata.GetExtent();
+            crop[4] = (int)Math.Round(crop[5] / 2.0);
+            //crop[5] = (int)Math.Round((double)crop[5] / 3);
+            
+            // Crop and flip the volume
+            var cropped = volume.getVOI(crop);
+            var flipper = vtkImageFlip.New();
+            flipper.SetInput(cropped);
+            flipper.SetFilteredAxes(2);
+            flipper.Update();
+            
+            // Render cropped volume
+            Rendering.RenderToNewWindow(flipper.GetOutput());
+
             // Convert vtkImageData to byte[,,]
-            int[] dims = volume.getDims();
-            dims = new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 };
+            int[] dims = new int[] { crop[1] + 1, crop[3] + 1, (crop[5]-crop[4]) + 1 };
             byte[,,] byteVolume =
                 DataTypes.VectorToVolume(
-                DataTypes.vtkToByte(volume.idata), dims);
+                DataTypes.vtkToByte(flipper.GetOutput()), dims);
 
-            // Crop to upper third of the sample
-            int[] crop = { 0, byteVolume.GetLength(0) - 1, 0, byteVolume.GetLength(1) - 1, 0, (int)Math.Floor((double)byteVolume.GetLength(2) / 3) };
-            byteVolume = Functions.Crop3D(byteVolume, crop);
+            //// Crop to upper third of the sample
+            //int[] crop = { 0, byteVolume.GetLength(0) - 1, 0, byteVolume.GetLength(1) - 1, 0, (int)Math.Floor((double)byteVolume.GetLength(2) / 3) };
+            //byteVolume = Functions.Crop3D(byteVolume, crop);
 
             // Get sample center coordinates
             int[] center = GetCenter(byteVolume, threshold);
@@ -80,19 +94,29 @@ namespace HistoGrading.Components
 
             // Free memory
             byteVolume = null;
+            cropped = null;
+            flipper = null;
         }
 
         /// <summary>
         /// Computes mean along each column of the array
         /// and subtracts it along the columns.
+        /// If mean vector is given, it is subtracted from array.
         /// </summary>
         /// <param name="array">Array to be calculated.</param>
+        /// <param name="mean">Mean vector to be subtracted.</param>
         /// <returns>Subtracted array.</returns>
-        public static double[,] SubtractMean(double[,] array)
+        public static double[,] SubtractMean(double[,] array, double[] mean = null)
         {
             int w = array.GetLength(0), l = array.GetLength(1);
             double[,] dataAdjust = new double[0, 0];
             double[] means = new double[w];
+
+            //double[] mean = new double[32] // Here, actually columns are written out
+                //{ 72981.69444444, 69902.30555556, 0, 190.77777778, 2024.63888889, 6115.13888889, 9087.77777778, 7083.69444444, 2719.61111111,
+                //    351.75, 0, 115310.61111111, 0, 241.11111111, 9692.44444444, 26931.41666667,  31327.11111111, 28872.97222222, 11496.33333333,
+                //    282.83333333, 0, 34039.77777778, 6671.13888889, 13672.25, 8390.47222222, 7282.30555556, 7168.47222222, 7271.5,
+                //    8368.16666667, 13541.88888889, 6752, 63765.80555556};
 
             for (int i = 0; i < w; i++)
             {
@@ -102,8 +126,15 @@ namespace HistoGrading.Components
                     LBPLibrary.Functions.GetSubMatrix(array, i, i, 0, l - 1));
 
                 // Subtract mean
-                means[i] = vector.Average();
-                vector = Elementwise.Subtract(vector, means[i]);
+                if (mean == null)
+                {
+                    means[i] = vector.Average();
+                    vector = Elementwise.Subtract(vector, means[i]);
+                }
+                else
+                {
+                    vector = Elementwise.Subtract(vector, mean[i]);
+                }
 
                 // Concatenate
                 dataAdjust = Matrix.Concatenate(dataAdjust, vector);

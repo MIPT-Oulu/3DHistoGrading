@@ -402,6 +402,15 @@ namespace HistoGrading.Components
             }
 
             /// <summary>
+            /// Connect CT stack from memory
+            /// </summary>
+            /// <param name="input_data">Bone mask input to be connected.</param>
+            public void connectDataFromData(vtkImageData input_data)
+            {
+                idata = input_data;
+            }
+
+            /// <summary>
             /// Connect bone mask.
             /// </summary>
             /// <param name="input">Bone mask input to be connected.</param>
@@ -594,6 +603,20 @@ namespace HistoGrading.Components
                 }
                 return voi;
             }
+        }
+
+        /// <summary>
+        /// Render input data to new window.
+        /// </summary>
+        /// <param name="inputData">vtkImageData to be rendered.</param>
+        public static void RenderToNewWindow(vtkImageData inputData)
+        {
+            // Render cropped volume
+            var renwin = vtkRenderWindow.New();
+            var vol = new renderPipeLine();
+            vol.connectWindow(renwin);
+            vol.connectDataFromData(inputData);
+            vol.renderVolume();
         }
     }
 }
