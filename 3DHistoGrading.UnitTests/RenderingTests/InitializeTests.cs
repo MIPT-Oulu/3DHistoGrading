@@ -9,14 +9,14 @@ using HistoGrading;
 
 namespace _3DHistoGrading.UnitTests.RenderingTests
 {
-    public class InitializeTests
-    {
-        [Fact]
-        public void InitializeForm_Initialize_Executes()
-        {
-            var form = new MainForm();
+    //public class InitializeTests
+    //{
+    //    //[Fact]
+    //    //public void InitializeForm_Initialize_Executes()
+    //    //{
+    //    //    var form = new MainForm();
 
-            Assert.True(true);
-        }
-    }
+    //    //    Assert.True(true);
+    //    //}
+    //}
 }

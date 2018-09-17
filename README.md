@@ -5,9 +5,10 @@ Software for 3D grading osteochondral tissue samples. We currently support only 
 Current build status and code coverage:
 
 [![Build status](https://ci.appveyor.com/api/projects/status/6lbb2719xekk5rrx?svg=true "Build status")](https://ci.appveyor.com/project/sarytky/3dhistograding)
-[![codecov](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/branch/grading/graph/badge.svg "Code coverage")](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading)
+[![codecov](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/branch/master/graph/badge.svg "Code coverage")](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading)
 
-[![codecov](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/branch/grading/graphs/icicle.svg "Code coverage graph. Top section represents entire project, middle section folders and bottom section individual files.")](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/tree/grading/3DHistoGrading)
+[![codecov](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/branch/master/graphs/icicle.svg "Code coverage graph. Top section represents entire project, middle section folders and bottom section individual files.")](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/tree/master/3DHistoGrading)
+
 
 User interface components are removed from coverage analysis.
 Unit testing is focused on software functionalities only.

@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using Kitware.VTK;
 
 using HistoGrading.Components;
+using HistoGrading.Models;
 
 namespace HistoGrading
 {
@@ -39,6 +40,9 @@ namespace HistoGrading
         //Render window
         private vtkRenderWindow renWin;
 
+        //Interactor
+        vtkRenderWindowInteractor iactor;
+
         //Mouse interactor
         bool mouseDown1 = false;
         bool mouseDown2 = false;
@@ -47,14 +51,18 @@ namespace HistoGrading
         Model model = new Model();
         int[,] features = new int[0,0];
 
-        //Form initialization
+        /// <summary>
+        /// Form that includes all major components in the software.
+        /// </summary>
         public MainForm()
         {
             InitializeComponent();
         }
 
-        //GUI text update
-        public void tellSlice()
+        /// <summary>
+        /// Updates GUI text about current rendering method in use.
+        /// </summary>
+        public void TellSlice()
         {
             //Tell volume rendering
             if(ori == -1)
@@ -142,7 +150,7 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -151,6 +159,9 @@ namespace HistoGrading
         {
             //Set renderwindow
             renWin = renderWindowControl.RenderWindow;
+            //Initialize interactor
+            iactor = renWin.GetInteractor();
+            iactor.Initialize();
         }
 
         //Buttons
@@ -199,7 +210,9 @@ namespace HistoGrading
                 //Update GUI
                 maskButton.Text = "Load Mask";
                 maskLabel.Text = "No Mask Loaded";
-                tellSlice();
+                TellSlice();
+
+                iactor.Enable();
 
                 // Enable buttons
                 sagittalButton.Enabled = true;
@@ -269,12 +282,12 @@ namespace HistoGrading
                     if (ori == -1)
                     {
                         volume.renderVolume();
-                        tellSlice();
+                        TellSlice();
                     }
                     if (ori > -1)
                     {
                         volume.renderImage();
-                        tellSlice();
+                        TellSlice();
                     }
                     is_mask = 0;
                     maskButton.Text = "Load Mask";
@@ -306,7 +319,7 @@ namespace HistoGrading
                         volume.renderImageMask();
                     }
                 }
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -324,7 +337,8 @@ namespace HistoGrading
             {
                 volume.renderVolumeMask();
             }
-            tellSlice();
+            TellSlice();
+            iactor.Enable();
         }
 
         //Render coronal slice
@@ -345,7 +359,8 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
+                TellSlice();
+                iactor.Disable();
             }
         }
 
@@ -367,7 +382,8 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
+                TellSlice();
+                iactor.Disable();
             }
         }
 
@@ -390,21 +406,15 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                tellSlice();
+                TellSlice();
+                iactor.Disable();
             }
-        }
-
-        // Load Grading model
-        private void loadModel_Click(object sender, EventArgs e)
-        {
-            string state = Grading.LoadModel(ref model);
-            sliceLabel.Text = state;
         }
 
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
-            string grade = Grading.Predict(model, ref features);
+            string grade = Grading.Predict(model, ref features, ref volume);
             sliceLabel.Text = grade;
         }
 
@@ -417,7 +427,7 @@ namespace HistoGrading
             if (e.Type == ScrollEventType.EndScroll)
             {
                 sliceBar_ValueChanged(this, null);
-                tellSlice();
+                TellSlice();
             }
         }
 
@@ -439,6 +449,48 @@ namespace HistoGrading
             {
                 gminBar_ValueChanged(this, null);
             }
+        }
+
+        private void segmentButton_Click(object sender, EventArgs e)
+        {
+            //VOI for segmentation
+
+            //Get sample dimensions
+            //int[] cur_extent = volume.getDims();
+            //Get center from XY plane
+            //int[] c = new int[] { (cur_extent[1]- cur_extent[0]) / 2, (cur_extent[3] - cur_extent[2]) / 2};
+
+            //768*768 VOI from the center
+            int[] voi_extent = new int[] { 380, 420, 141, 908, 0, 767 };
+            int[] batch_dims = new int[] { 768, 768, 1 };
+
+            //Segment along axis 1
+            vtkImageData BCI = IO.segmentation_pipeline(volume, batch_dims, voi_extent, 0, 4);
+
+            //Update rendering pipeline
+            maskLabel.Text = "Automatic";
+
+            //Connect mask to segmentation pipeline
+            volume.connectMaskFromData(BCI);
+            //Update pipeline
+            volume.updateCurrent(sliceN, ori, gray);
+
+            GC.Collect();
+
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolumeMask();
+                volume.setVolumeColor();
+            }
+            if (ori > -1)
+            {
+                volume.renderImageMask();
+            }
+
+            //Update flags
+            is_mask = 1;
+            maskButton.Text = "Remove Mask";
         }
     }
 }

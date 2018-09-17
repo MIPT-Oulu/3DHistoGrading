@@ -87,7 +87,7 @@ namespace _3DHistoGrading.UnitTests
                 }
             }
 
-            if (method == "Running numbers" || method == "Add residual")
+            if (method == "Running numbers" || method == "Add residual" || method == "Running Numbers")
             {
                 for (int i = 0; i < size[0]; i++)
                 {
