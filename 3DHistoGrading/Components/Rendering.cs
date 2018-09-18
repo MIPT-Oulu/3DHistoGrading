@@ -248,7 +248,7 @@ namespace HistoGrading.Components
                 for (int cvalue = 0; cvalue <= 255; cvalue++)
                 {
                     //Current int value / max value
-                    double val = cvalue / cmax;
+                    double val = (double)cvalue / (double)cmax;
                     //Values below maximum are set to appropriate value
                     if (val < 1.0 && cvalue >= cmin)
                     {

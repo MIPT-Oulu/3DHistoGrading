@@ -106,7 +106,7 @@ namespace HistoGrading.Models
             int[] dims = volume.getDims();
 
             //Initialize unet
-            string wpath = "V:\\Tuomas\\UNetE3BN.h5";
+            string wpath = "Z:\\Tuomas\\UNetE3BN.h5";
 
             UNet model = new UNet();
             model.Initialize(24, batch_d, wpath, false);
