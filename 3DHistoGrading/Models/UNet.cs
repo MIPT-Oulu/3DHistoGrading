@@ -581,8 +581,6 @@ namespace HistoGrading.Models
             //Get output
             IList<IList<float>> output = get_output(outputDataMap, input_size, n_samples);
 
-            //Save the model
-            model.Save("C:\\users\\jfrondel\\desktop\\GITS\\cntkunet.model");
             return output;
         }
 
