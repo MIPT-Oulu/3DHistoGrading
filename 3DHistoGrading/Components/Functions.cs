@@ -445,6 +445,5 @@ namespace HistoGrading.Components
             vtkdata = DataTypes.byteToVTK(data);
             return vtkdata;
         }
-
     }
 }

@@ -50,6 +50,7 @@ namespace HistoGrading
         // Grading variables
         Model model = new Model();
         int[,] features = new int[0,0];
+        string fname = null;
 
         /// <summary>
         /// Form that includes all major components in the software.
@@ -178,6 +179,17 @@ namespace HistoGrading
                 //Get path and files
                 string impath = fileDialog.FileName;
                 string folpath = Path.GetDirectoryName(@impath);
+
+                // Get sample name
+                var file = Path.GetFileName(impath).Split('_');
+                for (int k = 0; k < file.Length - 1; k++)
+                {
+                    fname += file[k];
+                    if (k < file.Length - 2)
+                    {
+                        fname += "_";
+                    }
+                }
 
                 //Update GUI text to tell path to data folder
                 fileLabel.Text = folpath;
@@ -414,7 +426,7 @@ namespace HistoGrading
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
-            string grade = Grading.Predict(model, ref features, ref volume);
+            string grade = Grading.Predict(model, ref features, ref volume, fname);
             sliceLabel.Text = grade;
         }
 

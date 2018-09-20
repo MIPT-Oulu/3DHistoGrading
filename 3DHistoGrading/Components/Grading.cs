@@ -29,16 +29,16 @@ namespace HistoGrading.Components
         /// Default model file is on project folder named "weights.dat"
         /// </summary>
         /// <param name="mod">Model containing all variables</param>
-        /// <returns>State of loading model</returns>
+        /// <returns>Model path</returns>
         public static string LoadModel(ref Model mod)
         {
             // Path to model (weights.dat)
             string filename =
                     new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
-                    .Parent.Parent.Parent.Parent.FullName + @"\Default\weights.dat"; // Move to correct location and add file name
+                    .Parent.Parent.Parent.Parent.FullName; // Move to correct location and add file name
 
             // Read weights from .dat file
-            var reader = new BinaryWriterApp(filename);
+            var reader = new BinaryWriterApp(filename + @"\Default\weights.dat");
             reader.ReadWeights();
 
             // Update model variables
@@ -48,7 +48,7 @@ namespace HistoGrading.Components
             mod.weights = reader.weights;
             mod.mean = reader.mean;
 
-            return "Model loaded";
+            return filename;
         }
 
         /// <summary>
@@ -58,16 +58,14 @@ namespace HistoGrading.Components
         /// <param name="features">LBP features.</param>
         /// <param name="volume">Data array.</param>
         /// <returns>Returns string containing the OA grade</returns>
-        public static string Predict(Model mod, ref int[,] features, ref Rendering.renderPipeLine volume)
+        public static string Predict(Model mod, ref int[,] features, ref Rendering.renderPipeLine volume, string filename)
         {
             // Default variables
             int threshold = 80;
             int[] size = { 400, 30 };
-            //int threshold = 5;
-            //int[] size = { 10, 3 };
 
             // Load default model
-            string state = LoadModel(ref mod);
+            string path = LoadModel(ref mod);
 
             // Surface extraction
             Processing.SurfaceExtraction(ref volume, threshold, size, out int[,] surfacecoordinates, out byte[,,] surface);
@@ -75,25 +73,23 @@ namespace HistoGrading.Components
             // Mean and std images
             Processing.MeanAndStd(surface, out double[,] meanImage, out double[,] stdImage);
 
-            //
             // LBP features
-            //
-
             LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\mean.png", meanImage, false);
             LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\std.png", stdImage, true);
             features = LBP(meanImage.Add(stdImage));
 
             // PCA
             double[,] dataAdjust = Processing.SubtractMean(features.ToDouble(), mod.mean);
-            //double[,] dataAdjust = features.Transpose().ToDouble();
             double[,] PCA = dataAdjust.Dot(mod.eigenVectors.ToDouble());
 
             // Regression
             double[] grade = PCA.Dot(mod.weights).Add(1.5);
 
-            //double sum = CompareGrades(grade);
-
+            // Save results
+            SaveResult(grade, path, filename);
+            
             return "OA grade: " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
+            //double sum = CompareGrades(grade);
             //return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###", CultureInfo.InvariantCulture);
         }
 
@@ -143,6 +139,30 @@ namespace HistoGrading.Components
             int[,] features = new int[0, 0];
 
             return Matrix.Concatenate(features, f); ;
+        }
+
+        /// <summary>
+        /// Save results to .csv file.
+        /// </summary>
+        private static void SaveResult(double[] grade, string path, string filename)
+        {
+            var result = DialogResult.OK;
+            while (result == DialogResult.OK)
+            {
+                try
+                {
+                    File.AppendAllText(
+                        path + @"\Default\results.csv", filename + ";"
+                        + grade[0].ToString("####.##", CultureInfo.InvariantCulture) + "\n");
+                    break;
+                }
+                catch (Exception)
+                {
+                    result = MessageBox.Show(
+                        "Results file is opened. Please close the file before continuing."
+                        , "Error!", MessageBoxButtons.OKCancel);
+                }
+            }
         }
     }
 
