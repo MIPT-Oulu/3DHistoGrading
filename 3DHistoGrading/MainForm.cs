@@ -99,7 +99,7 @@ namespace HistoGrading
             //Check if rendering
             if (is_rendering == 1)
             {
-                //Update gary value range and render volume
+                //Update gray value range and render volume
                 gray[1] = gmaxBar.Value;
                 volume.updateCurrent(sliceN,ori,gray);
                 volume.setVolumeColor();

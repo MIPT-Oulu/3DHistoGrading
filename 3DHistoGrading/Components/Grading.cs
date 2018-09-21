@@ -33,13 +33,20 @@ namespace HistoGrading.Components
         public static string LoadModel(ref Model mod)
         {
             // Path to model (weights.dat)
-            string filename =
+            string path =
                     new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
                     .Parent.Parent.Parent.Parent.FullName; // Move to correct location and add file name
 
             // Read weights from .dat file
-            var reader = new BinaryWriterApp(filename + @"\Default\weights.dat");
-            reader.ReadWeights();
+            var reader = new BinaryWriterApp(path + @"\Default\weights.dat");
+            try
+            {
+                reader.ReadWeights();
+            }
+            catch (Exception)
+            {
+                throw new Exception("Could not find weights.dat! Check that default model is on correct folder.");
+            }
 
             // Update model variables
             mod.nComp = reader.ncomp;
@@ -48,7 +55,7 @@ namespace HistoGrading.Components
             mod.weights = reader.weights;
             mod.mean = reader.mean;
 
-            return filename;
+            return path;
         }
 
         /// <summary>
@@ -60,23 +67,41 @@ namespace HistoGrading.Components
         /// <returns>Returns string containing the OA grade</returns>
         public static string Predict(Model mod, ref int[,] features, ref Rendering.renderPipeLine volume, string filename)
         {
+            // Initialize Grading form
+            var grading = new GradingForm();
+            grading.Show();
+            
+
             // Default variables
             int threshold = 80;
             int[] size = { 400, 30 };
 
             // Load default model
             string path = LoadModel(ref mod);
+            grading.UpdateModel(); grading.Show();
 
             // Surface extraction
             Processing.SurfaceExtraction(ref volume, threshold, size, out int[,] surfacecoordinates, out byte[,,] surface);
 
             // Mean and std images
             Processing.MeanAndStd(surface, out double[,] meanImage, out double[,] stdImage);
+            // Show images to user
+            grading.UpdateMean(
+                DataTypes.DoubleToBitmap(meanImage),
+                DataTypes.DoubleToBitmap(stdImage));
+            grading.Show();
 
             // LBP features
-            LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\mean.png", meanImage, false);
-            LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\std.png", stdImage, true);
-            features = LBP(meanImage.Add(stdImage));
+            // Get default parameters
+            Parameters param = new Parameters();
+            grading.UpdateParameters(param);
+            features = LBP(meanImage.Add(stdImage), param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR);
+            // Show LBP images to user
+            grading.UpdateLBP(
+                DataTypes.DoubleToBitmap(LBPIL),
+                DataTypes.DoubleToBitmap(LBPIS),
+                DataTypes.DoubleToBitmap(LBPIR));
+            grading.Show();
 
             // PCA
             double[,] dataAdjust = Processing.SubtractMean(features.ToDouble(), mod.mean);
@@ -87,7 +112,8 @@ namespace HistoGrading.Components
 
             // Save results
             SaveResult(grade, path, filename);
-            
+            grading.UpdateGrade(grade[0].ToString("####.##", CultureInfo.InvariantCulture)); grading.Show();
+
             return "OA grade: " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
             //double sum = CompareGrades(grade);
             //return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###", CultureInfo.InvariantCulture);
@@ -121,28 +147,26 @@ namespace HistoGrading.Components
         /// Currently software inputs sum of mean and standard images of surface VOI.
         /// </summary>
         /// <returns>Feature array.</returns>
-        public static int[,] LBP(double[,] inputImage)
+        public static int[,] LBP(double[,] inputImage, Parameters param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR)
         {
-            // Get default parameters
-            Parameters param = new Parameters();
-
             // Grayscale standardization
             var standrd = new LocalStandardization(param.W_stand[0], param.W_stand[1], param.W_stand[2], param.W_stand[3]);
             standrd.Standardize(ref inputImage, param.Method); // standardize given image
 
             // LBP calculation
             LBPApplication.PipelineMRELBP(inputImage, param,
-                    out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR, out int[] histL, out int[] histS, out int[] histR, out int[] histCenter);
+                    out LBPIL, out LBPIS, out LBPIR, out int[] histL, out int[] histS, out int[] histR, out int[] histCenter);
 
             // Concatenate histograms
             int[] f = Matrix.Concatenate(histCenter, Matrix.Concatenate(histL, Matrix.Concatenate(histS, histR)));
             int[,] features = new int[0, 0];
 
-            return Matrix.Concatenate(features, f); ;
+            return Matrix.Concatenate(features, f);
         }
 
         /// <summary>
         /// Save results to .csv file.
+        /// Check that file is not opened.
         /// </summary>
         private static void SaveResult(double[] grade, string path, string filename)
         {

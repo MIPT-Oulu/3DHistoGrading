@@ -260,5 +260,21 @@ namespace HistoGrading.Components
             return outarray;
         }
 
+        /// <summary>
+        /// Convert 2D double array to Bitmap.
+        /// Scales array from 0 to 255. Should be used mainly for visualizations.
+        /// </summary>
+        /// <param name="array">2D array to be converted.</param>
+        /// <returns>Bitmap</returns>
+        public static Bitmap DoubleToBitmap(double[,] array)
+        {
+            // Scale
+            array = LBPLibrary.Functions.Normalize(array).Multiply(255);
+            // To byte
+            byte[,] bytearray = array.Round().ToByte(); // Round and convert to byte
+            // To Bitmap
+            return new Bitmap(LBPLibrary.Functions.ByteMatrixToBitmap(bytearray));
+        }
+
     }
 }
