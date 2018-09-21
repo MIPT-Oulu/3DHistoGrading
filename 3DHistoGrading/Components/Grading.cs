@@ -46,6 +46,7 @@ namespace HistoGrading.Components
             mod.eigenVectors = reader.eigenVectors;
             mod.singularValues = reader.singularValues;
             mod.weights = reader.weights;
+            mod.mean = reader.mean;
 
             return "Model loaded";
         }
@@ -62,6 +63,8 @@ namespace HistoGrading.Components
             // Default variables
             int threshold = 80;
             int[] size = { 400, 30 };
+            //int threshold = 5;
+            //int[] size = { 10, 3 };
 
             // Load default model
             string state = LoadModel(ref mod);
@@ -76,12 +79,13 @@ namespace HistoGrading.Components
             // LBP features
             //
 
+            LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\mean.png", meanImage, false);
+            LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\std.png", stdImage, true);
             features = LBP(meanImage.Add(stdImage));
-            //LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\mean.png", meanImage, true);
-            //LBPLibrary.Functions.Save(@"C:\Users\sarytky\Desktop\trials\std.png", stdImage, true);
 
             // PCA
-            double[,] dataAdjust = Processing.SubtractMean(features.ToDouble());
+            double[,] dataAdjust = Processing.SubtractMean(features.ToDouble(), mod.mean);
+            //double[,] dataAdjust = features.Transpose().ToDouble();
             double[,] PCA = dataAdjust.Dot(mod.eigenVectors.ToDouble());
 
             // Regression
@@ -165,5 +169,9 @@ namespace HistoGrading.Components
         /// Feature weights from pretrained linear regression.
         /// </summary>
         public double[] weights;
+        /// <summary>
+        /// Mean feature vector.
+        /// </summary>
+        public double[] mean;
     }
 }

@@ -61,14 +61,30 @@ namespace HistoGrading.Components
         public static void SurfaceExtraction(ref Rendering.renderPipeLine volume, int threshold, int[] size, 
             out int[,] surfacecoordinates, out byte[,,] surfacevoi)
         {
+            // Get cropping dimensions
+            int[] crop = volume.idata.GetExtent();
+            crop[4] = (int)Math.Round(crop[5] / 2.0);
+            //crop[5] = (int)Math.Round((double)crop[5] / 3);
+            
+            // Crop and flip the volume
+            var cropped = volume.getVOI(crop);
+            var flipper = vtkImageFlip.New();
+            flipper.SetInput(cropped);
+            flipper.SetFilteredAxes(2);
+            flipper.Update();
+            
+            // Render cropped volume
+            Rendering.RenderToNewWindow(flipper.GetOutput());
+
             // Convert vtkImageData to byte[,,]
+            int[] dims = new int[] { crop[1] + 1, crop[3] + 1, (crop[5]-crop[4]) + 1 };
             byte[,,] byteVolume =
                 DataTypes.VectorToVolume(
-                DataTypes.vtkToByte(volume.idata, out int[] dims), dims);
+                DataTypes.vtkToByte(flipper.GetOutput()), dims);
 
-            // Crop to upper third of the sample
-            int[] crop = { 0, byteVolume.GetLength(0) - 1, 0, byteVolume.GetLength(1) - 1, 0, (int)Math.Floor((double)byteVolume.GetLength(2) / 3) };
-            byteVolume = Functions.Crop3D(byteVolume, crop);
+            //// Crop to upper third of the sample
+            //int[] crop = { 0, byteVolume.GetLength(0) - 1, 0, byteVolume.GetLength(1) - 1, 0, (int)Math.Floor((double)byteVolume.GetLength(2) / 3) };
+            //byteVolume = Functions.Crop3D(byteVolume, crop);
 
             // Get sample center coordinates
             int[] center = GetCenter(byteVolume, threshold);
@@ -78,19 +94,29 @@ namespace HistoGrading.Components
 
             // Free memory
             byteVolume = null;
+            cropped = null;
+            flipper = null;
         }
 
         /// <summary>
         /// Computes mean along each column of the array
         /// and subtracts it along the columns.
+        /// If mean vector is given, it is subtracted from array.
         /// </summary>
         /// <param name="array">Array to be calculated.</param>
+        /// <param name="mean">Mean vector to be subtracted.</param>
         /// <returns>Subtracted array.</returns>
-        public static double[,] SubtractMean(double[,] array)
+        public static double[,] SubtractMean(double[,] array, double[] mean = null)
         {
             int w = array.GetLength(0), l = array.GetLength(1);
             double[,] dataAdjust = new double[0, 0];
             double[] means = new double[w];
+
+            //double[] mean = new double[32] // Here, actually columns are written out
+                //{ 72981.69444444, 69902.30555556, 0, 190.77777778, 2024.63888889, 6115.13888889, 9087.77777778, 7083.69444444, 2719.61111111,
+                //    351.75, 0, 115310.61111111, 0, 241.11111111, 9692.44444444, 26931.41666667,  31327.11111111, 28872.97222222, 11496.33333333,
+                //    282.83333333, 0, 34039.77777778, 6671.13888889, 13672.25, 8390.47222222, 7282.30555556, 7168.47222222, 7271.5,
+                //    8368.16666667, 13541.88888889, 6752, 63765.80555556};
 
             for (int i = 0; i < w; i++)
             {
@@ -100,8 +126,15 @@ namespace HistoGrading.Components
                     LBPLibrary.Functions.GetSubMatrix(array, i, i, 0, l - 1));
 
                 // Subtract mean
-                means[i] = vector.Average();
-                vector = Elementwise.Subtract(vector, means[i]);
+                if (mean == null)
+                {
+                    means[i] = vector.Average();
+                    vector = Elementwise.Subtract(vector, means[i]);
+                }
+                else
+                {
+                    vector = Elementwise.Subtract(vector, mean[i]);
+                }
 
                 // Concatenate
                 dataAdjust = Matrix.Concatenate(dataAdjust, vector);
@@ -117,7 +150,7 @@ namespace HistoGrading.Components
         /// <param name="volume">Input volume.</param>
         /// <param name="threshold">Gray value threshold.</param>
         /// <returns>Center pixel coordinates.</returns>
-        private static int[] GetCenter(byte[,,] volume, int threshold)
+        public static int[] GetCenter(byte[,,] volume, int threshold)
         {
             int[] center = new int[2];
             int[] dims = new int[] { volume.GetLength(0), volume.GetLength(1), volume.GetLength(2) };
@@ -173,7 +206,7 @@ namespace HistoGrading.Components
         /// <param name="threshold">Surface threshold gray value.</param>
         /// <param name="surfaceCoordinates">Surface z-coordinate array.</param>
         /// <param name="surfaceVOI">Surface volume array.</param>
-        private static void GetSurface(byte[,,] volume, int[] center, int[] size, int threshold, 
+        public static void GetSurface(byte[,,] volume, int[] center, int[] size, int threshold, 
             out int[,] surfaceCoordinates, out byte[,,] surfaceVOI)
         {
             int[,] coordinates = new int[size[0], size[0]];
@@ -189,6 +222,7 @@ namespace HistoGrading.Components
                 Parallel.For(start[1], start[1] + size[0], x =>
                 {
                     for (int z = 0; z < dims[2]; z++)
+                    //for (int z = dims[2]; z <= 0; z--)
                     {
                         if (volume[y, x, z] > threshold)
                         {
@@ -197,11 +231,13 @@ namespace HistoGrading.Components
 
                             // Update surface VOI
                             int zlim = z + size[1];
+                            //int zlim = z - size[1];
                             if (zlim > dims[2]) // avoid exceeding array
                             {
                                 zlim = dims[2];
                             }
                             for (int zz = z; zz < zlim; zz++)
+                            //for (int zz = z; zz < zlim; zz--)
                             {
                                 VOI[y - start[0], x - start[1], zz - z] = volume[y, x, zz];
                             }
@@ -226,12 +262,12 @@ namespace HistoGrading.Components
             int[] dims = new int[] { surfaceVOI.GetLength(0), surfaceVOI.GetLength(1), surfaceVOI.GetLength(2) };
             double[,] mean = new double[dims[0], dims[1]];
             double[,] std = new double[dims[0], dims[1]];
-            double[] temp = new double[dims[2]];
 
             Parallel.For(0, dims[0], i =>
             {
                 Parallel.For(0, dims[1], j =>
                 {
+                    double[] temp = new double[dims[2]]; // has to be initialized in the loop
                     for (int k = 0; k < dims[2]; k++)
                     {
                         temp[k] = surfaceVOI[i, j, k];

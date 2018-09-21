@@ -10,20 +10,11 @@ using Kitware.VTK;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
-using Accord.Math;
-
-namespace HistoGrading.Components
+namespace CNTKIntegration.Components
 {
-    /// <summary>
-    /// Contains functions for data type conversions.
-    /// </summary>
-    public class DataTypes
+    class DataTypes
     {
-        /// <summary>
-        /// Converts 3D byte array to vtkImageData.
-        /// </summary>
-        /// <param name="data">Input array.</param>
-        /// <returns>Converted array.</returns>
+        //3D byte array to vtkimagedata
         public static vtkImageData byteToVTK(byte[,,] data, int[] orientation = null)
         {
             //Get input dimensions
@@ -49,7 +40,7 @@ namespace HistoGrading.Components
             vtkdata.Update();
 
             //Return vtk data
-            if (orientation == null)
+            if(orientation == null)
             {
                 return vtkdata;
             }
@@ -61,14 +52,10 @@ namespace HistoGrading.Components
                 permuter.Update();
                 return permuter.GetOutput();
             }
+            
         }
 
-        /// <summary>
-        /// Converts 3D vtkImageData to 1D byte array.
-        /// </summary>
-        /// <param name="vtkdata">Input data.</param>
-        /// <param name="dims">Dimensions of the converted array. Give these as input to <seealso cref="VectorToVolume{T}(T[], int[])"/> function to convert from 1D to 3D.</param>
-        /// <returns>Converted 1D array of vtkImageData.</returns>
+        //vtkimagedata to 1d byte array
         public static byte[] vtkToByte(vtkImageData vtkdata)
         {
             //Get vtk data dimensions
@@ -93,111 +80,24 @@ namespace HistoGrading.Components
             return bytedata;
         }
 
-        /// <summary>
-        /// Converts 1D vector to 3D array.
-        /// </summary>
-        /// <typeparam name="T">Data type for array can be chosen by user.</typeparam>
-        /// <param name="vector">1D vector.</param>
-        /// <param name="dims">Dimensions of the 3D array. Order: y, x, z.</param>
-        /// <returns>3D volume.</returns>
-        public static T[,,] VectorToVolume<T>(T[] vector, int[] dims)
-        {
-            T[,,] volume = new T[dims[0], dims[1], dims[2]];
-
-            Parallel.For(0, dims[0], y =>
-            {
-                Parallel.For(0, dims[1], x =>
-                {
-                        Parallel.For(0, dims[2], z =>
-                        {
-                              volume[y, x, z] = vector[z * dims[0] * dims[1] + y * dims[1] + x];
-                        });
-                });
-            });
-            return volume;
-        }
-
-        /// <summary>
-        /// Extracts 2D array from 3D volume.
-        /// </summary>
-        /// <typeparam name="T">Data type for array can be chosen by user.</typeparam>
-        /// <param name="volume">3D volume.</param>
-        /// <param name="n">Number of slice on given axis.</param>
-        /// <param name="axis">Axis to obtain slice from.</param>
-        /// <returns>2D array.</returns>
-        public static T[,] VolumeToSlice<T>(T[,,] volume, int n, int axis)
-        {
-            T[,] slice;
-            int[] dims = new int[] { volume.GetLength(0), volume.GetLength(1), volume.GetLength(2)};
-
-            switch (axis) // Select axis to be sliced from.
-            {
-                case 0: // yz
-                    slice = new T[dims[1], dims[2]];
-                    dims[0] = dims[1]; dims[1] = dims[2];
-                    // Extract slice
-                    Parallel.For(0, dims[0], i =>
-                    {
-                        Parallel.For(0, dims[1], j =>
-                        {
-                            slice[i, j] = volume[n, i, j];
-                        });
-                    });
-                    break;
-
-                case 1: // xz
-                    slice = new T[dims[0], dims[2]];
-                    dims[1] = dims[2];
-                    // Extract slice
-                    Parallel.For(0, dims[0], i =>
-                    {
-                        Parallel.For(0, dims[1], j =>
-                        {
-                            slice[i, j] = volume[i, n, j];
-                        });
-                    });
-                    break;
-
-                case 2: // xy
-                    slice = new T[dims[0], dims[1]];
-                    // Extract slice
-                    Parallel.For(0, dims[0], i =>
-                    {
-                        Parallel.For(0, dims[1], j =>
-                        {
-                            slice[i, j] = volume[i, j, n];
-                        });
-                    });
-                    break;
-
-                default:
-                    throw new Exception("Invalid axis given. Give axis as an integer between 0 and 2.");
-            }
-            return slice;
-        }
-
-        /// <summary>
-        /// Converts byte array to float array. Normalizes the data, if normalization
-        /// parameters (mean and standard deviation) are given
-        /// </summary>
-        /// <returns>Float array.</returns>
-        public static float[] byteToFloat(byte[] bytedata, float mu = 0, float sd = 0)
+        //byte array to float
+        public static float[] byteToFloat(byte[] bytedata, float mu = (float)0, float sd = (float)0)
         {
             //Empty array for putput
             float[] floatdata = new float[bytedata.Length];
 
             //Iterate over bytedata
-            Parallel.For(0, bytedata.Length, (int k) =>
+            Parallel.For(0,bytedata.Length, (int k) =>
             {
                 //If normalization parameters are not give, return bytedata cast as float data
                 if (mu == 0)
                 {
-                    floatdata[k] = bytedata[k];
+                    floatdata[k] = (float)bytedata[k];
                 }
                 //Otherwise normalize data
                 else
                 {
-                    floatdata[k] = bytedata[k] - mu;
+                    floatdata[k] = (float)bytedata[k]-mu;
                     if (sd != 0)
                     {
                         floatdata[k] /= sd;
@@ -209,10 +109,7 @@ namespace HistoGrading.Components
             return floatdata;
         }
 
-        /// <summary>
-        /// Converts minibatch data to 3D byte array.
-        /// </summary>
-        /// <returns>3D byte array.</returns>
+        //Minibatch to byte
         public static byte[,,] batchToByte(IList<IList<float>> batch, int[] output_size = null, int[] extent = null)
         {
             //Get number of slices
@@ -224,7 +121,7 @@ namespace HistoGrading.Components
 
             //outarray
             byte[,,] outarray;
-            if (output_size == null)
+            if(output_size == null)
             {
                 outarray = new byte[n_slices, dim, dim];
             }
@@ -233,14 +130,14 @@ namespace HistoGrading.Components
                 outarray = new byte[output_size[0], output_size[1], output_size[2]];
             }
 
-            if (extent == null)
+            if(extent == null)
             {
-                extent = new int[] { 0, n_slices - 1, 0, dim - 1, 0, dim - 1, 0 };
+                extent = new int[] {0,n_slices-1,00,dim-1,0,dim-1,0};
             }
             //Iterate over the list and collect the data to an array
             int d = extent[0];
             int stride = dim * dim;
-            foreach (IList<float> item in batch)
+            foreach(IList<float> item in batch)
             {
                 //List to array
                 float[] tmp = item.ToArray();
@@ -250,7 +147,7 @@ namespace HistoGrading.Components
                     Parallel.For(extent[4], extent[5], (int w) =>
                     {
                         int pos = (h - extent[2]) * dim + w - extent[4];
-                        byte val = (byte)(tmp[pos] * 255);
+                        byte val = (byte)(tmp[pos] * (float)255);
                         outarray[d, h, w] = val;
                     });
                 });
@@ -259,6 +156,5 @@ namespace HistoGrading.Components
 
             return outarray;
         }
-
     }
 }

@@ -11,7 +11,7 @@ namespace _3DHistoGrading.UnitTests
     public class PredictTests
     {
         TestImage testImg = new TestImage(); // Initialize testimage function
-        
+
         //BinaryWriterApp lbpreader = new BinaryWriterApp(Directory.GetCurrentDirectory() + @"\Test.dat");
         //string load = @"C:\temp\test\load";
         //string save = @"C:\temp\test\save";
