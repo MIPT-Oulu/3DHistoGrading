@@ -473,11 +473,11 @@ namespace HistoGrading
             //int[] c = new int[] { (cur_extent[1]- cur_extent[0]) / 2, (cur_extent[3] - cur_extent[2]) / 2};
 
             //768*768 VOI from the center
-            int[] voi_extent = new int[] { 380, 420, 141, 908, 0, 767 };
+            int[] voi_extent = new int[] { 141, 908, 141, 908, 0, 767 };
             int[] batch_dims = new int[] { 768, 768, 1 };
 
             //Segment along axis 1
-            vtkImageData BCI = IO.segmentation_pipeline(volume, batch_dims, voi_extent, 0, 4);
+            vtkImageData BCI = IO.segmentation_pipeline(volume, batch_dims, voi_extent, 0, 16);
 
             //Update rendering pipeline
             maskLabel.Text = "Automatic";

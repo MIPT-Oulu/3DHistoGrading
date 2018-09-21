@@ -60,7 +60,7 @@ namespace HistoGrading.Models
                 Parameter bnbias;
                 Parameter rm;
                 Parameter rv;
-                var n = Constant.Scalar(0.0f, DeviceDescriptor.CPUDevice);
+                var n = Constant.Scalar(0.0f, DeviceDescriptor.GPUDevice(0));
 
                 make_bn_pars(out_channels, add.Output.Shape, out scale, out bnbias, out rm, out rv, wpath, layer_names[0]);
 
@@ -291,13 +291,13 @@ namespace HistoGrading.Models
             if (W != null)
             {
                 //Initialize new weight
-                weight = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice, name);
+                weight = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0), name);
                 weight = weight_fromFloat(weight, W, dims);
             }
             else
             {
                 //Initialize new weight
-                weight = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                weight = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
             }
 
             return weight;
@@ -317,12 +317,12 @@ namespace HistoGrading.Models
             if (W != null)
             {
                 //Initialize new weight
-                bias = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice, name);
+                bias = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0), name);
                 bias = weight_fromFloat(bias, W, bks);
             }
             else
             {
-                bias = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                bias = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
             }
 
             return bias;
@@ -341,32 +341,32 @@ namespace HistoGrading.Models
                 string mn = "bn" + S[0] + "_" + S[1] + "_" + "running_mean";
                 string vn = "bn" + S[0] + "_" + S[1] + "_" + "running_var";
                 //Initialize new weight
-                w = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                w = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 float[] W = make_copies(weight_fromDisk(wpath, wn), shape, true);
                 w = weight_fromFloat(w, W, new int[] { out_channels });
                 //Initialize new bias
-                b = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                b = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 W = make_copies(weight_fromDisk(wpath, bn), shape, true);
                 b = weight_fromFloat(b, W, new int[] { out_channels });
                 //Initialize new running mean
-                m = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                m = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 W = make_copies(weight_fromDisk(wpath, mn), shape, true);
                 m = weight_fromFloat(m, W, new int[] { out_channels });
                 //Initialize new variance
-                v = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                v = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 W = make_copies(weight_fromDisk(wpath, vn), shape, true);
                 v = weight_fromFloat(v, W, new int[] { out_channels });
             }
             else
             {
                 //Initialize new weight
-                w = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                w = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 //Initialize new bias
-                b = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                b = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 //Initialize new running mean
-                m = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                m = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 //Initialize new variance
-                v = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                v = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
             }
         }
 
@@ -374,7 +374,7 @@ namespace HistoGrading.Models
         private static Parameter weight_fromFloat(Parameter weight, float[] array, int[] view)
         {
             //Generate weight array with correct dimensions
-            NDArrayView nDArray = new NDArrayView(view, array, DeviceDescriptor.CPUDevice);
+            NDArrayView nDArray = new NDArrayView(view, array, DeviceDescriptor.GPUDevice(0));
             weight.SetValue(nDArray);
             return weight;
         }
@@ -577,7 +577,7 @@ namespace HistoGrading.Models
             //Create output featuremap
             var outputDataMap = new Dictionary<Variable, Value>() { { model.Output, null } };
             //Forward pass
-            model.Evaluate(inputDataMap, outputDataMap, DeviceDescriptor.CPUDevice);
+            model.Evaluate(inputDataMap, outputDataMap, DeviceDescriptor.GPUDevice(0));
             //Get output
             IList<IList<float>> output = get_output(outputDataMap, input_size, n_samples);
             return output;
@@ -587,7 +587,7 @@ namespace HistoGrading.Models
         private static Value mapBatch(float[] data, int n_inputs)
         {
             //Map input data to value
-            Value featureVal = Value.CreateBatch<float>(input_size, data, 0, data.Length, DeviceDescriptor.CPUDevice);
+            Value featureVal = Value.CreateBatch<float>(input_size, data, 0, data.Length, DeviceDescriptor.GPUDevice(0));
 
             return featureVal;
         }
