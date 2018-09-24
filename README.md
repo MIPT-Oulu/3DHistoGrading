@@ -43,6 +43,11 @@ Example images from 3D rendering and 2D viewing osteochondral sample.
 ![Rendering mask](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/grading/pictures/rendering_mask.PNG "3D rendered image with mask")
 ![Slice mask](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/grading/pictures/slice_mask.PNG "2D coronal slice with mask")
 
+
+Example images from 3D grading process.
+![Grading image](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/grading/pictures/grading.PNG "Grafing window shows mean and standard deviation images from automatically selected volume-of-interest. Calculated LBP patterns are shown.")
+![Grading param image](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/grading/pictures/grading_parameters.PNG "Used parameters can be checked by hovering mouse over parameters label.")
+
 ## License
 This software is distributed under the MIT License.
 
