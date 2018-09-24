@@ -328,3 +328,6 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+# Repository files that do not need updating
+[Dd]efault/[Rr]esults.csv
