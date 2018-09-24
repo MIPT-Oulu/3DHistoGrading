@@ -110,7 +110,15 @@ namespace HistoGrading.Components
 
             // Regression
             double[] grades = PCA.Dot(mod.weights).Add(1.5);
-            string grade = grades[0].ToString("####.##", CultureInfo.InvariantCulture).PadLeft(1, '0'));
+            string grade;
+            if (grades[0] < 1)
+            {
+                grade = grades[0].ToString("0.##", CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                grade = grades[0].ToString("####.##", CultureInfo.InvariantCulture);
+            }
 
             // Save results
             SaveResult(grade, path, filename);
