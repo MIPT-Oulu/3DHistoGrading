@@ -25,11 +25,15 @@ To avoid memory issues, the software runs on 64-bit systems only.
 Currently available features:
 * Visualize 3D image datasets (.png, .tiff, .bmp) using 3D rendering and three orthogonal planes
 * Load Mask on top of visualized dataset (mask should be registered with the dataset)
+* Automatically estimate surface grade from center of the sample
+* Automatic segmentation of bone-cartilage -interface using CNTK
 
 Features that are on development:
 * 3D volume-of-interest selection
 * Automatic bone and cartilage segmentation
-* Automatic grading from selected surface volume
+  * False positive suppression
+* Automatic segmentation of cartilage into different zones
+* Automatic grading from different osteochondral zones
 
 ## Outputs
 OA grade from analysed sample.
