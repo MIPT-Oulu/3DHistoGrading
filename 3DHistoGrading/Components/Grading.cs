@@ -109,13 +109,14 @@ namespace HistoGrading.Components
             double[,] PCA = dataAdjust.Dot(mod.eigenVectors.ToDouble());
 
             // Regression
-            double[] grade = PCA.Dot(mod.weights).Add(1.5);
+            double[] grades = PCA.Dot(mod.weights).Add(1.5);
+            string grade = grades[0].ToString("####.##", CultureInfo.InvariantCulture).PadLeft(1, '0'));
 
             // Save results
             SaveResult(grade, path, filename);
-            grading.UpdateGrade(grade[0].ToString("####.##", CultureInfo.InvariantCulture)); grading.Show();
+            grading.UpdateGrade(grade); grading.Show();
 
-            return "OA grade: " + grade[0].ToString("####.##", CultureInfo.InvariantCulture);
+            return "OA grade: " + grade;
             //double sum = CompareGrades(grade);
             //return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###", CultureInfo.InvariantCulture);
         }
@@ -169,7 +170,7 @@ namespace HistoGrading.Components
         /// Save results to .csv file.
         /// Check that file is not opened.
         /// </summary>
-        private static void SaveResult(double[] grade, string path, string filename)
+        private static void SaveResult(string grade, string path, string filename)
         {
             var result = DialogResult.OK;
             while (result == DialogResult.OK)
@@ -178,7 +179,7 @@ namespace HistoGrading.Components
                 {
                     File.AppendAllText(
                         path + @"\Default\results.csv", filename + ";"
-                        + grade[0].ToString("####.##", CultureInfo.InvariantCulture) + "\n");
+                        + grade + "\n");
                     break;
                 }
                 catch (Exception)
