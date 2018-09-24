@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Threading;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,19 +13,30 @@ namespace HistoGrading
 {
     public partial class GradingForm : Form
     {
+        // Grading form should update with its own thread in the future.
+
+        /// <summary>
+        /// Form that displays results of sample grading.
+        /// </summary>
         public GradingForm()
         {
             InitializeComponent();
             Refresh();
         }
 
+        /// <summary>
+        /// Update that model is loaded.
+        /// </summary>
         public void UpdateModel()
         {
-            progressBar1.Value = 5;
+            progressBar1.Value = 10;
             progressLabel.Text = "Progress: Default grading model loaded.";
             Refresh();
         }
 
+        /// <summary>
+        /// Update after surface volume is extracted.
+        /// </summary>
         public void UpdateSurface()
         {
             progressBar1.Value = 40;
@@ -32,17 +44,26 @@ namespace HistoGrading
             Refresh();
         }
 
+        /// <summary>
+        /// Update after mean and std images are calculated
+        /// </summary>
+        /// <param name="meanIm">Mean image.</param>
+        /// <param name="stdIm">Standard deviation image.</param>
         public void UpdateMean(Bitmap meanIm, Bitmap stdIm)
         {
+            progressBar1.Value = 60;
+            progressLabel.Text = "Progress: Mean and Standard deviation images calculated.";
             meanPicture.SizeMode = PictureBoxSizeMode.StretchImage;
             meanPicture.Image = meanIm;
             stdPicture.SizeMode = PictureBoxSizeMode.StretchImage;
             stdPicture.Image = stdIm;
-            progressBar1.Value = 60;
-            progressLabel.Text = "Progress: Mean and Standard deviation images calculated.";
             Refresh();
         }
 
+        /// <summary>
+        /// Update used grading parameters.
+        /// </summary>
+        /// <param name="param">Class including LBP variables.</param>
         public void UpdateParameters(LBPLibrary.Parameters param)
         {
             string paramText =
@@ -62,19 +83,29 @@ namespace HistoGrading
             Refresh();
         }
 
+        /// <summary>
+        /// Update when LBP images are calculated.
+        /// </summary>
+        /// <param name="small">LBP image with small radius.</param>
+        /// <param name="large">LBP image with large radius.</param>
+        /// <param name="radial">LBP image with small radius subtracted from large radius.</param>
         public void UpdateLBP(Bitmap small, Bitmap large, Bitmap radial)
         {
+            progressBar1.Value = 90;
+            progressLabel.Text = "Progress: LBP features calculated.";
             smallPicture.SizeMode = PictureBoxSizeMode.StretchImage;
             smallPicture.Image = small;
             largePicture.SizeMode = PictureBoxSizeMode.StretchImage;
             largePicture.Image = large;
             radialPicture.SizeMode = PictureBoxSizeMode.StretchImage;
             radialPicture.Image = radial;
-            progressBar1.Value = 90;
-            progressLabel.Text = "Progress: LBP features calculated.";
             Refresh();
         }
 
+        /// <summary>
+        /// Update final estimated grade.
+        /// </summary>
+        /// <param name="grade">Estimated grade.</param>
         public void UpdateGrade(string grade)
         {
             progressBar1.Value = 100;

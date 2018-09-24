@@ -64,6 +64,7 @@ namespace HistoGrading.Components
         /// <param name="mod">Loaded model.</param>
         /// <param name="features">LBP features.</param>
         /// <param name="volume">Data array.</param>
+        /// <param name="filename">Path for saving results.</param>
         /// <returns>Returns string containing the OA grade</returns>
         public static string Predict(Model mod, ref int[,] features, ref Rendering.renderPipeLine volume, string filename)
         {
