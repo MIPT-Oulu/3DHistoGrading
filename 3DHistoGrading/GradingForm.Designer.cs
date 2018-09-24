@@ -171,6 +171,7 @@
             this.parameterLabel.TabIndex = 18;
             this.parameterLabel.Text = "Parameters";
             this.parameterTip.SetToolTip(this.parameterLabel, "Parameters:");
+            this.parameterTip.AutoPopDelay = 15000;
             // 
             // GradingForm
             // 
