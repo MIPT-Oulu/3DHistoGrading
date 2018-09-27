@@ -408,6 +408,14 @@ namespace HistoGrading.Components
             public void connectMask(string input)
             {
                 imask = Functions.loadVTK(input);
+                //Set graylevel
+                vtkImageMathematics math = vtkImageMathematics.New();
+                math.SetInput1(idata);
+                math.SetInput1(imask);
+                math.SetOperationToMultiply();
+                math.Update();
+                imask = math.GetOutput();
+
             }
 
             /// <summary>

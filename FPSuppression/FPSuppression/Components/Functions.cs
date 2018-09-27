@@ -167,10 +167,13 @@ namespace HistoGrading.Components
         /// <returns></returns>
         public static vtkImageData loadVTK(string path, int[] dims = null)
         {
+            /*Read all images in folder containing file from given path
+             *Uses ParaLoader class to get the data in vtk format*/
+
             //Declare loader
             ParaLoader loader = new ParaLoader();
             //Set input path to loader
-            loader.setInput(path,dims);
+            loader.setInput(path, dims);
             //Load data
             loader.Load();
             //Extract data to variable
@@ -392,7 +395,7 @@ namespace HistoGrading.Components
         {
             //Read image from file idx. The image is read using OpenCV, and converted to Bitmap.
             //Bitmap is then read to the bytearray.
-            Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
+            Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);                        
             Bitmap _image = BitmapConverter.ToBitmap(_tmp);
             //Lock bits
             Rectangle _rect = new Rectangle(0, 0, input_dims[1], input_dims[0]);

@@ -159,9 +159,9 @@ namespace HistoGrading.Components
                 maskctf.AddRGBPoint(255, 0.6, 0, 0);
                 //Opacity
                 maskspwf.AddPoint(0, 0);
-                maskspwf.AddPoint(100, 0);
-                maskspwf.AddPoint(110, 0.6);
-                maskspwf.AddPoint(255, 0.6);
+                maskspwf.AddPoint(180, 0);
+                maskspwf.AddPoint(181, 0.1);
+                maskspwf.AddPoint(255, 0.15);
                 //
                 //Volume parameters
                 maskvol.GetProperty().SetColor(maskctf);
@@ -396,18 +396,18 @@ namespace HistoGrading.Components
             /// Connect input volume.
             /// </summary>
             /// <param name="input">Data input to be connected.</param>
-            public void connectData(string input, int[] dims = null)
+            public void connectData(string input)
             {
-                idata = Functions.loadVTK(input, dims);
+                idata = Functions.loadVTK(input);
             }
 
             /// <summary>
             /// Connect bone mask.
             /// </summary>
             /// <param name="input">Bone mask input to be connected.</param>
-            public void connectMask(string input)
+            public void connectData(string input, int[] extent = null)
             {
-                imask = Functions.loadVTK(input);
+                idata = Functions.loadVTK(input, extent);
             }
 
             /// <summary>
@@ -417,6 +417,15 @@ namespace HistoGrading.Components
             public void connectMaskFromData(vtkImageData input_mask)
             {
                 imask = input_mask;
+            }
+
+            /// <summary>
+            /// Connect bone mask from memory.
+            /// </summary>
+            /// <param name="input_data">Bone mask input to be connected.</param>
+            public void connectDataFromData(vtkImageData input_data)
+            {
+                idata = input_data;
             }
 
             /// <summary>

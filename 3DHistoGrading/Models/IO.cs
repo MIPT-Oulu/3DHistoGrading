@@ -97,28 +97,31 @@ namespace HistoGrading.Models
             //Data to byte array
             byte[,,] bytedata = DataTypes.batchToByte(input, output_size, extent);
             vtkImageData output = DataTypes.byteToVTK(bytedata, orientation);
+
             return output;
         }
 
-        public static vtkImageData segmentation_pipeline(Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int axis, int bs = 2)
+        public static void segmentation_pipeline(out List<vtkImageData> outputs, Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int[] axes, int bs = 2)
         {
+            //Outputs
+            outputs = new List<vtkImageData>();
             //Get input dimensions
             int[] dims = volume.getDims();
 
             //Initialize unet
-            string wpath = "Z:\\Tuomas\\UNetE3BN.h5";
+            string wpath = "Z:\\Tuomas\\UNetE3bn.h5";
 
             UNet model = new UNet();
             model.Initialize(24, batch_d, wpath, false);
 
-            //Segment BCI
-            IList<IList<float>> result = segment_sample(volume, model, extent, axis, bs, (float)113.05652141, (float)39.87462853);
-
-            //Convert segmentation result back to vtkImageData
-            vtkImageData output = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1}, extent, axis);
-
-            //Return output
-            return output;
+            //Segment BCI from axis
+            foreach (int axis in axes)
+            {
+                IList<IList<float>> result = segment_sample(volume, model, extent, axis, bs, (float)113.05652141, (float)39.87462853);
+                //Convert back to vtkimage data
+                vtkImageData tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axis);
+                outputs.Add(tmp);
+            }            
         }
     }
 }

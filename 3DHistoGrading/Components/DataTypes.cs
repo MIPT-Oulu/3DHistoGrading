@@ -260,5 +260,50 @@ namespace HistoGrading.Components
             return outarray;
         }
 
+        /// <summary>
+        /// Converts OpenCV Mat into a slice of of 3D byte array. Slice is set to extent at idx.
+        /// </summary>
+        /// <param name="array">Output array</param>
+        /// <param name="size">Output array size</param>
+        /// <param name="slice">OpenCV Mat</param>
+        /// <param name="extent">Extent to be updated</param>
+        /// <param name="axis">Axis for the index</param>
+        /// <param name="idx">Slice index</param>
+        public static byte[,,] setByteSlice(byte[,,] array, Mat slice, int[] extent, int axis, int idx, double scale = 1.0)
+        {
+            /*
+            if( idx > 500)
+            {
+                using (var window = new Window("window", image: slice, flags: WindowMode.AutoSize))
+                {
+                    Cv2.WaitKey();
+                }
+            }
+            */
+            
+            Parallel.For(extent[2], extent[3] - 1, (int ky) =>
+            {
+                Parallel.For(extent[0], extent[1] - 1, (int kx) =>
+                {
+                    Vec2b val = slice.Get<Vec2b>(ky - extent[2], kx - extent[0]);
+                    if (axis == 0)
+                    {
+                        array[ky, kx, idx] = (byte)(val.Item0 * scale);
+                    }
+                    if (axis == 1)
+                    {
+                        array[ky, idx, kx] = (byte)(val.Item0 * scale);
+                    }
+                    if (axis == 2)
+                    {
+                        array[idx, ky, kx] = (byte)(val.Item0 * scale);
+                    }
+
+                });
+            });
+
+            return array;
+        }
+
     }
 }

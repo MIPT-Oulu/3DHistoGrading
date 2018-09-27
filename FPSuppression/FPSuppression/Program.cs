@@ -18,13 +18,35 @@ namespace FPSuppression
         static void Main(string[] args)
         {
             //Path to data
-            string path = "Z:\\3DHistoData\\rekisteroidyt\\14_R3L_2_PTA_48h_Rec\\Registration\\14_R3L_2_PTA_48h__rec_Tar00000046.png";
+            string path = "Z:\\3DHistoData\\rekisteroidyt\\32_L6MT_2_PTA_48h_Rec\\32_L6MT_2_PTA_48h_Rec\\Registration\\32_L6MT_2_PTA_48h__rec_Tar00000038.png";
             string modelpath = "Z:\\Tuomas\\UNetE3bn.h5";
 
+            Mat im = new Mat(path, ImreadModes.GrayScale);
+            Mat BW = im.Threshold(80.0,255.0,ThresholdTypes.Binary);
+            Mat E = BW.Sobel(MatType.CV_8UC1, 1, 1);
+            Mat[] conts;            
+            HierarchyIndex[] H;
+
+            E.FindContours(out conts, H, RetrievalModes.List,ContourApproximationModes.ApproxTC89KCOS);
+            
+            InputArray.Create(conts);
+            Rect bbox = Cv2.BoundingRect(conts);
+
+            int xmin = bbox.Left;
+            int xmax = bbox.Right;
+
+            int ymin = bbox.Bottom;
+            int ymax = bbox.Top;
+
+            Console.WriteLine("{0},{1}", xmin, ymin);
+            Console.WriteLine("{0},{1}", xmin, ymax);
+            Console.WriteLine("{0},{1}", xmax, ymin);
+            Console.WriteLine("{0},{1}", xmax, ymax);
+            Console.ReadKey();
             //New volume
             Rendering.renderPipeLine volume = new Rendering.renderPipeLine();
 
-            int[] voi = new int[] { 300, 684, 300, 684, 100, 501 };
+            int[] voi = new int[] { 101, 909, 101, 909, 0, 800 };
             volume.connectData(path, voi);
 
             int[] size = volume.getDims();
@@ -32,7 +54,7 @@ namespace FPSuppression
             //Connect new rendering window
             vtkRenderWindow renWin = vtkRenderWindow.New();
             volume.connectWindow(renWin);
-            volume.updateCurrent(new int[] { 300, 300, 150 }, 1, new int[] { 0, 200 });
+            volume.updateCurrent(new int[] { 500, 500, 150 }, 1, new int[] { 0, 200 });
 
             //Render
             //volume.renderImage();
@@ -40,68 +62,37 @@ namespace FPSuppression
             //Segment BCInterface
 
             //Segmentation reange
-            int[] extent = new int[] { size[0], size[1], size[2], size[3], 0, 383 };
+            int[] extent = new int[] { 0, 767, 0, 767, 0, 767 };
 
             //Segmentation
-            vtkImageData mask = IO.segmentation_pipeline(volume, new int[] { 384, 384, 1 }, extent, new int[] { 0 }, 16);
-            Console.WriteLine("Inference done!!");
+            List<vtkImageData> outputs = new List<vtkImageData>();
+            IO.segmentation_pipeline(out outputs, volume, new int[] { 768, 768, 1 }, extent, new int[] { 0 }, 16);            
+            //Suppress false positives            
             Console.WriteLine("Suppressing false positives");
-            vtkImageData newmask = Processing.FalsePositiveSuppresion(mask, extent, 0.7 * 255.0, new int[] { 0 });
-            Console.WriteLine("Done!");
-            Console.ReadKey();
-            volume.connectMaskFromData(newmask);
+            vtkImageData newmask1 = Processing.SWFPSuppression(outputs.ElementAt(0), extent);
 
-            volume.renderImage();
-            volume.renderImageMask();
-            /*
-            for (int iterator = 0; iterator < 100; iterator += 10)
-            {
-                //Get slice and convert to Mat
-                byte[] byteData = DataTypes.vtkToByte(volume.getMaskVOI(new int[] { 0,767, 300+iterator, 300 + iterator, 0, 799 }, new int[] { 0, 2, 1 }));
-                byte[] byteData2 = DataTypes.vtkToByte(volume.getVOI(new int[] { 0, 767, 300 + iterator, 300 + iterator, 0, 799 }, new int[] { 0, 2, 1 }));
-                Console.WriteLine("Byte conversion done!!");
-                //Save output slice
-                Mat newmat = new Mat(800, 768, MatType.CV_8UC1, byteData);
-                Mat newmat2 = new Mat(800, 768, MatType.CV_8UC1, byteData2);
-                newmat.ImWrite(String.Format("d:\\segres{0}.png", iterator));
-                newmat2.ImWrite(String.Format("d:\\segim{0}.png", iterator));
-                using (var window = new Window("window", image: newmat, flags: WindowMode.AutoSize))
-                {
-                    Cv2.WaitKey();
-                }
-                using (var window = new Window("window", image: newmat2, flags: WindowMode.AutoSize))
-                {
-                    Cv2.WaitKey();
-                }
-                Mat bw = Processing.LargestBWObject(newmat, 0.7 * 255.0);
-                bw.ImWrite(String.Format("d:\\clean{0}.png", iterator));
-                using (var window = new Window("window", image: bw, flags: WindowMode.AutoSize))
-                {
-                    Cv2.WaitKey();
-                }
+            volume.connectMaskFromData(newmask1);
 
-                Console.WriteLine("Mat conversion done");
-            }
-            //Console.WriteLine("Processing mask");
-            /*
-            //Create structuring element
-            byte[] elarray = new byte[21*21];
-            Parallel.For(0, 21*21, (int k) =>
+            vtkImageData I1 = volume.getVOI(new int[] { 0, 767, 500, 500, 0, 799 });
+            vtkImageData I2 = volume.getMaskVOI(new int[] { 0, 767, 500, 500, 0, 799 });
+
+            byte[] B1 = DataTypes.vtkToByte(I1);
+            byte[] B2 = DataTypes.vtkToByte(I2);
+
+            Mat image = new Mat(800,768,MatType.CV_8UC1,B1);
+            Mat image_mask = new Mat(800, 768, MatType.CV_8UC1, B2);
+
+            using (var window = new Window("window", image: image, flags: WindowMode.AutoSize))
             {
-                elarray[k] = 1;
-            });
-            //Closing
-            Mat processed = newmat;
-            for(int k = 0; k < 3; k++)
-            {
-                processed = processed.Erode(new Mat(21, 21, MatType.CV_8UC1, elarray));
-                processed = processed.Dilate(new Mat(21, 21, MatType.CV_8UC1, elarray));
-                processed.ImWrite(string.Format("d:\\processed_{0}_.png",k));
+                Cv2.WaitKey();
             }
-            newmat = newmat.Mul(processed);
-            newmat.ImWrite("d:\\outimg2.png");
-            Console.WriteLine("Saving done!!");
-            */
+
+            using (var window = new Window("window", image: image_mask, flags: WindowMode.AutoSize))
+            {
+                Cv2.WaitKey();
+            }
+
+
             Console.ReadKey();
         }
     }

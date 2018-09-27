@@ -7,9 +7,11 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 using Kitware.VTK;
+using OpenCvSharp;
 
 using HistoGrading.Components;
 using HistoGrading.Models;
@@ -461,11 +463,15 @@ namespace HistoGrading
             //int[] c = new int[] { (cur_extent[1]- cur_extent[0]) / 2, (cur_extent[3] - cur_extent[2]) / 2};
 
             //768*768 VOI from the center
-            int[] voi_extent = new int[] { 380, 420, 141, 908, 0, 767 };
+            int[] voi_extent = new int[] { 141, 908, 141, 908, 0, 767 };
             int[] batch_dims = new int[] { 768, 768, 1 };
 
-            //Segment along axis 1
-            vtkImageData BCI = IO.segmentation_pipeline(volume, batch_dims, voi_extent, 0, 4);
+            //Segmentation
+            List<vtkImageData> outputs;
+            IO.segmentation_pipeline(out outputs, volume, batch_dims, voi_extent, new int[] { 0 }, 16);
+
+            //False positive suppression
+            vtkImageData BCI = Processing.SWFPSuppression(outputs.ElementAt(0),voi_extent);
 
             //Update rendering pipeline
             maskLabel.Text = "Automatic";
@@ -491,6 +497,7 @@ namespace HistoGrading
             //Update flags
             is_mask = 1;
             maskButton.Text = "Remove Mask";
+
         }
     }
 }

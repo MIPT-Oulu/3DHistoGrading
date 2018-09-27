@@ -108,10 +108,10 @@ namespace HistoGrading.Components
             {
                 Parallel.For(0, dims[1], x =>
                 {
-                    Parallel.For(0, dims[2], z =>
-                    {
-                        volume[y, x, z] = vector[z * dims[0] * dims[1] + y * dims[1] + x];
-                    });
+                        Parallel.For(0, dims[2], z =>
+                        {
+                              volume[y, x, z] = vector[z * dims[0] * dims[1] + y * dims[1] + x];
+                        });
                 });
             });
             return volume;
@@ -128,7 +128,7 @@ namespace HistoGrading.Components
         public static T[,] VolumeToSlice<T>(T[,,] volume, int n, int axis)
         {
             T[,] slice;
-            int[] dims = new int[] { volume.GetLength(0), volume.GetLength(1), volume.GetLength(2) };
+            int[] dims = new int[] { volume.GetLength(0), volume.GetLength(1), volume.GetLength(2)};
 
             switch (axis) // Select axis to be sliced from.
             {
@@ -249,8 +249,8 @@ namespace HistoGrading.Components
                 {
                     Parallel.For(extent[4], extent[5], (int w) =>
                     {
-                        int pos = (h - extent[2]) * dim + w - extent[4];                        
-                        byte val = (byte)(tmp[pos] * (float)255);
+                        int pos = (h - extent[2]) * dim + w - extent[4];
+                        byte val = (byte)(tmp[pos] * 255);
                         outarray[d, h, w] = val;
                     });
                 });
@@ -258,27 +258,6 @@ namespace HistoGrading.Components
             }
 
             return outarray;
-        }
-
-        public static Mat byteToMat(byte[] input, int[] dims)
-        {
-            Mat output = new Mat(dims[0], dims[1], MatType.CV_8UC1);
-            var indexer = output.GetGenericIndexer<Vec2b>();
-
-            //Iterate over input data
-            Parallel.For(0, input.Length, (int k) =>
-            {
-                int h = k / dims[1];
-                int w = k - h * dims[0];
-
-                int pos = h * dims[1] + w;
-                Vec2b val = indexer[h, w];
-                val.Item0 = input[k];
-                val.Item1 = input[k];
-                indexer[h, w] = val;
-            });
-
-            return output;
         }
 
         /// <summary>
@@ -290,18 +269,26 @@ namespace HistoGrading.Components
         /// <param name="extent">Extent to be updated</param>
         /// <param name="axis">Axis for the index</param>
         /// <param name="idx">Slice index</param>
-        public static byte[,,] setByteSlice(byte[,,] array, int[] size, Mat slice, int[] extent, int axis, int idx, double scale = 1.0)
+        public static byte[,,] setByteSlice(byte[,,] array, Mat slice, int[] extent, int axis, int idx, double scale = 1.0)
         {
-            Console.WriteLine("{0},{1}", extent[1]- extent[0], extent[3] - extent[2]);
-            Console.WriteLine("{0},{1}", slice.Height, slice.Width);
-            Parallel.For(extent[0], extent[1], (int ky) =>
+            /*
+            if( idx > 500)
             {
-                Parallel.For(extent[2], extent[3], (int kx) =>
-                {                        
-                    Vec2b val = slice.Get<Vec2b>(kx - extent[2], ky - extent[0]);
-                    if(axis == 0)
+                using (var window = new Window("window", image: slice, flags: WindowMode.AutoSize))
+                {
+                    Cv2.WaitKey();
+                }
+            }
+            */
+            
+            Parallel.For(extent[2], extent[3] - 1, (int ky) =>
+            {
+                Parallel.For(extent[0], extent[1] - 1, (int kx) =>
+                {
+                    Vec2b val = slice.Get<Vec2b>(ky - extent[2], kx - extent[0]);
+                    if (axis == 0)
                     {
-                        array[idx, ky, kx] = (byte)(val.Item0 * scale);
+                        array[ky, kx, idx] = (byte)(val.Item0 * scale);
                     }
                     if (axis == 1)
                     {
@@ -309,13 +296,14 @@ namespace HistoGrading.Components
                     }
                     if (axis == 2)
                     {
-                        array[ky, kx, idx] = (byte)(val.Item0 * scale);
+                        array[idx, ky, kx] = (byte)(val.Item0 * scale);
                     }
 
                 });
             });
-            
+
             return array;
         }
+
     }
 }

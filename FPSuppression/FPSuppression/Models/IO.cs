@@ -100,8 +100,10 @@ namespace HistoGrading.Models
             return output;
         }
 
-        public static vtkImageData segmentation_pipeline(Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int[] axes, int bs = 2)
+        public static void segmentation_pipeline(out List<vtkImageData> outputs, Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int[] axes, int bs = 2)
         {
+            //Outputs
+            outputs = new List<vtkImageData>();
             //Get input dimensions
             int[] dims = volume.getDims();
 
@@ -111,35 +113,14 @@ namespace HistoGrading.Models
             UNet model = new UNet();
             model.Initialize(24, batch_d, wpath, false);
 
-            
-            List<vtkImageData> outputs = new List<vtkImageData>();            
-            int k = 0;
+            //Segment BCI from axis
             foreach (int axis in axes)
             {
-                //Segment BCI from axis
                 IList<IList<float>> result = segment_sample(volume, model, extent, axis, bs, (float)113.05652141, (float)39.87462853);
-                //Convert segmentation result back to vtkImageData
+                //Convert back to vtkimage data
                 vtkImageData tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axis);
                 outputs.Add(tmp);
-                tmp = null; result = null;
-                GC.Collect();
-                k++;
-                Console.WriteLine(String.Format("Inference {0} done!!",k));
             }
-
-            //Sum the outputs
-            vtkImageWeightedSum sumfilter = vtkImageWeightedSum.New();
-            long id = 0;
-            foreach(vtkImageData idata in outputs)
-            {
-                sumfilter.SetInput(idata);
-                sumfilter.SetWeight(id, 1.0/(double)outputs.Count());
-                id += (long)1;
-                sumfilter.Update();
-            }
-
-            //Return output
-            return sumfilter.GetOutput();
         }
     }
 }
