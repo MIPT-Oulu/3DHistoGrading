@@ -49,7 +49,8 @@ namespace HistoGrading
         /// </summary>
         /// <param name="meanIm">Mean image.</param>
         /// <param name="stdIm">Standard deviation image.</param>
-        public void UpdateMean(Bitmap meanIm, Bitmap stdIm)
+        /// <param name="meanstdIm">Mean + standard deviation image.</param>
+        public void UpdateMean(Bitmap meanIm, Bitmap stdIm, Bitmap meanstdIm)
         {
             progressBar1.Value = 60;
             progressLabel.Text = "Progress: Mean and Standard deviation images calculated.";
@@ -57,6 +58,8 @@ namespace HistoGrading
             meanPicture.Image = meanIm;
             stdPicture.SizeMode = PictureBoxSizeMode.StretchImage;
             stdPicture.Image = stdIm;
+            meanstdPicture.SizeMode = PictureBoxSizeMode.StretchImage;
+            meanstdPicture.Image = meanstdIm;
             Refresh();
         }
 
