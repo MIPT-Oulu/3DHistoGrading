@@ -56,9 +56,10 @@ namespace HistoGrading.Components
         /// <param name="volume">Input sample data that contains vtkImageData.</param>
         /// <param name="threshold">Grayscale threshold for sample surface and centering.</param>
         /// <param name="size">Size of the calculated surface volume.</param>
+        /// <param name="mode">Cartilage area selected fro VOI extraction. Possible ones: "surface", "deep", "calcified".</param>
         /// <param name="surfacecoordinates">Array of z-coordinates of sample surface. These can be used with size parameter to visualize the surface volume.</param>
         /// <param name="surfacevoi">Calculated surface volume.</param>
-        public static void SurfaceExtraction(ref Rendering.renderPipeLine volume, int threshold, int[] size, 
+        public static void VOIExtraction(ref Rendering.renderPipeLine volume, int threshold, int[] size, string mode,
             out int[,] surfacecoordinates, out byte[,,] surfacevoi)
         {
             // Get cropping dimensions
@@ -272,6 +273,36 @@ namespace HistoGrading.Components
             });
             meanImage = mean;
             stdImage = std;
+        }
+
+        /// <summary>
+        /// Rotates volume along given axis.
+        /// </summary>
+        /// <param name="volume"></param>
+        /// <param name="angles"></param>
+        public static void RotateData(ref vtkImageData volume, double[] angles)
+        {
+            // Rotation along image center
+            double[] center = volume.GetExtent().Divide(2);
+            // Dimensions of rotated image
+            int[] outExtent = volume.GetExtent().Multiply(1.1).Round().ToInt32();
+
+            // Rotation parameters
+            var rotate = new vtkTransform();
+            rotate.Translate(center[1], center[3], center[5]);
+            rotate.RotateX(angles[0]);
+            rotate.RotateY(angles[1]);
+            rotate.RotateZ(angles[2]); // z angle should be 0
+            rotate.Translate(-center[1], -center[3], -center[5]);
+
+            // Perform rotation
+            var slice = new vtkImageReslice();
+            slice.SetInput(volume);
+            slice.SetResliceTransform(rotate);
+            slice.SetInterpolationModeToCubic();
+            slice.SetOutputSpacing(volume.GetSpacing()[0], volume.GetSpacing()[1], volume.GetSpacing()[2]);
+            slice.SetOutputOrigin(volume.GetOrigin()[0], volume.GetOrigin()[1], volume.GetOrigin()[2]);
+            slice.SetOutputExtent(outExtent[0], outExtent[1], outExtent[2], outExtent[3], outExtent[4], outExtent[5]);
         }
     }
 }

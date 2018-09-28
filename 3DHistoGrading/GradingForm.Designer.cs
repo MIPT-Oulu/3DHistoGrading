@@ -44,17 +44,20 @@
             this.label7 = new System.Windows.Forms.Label();
             this.parameterLabel = new System.Windows.Forms.Label();
             this.parameterTip = new System.Windows.Forms.ToolTip(this.components);
+            this.meanstdLabel = new System.Windows.Forms.Label();
+            this.meanstdPicture = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.meanPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.stdPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.smallPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.largePicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radialPicture)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.meanstdPicture)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(154, 161);
+            this.label1.Location = new System.Drawing.Point(115, 161);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(65, 13);
             this.label1.TabIndex = 1;
@@ -63,7 +66,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(556, 161);
+            this.label2.Location = new System.Drawing.Point(336, 161);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(127, 13);
             this.label2.TabIndex = 2;
@@ -116,15 +119,15 @@
             // 
             this.meanPicture.Location = new System.Drawing.Point(38, 177);
             this.meanPicture.Name = "meanPicture";
-            this.meanPicture.Size = new System.Drawing.Size(300, 300);
+            this.meanPicture.Size = new System.Drawing.Size(200, 200);
             this.meanPicture.TabIndex = 12;
             this.meanPicture.TabStop = false;
             // 
             // stdPicture
             // 
-            this.stdPicture.Location = new System.Drawing.Point(459, 177);
+            this.stdPicture.Location = new System.Drawing.Point(299, 177);
             this.stdPicture.Name = "stdPicture";
-            this.stdPicture.Size = new System.Drawing.Size(300, 300);
+            this.stdPicture.Size = new System.Drawing.Size(200, 200);
             this.stdPicture.TabIndex = 13;
             this.stdPicture.TabStop = false;
             // 
@@ -171,13 +174,37 @@
             this.parameterLabel.TabIndex = 18;
             this.parameterLabel.Text = "Parameters";
             this.parameterTip.SetToolTip(this.parameterLabel, "Parameters:");
+            // 
+            // parameterTip
+            // 
             this.parameterTip.AutoPopDelay = 15000;
+            this.parameterTip.InitialDelay = 500;
+            this.parameterTip.ReshowDelay = 100;
+            // 
+            // meanstdLabel
+            // 
+            this.meanstdLabel.AutoSize = true;
+            this.meanstdLabel.Location = new System.Drawing.Point(634, 161);
+            this.meanstdLabel.Name = "meanstdLabel";
+            this.meanstdLabel.Size = new System.Drawing.Size(62, 13);
+            this.meanstdLabel.TabIndex = 19;
+            this.meanstdLabel.Text = "Mean + Std";
+            // 
+            // meanstdPicture
+            // 
+            this.meanstdPicture.Location = new System.Drawing.Point(559, 177);
+            this.meanstdPicture.Name = "meanstdPicture";
+            this.meanstdPicture.Size = new System.Drawing.Size(200, 200);
+            this.meanstdPicture.TabIndex = 20;
+            this.meanstdPicture.TabStop = false;
             // 
             // GradingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 737);
+            this.Controls.Add(this.meanstdPicture);
+            this.Controls.Add(this.meanstdLabel);
             this.Controls.Add(this.parameterLabel);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.radialPicture);
@@ -199,6 +226,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.smallPicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.largePicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.radialPicture)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.meanstdPicture)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -220,5 +248,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label parameterLabel;
         private System.Windows.Forms.ToolTip parameterTip;
+        private System.Windows.Forms.Label meanstdLabel;
+        private System.Windows.Forms.PictureBox meanstdPicture;
     }
 }
