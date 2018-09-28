@@ -9,8 +9,6 @@ using System.Windows.Forms;
 using System.Globalization;
 
 using Accord.Math;
-using Accord.Math.Decompositions;
-using Accord.Statistics;
 
 using Kitware.VTK;
 using OpenCvSharp;
@@ -29,8 +27,9 @@ namespace HistoGrading.Components
         /// Default model file is on project folder named "weights.dat"
         /// </summary>
         /// <param name="mod">Model containing all variables</param>
+        /// <param name="filename">Name of model file on "Default" folder.</param>
         /// <returns>Model path</returns>
-        public static string LoadModel(ref Model mod)
+        public static string LoadModel(out Model mod, string filename)
         {
             // Path to model (weights.dat)
             string path =
@@ -38,7 +37,7 @@ namespace HistoGrading.Components
                     .Parent.Parent.Parent.Parent.FullName; // Move to correct location and add file name
 
             // Read weights from .dat file
-            var reader = new BinaryWriterApp(path + @"\Default\weights.dat");
+            var reader = new BinaryWriterApp(path + filename);
             try
             {
                 reader.ReadWeights();
@@ -48,7 +47,8 @@ namespace HistoGrading.Components
                 throw new Exception("Could not find weights.dat! Check that default model is on correct folder.");
             }
 
-            // Update model variables
+            // Output model variables
+            mod = new Model();
             mod.nComp = reader.ncomp;
             mod.eigenVectors = reader.eigenVectors;
             mod.singularValues = reader.singularValues;
@@ -59,44 +59,44 @@ namespace HistoGrading.Components
         }
 
         /// <summary>
-        /// Calculates OA grade prediction.
+        /// Calculates OA grade prediction from cartilage surface.
         /// </summary>
-        /// <param name="mod">Loaded model.</param>
-        /// <param name="features">LBP features.</param>
         /// <param name="volume">Data array.</param>
         /// <param name="filename">Path for saving results.</param>
+        /// <param name="VOIcoordinates">Coordinates for extracted VOI.</param>
         /// <returns>Returns string containing the OA grade</returns>
-        public static string Predict(Model mod, ref int[,] features, ref Rendering.renderPipeLine volume, string filename)
+        public static string PredictSurface(ref Rendering.renderPipeLine volume, string filename, out int[,] VOIcoordinates)
         {
             // Initialize Grading form
-            var grading = new GradingForm();
-            grading.Show();
-            
+            var grading = new GradingForm(); grading.Show();
 
             // Default variables
             int threshold = 80;
             int[] size = { 400, 30 };
 
             // Load default model
-            string path = LoadModel(ref mod);
+            string path = LoadModel(out Model mod, @"\Default\weights.dat");
             grading.UpdateModel(); grading.Show();
 
             // Surface extraction
-            Processing.SurfaceExtraction(ref volume, threshold, size, out int[,] surfacecoordinates, out byte[,,] surface);
+            Processing.VOIExtraction(ref volume, threshold, size, "surface",
+                out VOIcoordinates, out byte[,,] surface);
 
             // Mean and std images
             Processing.MeanAndStd(surface, out double[,] meanImage, out double[,] stdImage);
             // Show images to user
             grading.UpdateMean(
                 DataTypes.DoubleToBitmap(meanImage),
-                DataTypes.DoubleToBitmap(stdImage));
+                DataTypes.DoubleToBitmap(stdImage),
+                DataTypes.DoubleToBitmap(Elementwise.Add(meanImage, stdImage)));
             grading.Show();
 
             // LBP features
             // Get default parameters
             Parameters param = new Parameters();
             grading.UpdateParameters(param);
-            features = LBP(meanImage.Add(stdImage), param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR);
+            int[,] features = LBP(meanImage.Add(stdImage), param, 
+                out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR);
             // Show LBP images to user
             grading.UpdateLBP(
                 DataTypes.DoubleToBitmap(LBPIL),
@@ -104,29 +104,77 @@ namespace HistoGrading.Components
                 DataTypes.DoubleToBitmap(LBPIR));
             grading.Show();
 
-            // PCA
-            double[,] dataAdjust = Processing.SubtractMean(features.ToDouble(), mod.mean);
-            double[,] PCA = dataAdjust.Dot(mod.eigenVectors.ToDouble());
-
-            // Regression
-            double[] grades = PCA.Dot(mod.weights).Add(1.5);
-            string grade;
-            if (grades[0] < 1)
-            {
-                grade = grades[0].ToString("0.##", CultureInfo.InvariantCulture);
-            }
-            else
-            {
-                grade = grades[0].ToString("####.##", CultureInfo.InvariantCulture);
-            }
+            // Calculate PCA and regression
+            FeaturesToGrade(features, mod, path, filename, out string grade);
+            grading.UpdateGrade(grade); grading.Show();
 
             // Save results
             SaveResult(grade, path, filename);
             grading.UpdateGrade(grade); grading.Show();
 
-            return "OA grade: " + grade;
-            //double sum = CompareGrades(grade);
-            //return "Sum of differences between pretrained model and actual grade: " + sum.ToString("###.###", CultureInfo.InvariantCulture);
+            return "OA grade (surface): " + grade;
+        }
+
+        /// <summary>
+        /// Calculates OA grade prediction from bone-cartilage interface.
+        /// Above interface deep cartilage volume is extracted, calcified cartilage below interface.
+        /// </summary>
+        /// <param name="volume">Data array.</param>
+        /// <param name="filename">Path for saving results.</param>
+        /// <param name="deepCoordinates">Coordinates for extracted deep cartilage VOI.</param>
+        /// <param name="calcifiedCoordinates">Coordinates for extracted calcified cartilage VOI.</param>
+        /// <returns>Returns string containing the OA grade</returns>
+        public static string PredictBCI(ref Rendering.renderPipeLine volume, string filename, out int[,] deepCoordinates, out int[,] calcifiedCoordinates)
+        {
+            // Initialize Grading form
+            var grading = new GradingForm(); grading.Show();
+
+            // Default variables
+            int threshold = 80;
+            int[] size = { 400, 30 };
+
+            // Load default model
+            string path = LoadModel(out Model mod, @"\Default\weights.dat");
+            grading.UpdateModel(); grading.Show();
+
+            // Deep cartilage extraction
+            Processing.VOIExtraction(ref volume, threshold, size, "deep",
+                out deepCoordinates, out byte[,,] deepSurface);
+            // Calcified cartilage extraction
+            Processing.VOIExtraction(ref volume, threshold, size, "calcified",
+                out calcifiedCoordinates, out byte[,,] calcifiedSurface);
+
+            // Mean and std images
+            Processing.MeanAndStd(deepSurface, out double[,] meanImage, out double[,] stdImage);
+            Processing.MeanAndStd(calcifiedSurface, out double[,] meanccImage, out double[,] stdccImage);
+            // Show images to user
+            grading.UpdateMean(
+                DataTypes.DoubleToBitmap(meanImage),
+                DataTypes.DoubleToBitmap(stdImage),
+                DataTypes.DoubleToBitmap(Elementwise.Add(meanImage, stdImage)));
+            grading.Show();
+
+            // LBP features
+            // Get default parameters
+            Parameters param = new Parameters();
+            grading.UpdateParameters(param);
+            int[,] features = LBP(meanImage.Add(stdImage), param,
+                out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR);
+            // Show LBP images to user
+            grading.UpdateLBP(
+                DataTypes.DoubleToBitmap(LBPIL),
+                DataTypes.DoubleToBitmap(LBPIS),
+                DataTypes.DoubleToBitmap(LBPIR));
+            grading.Show();
+
+            // Calculate PCA and regression
+            FeaturesToGrade(features, mod, path, filename, out string grade);
+            grading.UpdateGrade(grade); grading.Show();
+
+            // Save results
+            SaveResult(grade, path, filename);
+
+            return "OA grade (surface): " + grade;
         }
 
         /// <summary>
@@ -175,9 +223,40 @@ namespace HistoGrading.Components
         }
 
         /// <summary>
+        /// Calculates OA grade from LBP features using pretrained PCA an regression with given model.
+        /// </summary>
+        /// <param name="features">MRELBP features.</param>
+        /// <param name="mod">Model that includes PCA eigenvectors, mean feature, and regression weights.</param>
+        /// <param name="path">Path to save results.</param>
+        /// <param name="samplename">Name of analysed sample. This is saved with estimated grade to results.csv</param>
+        /// <param name="grade"></param>
+        public static void FeaturesToGrade(int[,] features, Model mod, string path, string samplename, out string grade)
+        {
+            // PCA
+            double[,] dataAdjust = Processing.SubtractMean(features.ToDouble(), mod.mean);
+            double[,] PCA = dataAdjust.Dot(mod.eigenVectors.ToDouble());
+
+            // Regression
+            double[] grades = PCA.Dot(mod.weights).Add(1.5);
+            
+            // Convert estimated grade to string
+            if (grades[0] < 1)
+                grade = grades[0].ToString("0.##", CultureInfo.InvariantCulture);
+            else if (grades[0] < 0)
+                grade = "0.00";
+            else if (grades[0] > 3)
+                grade = "3.00";
+            else
+                grade = grades[0].ToString("####.##", CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
         /// Save results to .csv file.
         /// Check that file is not opened.
         /// </summary>
+        /// <param name="grade">OA grade.</param>
+        /// <param name="path">Save path.</param>
+        /// <param name="filename">Sample name.</param>
         private static void SaveResult(string grade, string path, string filename)
         {
             var result = DialogResult.OK;
@@ -203,7 +282,7 @@ namespace HistoGrading.Components
     /// <summary>
     /// Class <c>Model</c> for saving model variables. Loaded from .dat file
     /// using BinaryWriterApp class of LBPLibrary. See also:
-    /// <seealso cref="Grading.LoadModel(ref Model)"/>
+    /// <seealso cref="Grading.LoadModel(out Model)"/>
     /// </summary>
     public class Model
     {

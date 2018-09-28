@@ -47,9 +47,7 @@ namespace HistoGrading
         bool mouseDown1 = false;
         bool mouseDown2 = false;
 
-        // Grading variables
-        Model model = new Model();
-        int[,] features = new int[0,0];
+        // Sample name
         string fname = null;
 
         /// <summary>
@@ -267,8 +265,10 @@ namespace HistoGrading
                             maskLabel.Text = folpath;
                             //Load image data
                             volume.connectMask(impath);
-                            //Update pipelin
+                            //Update pipeline
                             volume.updateCurrent(sliceN, ori, gray);
+                            // Set cartilage grids based on mask
+                            volume.SampleGrids();
 
                         //Render
                         if (ori == -1)
@@ -426,8 +426,9 @@ namespace HistoGrading
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
-            string grade = Grading.Predict(model, ref features, ref volume, fname);
+            string grade = Grading.PredictSurface(ref volume, fname, out int[,] surfaceCoordinates);
             sliceLabel.Text = grade;
+            //string gradeBCI = Grading.PredictBCI(ref volume, fname, out int[,] deepCoordinates, out int[,] calcifiedCoordinates);
         }
 
         //Scroll bars

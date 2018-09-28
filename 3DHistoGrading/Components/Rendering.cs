@@ -603,6 +603,25 @@ namespace HistoGrading.Components
                 }
                 return voi;
             }
+
+            public void SampleGrids()
+            {
+                var grid = vtkCubeAxesActor.New();
+                int[] bounds = imask.GetExtent();
+                grid.SetBounds(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]);
+                grid.SetCamera(renderer.GetActiveCamera());
+
+                grid.GetProperty().SetColor(0.5, 0.5, 0.5);
+                grid.DrawXGridlinesOn();
+                grid.DrawYGridlinesOn();
+                grid.DrawZGridlinesOn();
+                grid.SetXTitle("Surface");
+
+                renderer.AddActor(grid);
+
+                renWin.AddRenderer(renderer);
+                renWin.Render();
+            }
         }
 
         /// <summary>
