@@ -126,9 +126,9 @@ namespace HistoGrading.Components
                 //Opacity, background in microCT data is < 70
                 spwf.AddPoint(0, 0);
                 spwf.AddPoint(70, 0.0);
-                spwf.AddPoint(80, 0.7);
-                spwf.AddPoint(150, 0.9);
-                spwf.AddPoint(255, 0.95);
+                spwf.AddPoint(80, 0.6);
+                spwf.AddPoint(150, 0.8);
+                spwf.AddPoint(255, 0.85);
                 //Volume parameters
                 vol.GetProperty().SetColor(ctf);
                 vol.GetProperty().SetScalarOpacity(spwf);
@@ -156,12 +156,13 @@ namespace HistoGrading.Components
                 maskmapper.Update();
                 //Color
                 maskctf.AddRGBPoint(0, 0, 0, 0);
-                maskctf.AddRGBPoint(255, 0.6, 0, 0);
-                //Opacity
+                maskctf.AddRGBPoint(255, 0.9, 0, 0);
+                //Opacity, background in microCT data is < 70
                 maskspwf.AddPoint(0, 0);
-                maskspwf.AddPoint(180, 0);
-                maskspwf.AddPoint(181, 0.1);
-                maskspwf.AddPoint(255, 0.15);
+                maskspwf.AddPoint(70, 0.0);
+                maskspwf.AddPoint(80, 0.6);
+                maskspwf.AddPoint(150, 0.8);
+                maskspwf.AddPoint(255, 0.85);                
                 //
                 //Volume parameters
                 maskvol.GetProperty().SetColor(maskctf);
@@ -288,7 +289,7 @@ namespace HistoGrading.Components
                     //Values below maximum are set to appropriate value
                     if (val < 1.0 && cvalue >= cmin)
                     {
-                        maskcolorTable.SetTableValue(cvalue, 1, 0, 0, 0.6);
+                        maskcolorTable.SetTableValue(cvalue, val, 0, 0, 0.9);
                     }
                     if (val < 1.0 && cvalue < cmin)
                     {
@@ -297,7 +298,7 @@ namespace HistoGrading.Components
                     //Values over maximum are set to 1
                     if (val >= 1 && cvalue >= cmin)
                     {
-                        maskcolorTable.SetTableValue(cvalue, 1.0, 0, 0, 0.6);
+                        maskcolorTable.SetTableValue(cvalue, 1.0, 0, 0, 0.9);
                     }
                 }
                 //Build the table
@@ -341,10 +342,10 @@ namespace HistoGrading.Components
             /// Method for connecting mask components
             /// </summary>
             /// <param name="mask">Mask image data.</param>
-            public void connectMask(vtkImageData mask)
+            public void connectMask(vtkImageData mask, int cmin, int cmax)
             {
                 //Set mask color and mapper
-                setMaskGrayLevel(100, 255);
+                setMaskGrayLevel(cmin, cmax);
                 maskcolorMapper.SetInput(mask);
                 maskcolorMapper.Update();
                 //Connect mapper
@@ -398,7 +399,16 @@ namespace HistoGrading.Components
             /// <param name="input">Data input to be connected.</param>
             public void connectData(string input)
             {
-                idata = Functions.loadVTK(input);
+                idata = Functions.loadVTK(input,1);
+            }
+
+            /// <summary>
+            /// Connect input volume.
+            /// </summary>
+            /// <param name="input">Data input to be connected.</param>
+            public void connectDataFromMemory(vtkImageData input)
+            {
+                idata = input;
             }
 
             /// <summary>
@@ -411,7 +421,7 @@ namespace HistoGrading.Components
                 //Set graylevel
                 vtkImageMathematics math = vtkImageMathematics.New();
                 math.SetInput1(idata);
-                math.SetInput1(imask);
+                math.SetInput2(imask);
                 math.SetOperationToMultiply();
                 math.Update();
                 imask = math.GetOutput();
@@ -424,6 +434,14 @@ namespace HistoGrading.Components
             /// <param name="input_mask">Bone mask input to be connected.</param>
             public void connectMaskFromData(vtkImageData input_mask)
             {
+                /*
+                vtkImageMathematics math = vtkImageMathematics.New();
+                math.SetInput1(idata);
+                math.SetInput2(input_mask);
+                math.SetOperationToMultiply();
+                math.Update();
+                imask = math.GetOutput();
+                */
                 imask = input_mask;
             }
 
@@ -522,7 +540,7 @@ namespace HistoGrading.Components
 
                 //Get mask slice
                 vtkImageData maskSlice = Functions.volumeSlicer(imask, sliceN, curAx);
-                imPipe.connectMask(maskSlice);
+                imPipe.connectMask(maskSlice,gray[0],gray[1]);
 
                 //Render image
                 renWin.Render();
@@ -601,6 +619,11 @@ namespace HistoGrading.Components
                     voi = permuter.GetOutput();
                 }
                 return voi;
+            }
+
+            public void center_crop()
+            {
+                imask = Processing.center_crop(idata);
             }
         }
     }

@@ -455,6 +455,8 @@ namespace HistoGrading
 
         private void segmentButton_Click(object sender, EventArgs e)
         {
+
+            /*
             //VOI for segmentation
 
             //Get sample dimensions
@@ -471,22 +473,26 @@ namespace HistoGrading
             IO.segmentation_pipeline(out outputs, volume, batch_dims, voi_extent, new int[] { 0 }, 16);
 
             //False positive suppression
-            vtkImageData BCI = Processing.SWFPSuppression(outputs.ElementAt(0),voi_extent);
+            //vtkImageData BCI = Processing.SWFPSuppression(outputs.ElementAt(0),voi_extent);
 
             //Update rendering pipeline
             maskLabel.Text = "Automatic";
+            */
 
+            /*
+            vtkImageData center = vtkImageData.New();
+            center.DeepCopy(volume.getVOI());
+            center = Processing.center_crop(center);
+            */
             //Connect mask to segmentation pipeline
-            volume.connectMaskFromData(BCI);
+            volume.center_crop();
             //Update pipeline
             volume.updateCurrent(sliceN, ori, gray);
-
-            GC.Collect();
-
+           
             //Render
             if (ori == -1)
             {
-                volume.renderVolumeMask();
+                volume.renderImageMask();
                 volume.setVolumeColor();
             }
             if (ori > -1)

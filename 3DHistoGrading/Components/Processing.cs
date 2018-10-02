@@ -779,5 +779,81 @@ namespace HistoGrading.Components
 
             return DataTypes.byteToVTK(output);
         }
+
+        public static int[] find_center(vtkImageData stack, double threshold = 80.0)
+        {
+            //Get byte data
+            byte[] bytedata = DataTypes.vtkToByte(stack);
+
+            //Get data dimensions
+            int[] dims = stack.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+            //Get strides
+            int stride_d = h * w;
+            int stride_h = 1;
+            int stride_w = h;
+
+            //Empty array for binary mask
+            byte[,] BW = new byte[h, w];
+
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    for (int z = 0; z < d; z++)
+                    {
+                        int pos = (z * stride_d) + (x * stride_w) + (y * stride_h);
+                        byte val = bytedata[pos];
+                        if (val > threshold) { BW[y, x] = 255; }
+                    }
+
+                });
+            });
+
+            Mat sumim = new Mat(h, w, MatType.CV_8UC1, BW);
+
+            /*
+            using (var window = new Window("window", image: sumim, flags: WindowMode.AutoSize))
+            {
+                Cv2.WaitKey();
+            }
+            */
+
+            int x1; int x2; int y1; int y2;
+            Functions.get_bbox(out x1, out x2, out y1, out y2, sumim);
+
+            //Compute center
+            int[] center = new int[2];
+            center[0] = (y2 + y1) / 2;
+            center[1] = (x2 + x1) / 2;
+
+            return center;
+        }
+
+        public static vtkImageData center_crop(vtkImageData stack, int side = 400)
+        {
+            //Get input dimensions
+            int[] dims = stack.GetExtent();
+
+            //Find the center of the sample
+
+            int[] center = find_center(stack);//GetCenter(bytedata,80);
+            //Compute new volume sides
+            int y2 = Math.Min(center[0] + (side / 2), dims[1]);
+            int y1 = Math.Max(y2 - side + 1, dims[0]);
+            int x2 = Math.Min(center[1] + (side / 2), dims[3]);
+            int x1 = Math.Max(x2 - side + 1, dims[2]);
+
+            //Create VOI extractor
+            vtkExtractVOI cropper = vtkExtractVOI.New();
+            cropper.SetVOI(y1, y2, x1, x2, dims[4], dims[5]);
+            cropper.SetInput(stack);
+            cropper.Update();
+
+            return cropper.GetOutput();
+        }
+
     }
 }
