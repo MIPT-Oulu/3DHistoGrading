@@ -1,19 +1,10 @@
-﻿using System;
-using System.IO;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-using Accord.Math;
-
+﻿using Accord.Math;
 using Kitware.VTK;
 using OpenCvSharp;
-using OpenCvSharp.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace HistoGrading.Components
 {
@@ -852,8 +843,39 @@ namespace HistoGrading.Components
             cropper.SetInput(stack);
             cropper.Update();
 
-            return cropper.GetOutput();
+            vtkImageData output = cropper.GetOutput();
+            output.SetExtent(0, (y2 - y1), 0, (x2 - x1), dims[4], dims[5]);
+            output.Update();
+
+            return output;
         }
 
+        /*
+        public static double[,] average_tiles(vtkImageData input, int n_tiles = 16)
+        {
+            //Get dimensions
+            int[] dims = input.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Input to byte array
+            byte[] bytedata = DataTypes.vtkToByte(input);
+
+            //Generate tile coordinates
+            int N = (int)Math.Sqrt(n_tiles);
+            int wh = h / N;
+            int ww = w / N;
+
+            for(int kh = 0; kh <N; kh++)
+            {
+                for (int kh = 0; kh < N; kh++)
+                {
+
+                }
+            }
+
+        }
+        */
     }
 }

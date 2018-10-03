@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,7 @@ namespace HistoGrading.Models
             int step = 1, float mu = 0, float sd = 0)
         {
             //Segmentation range
-            int[] bounds = new int[] { extent[axis * 2], extent[axis * 2 + 1] };
+            int[] bounds = new int[] { extent[axis * 2], extent[axis * 2 + 1] + 1 };
             //Output list
             IList<IList<float>> output = null;
             //Iterate over vtk data
@@ -50,7 +51,7 @@ namespace HistoGrading.Models
 
                 //Extract VOI to float array
                 float[] input_array = DataTypes.byteToFloat(DataTypes.vtkToByte(vtkObject.getVOI(_curext, _ori)), mu, sd);
-
+                
                 //Segment current slice
                 IList<IList<float>> _cur = model.Inference(input_array);
                 //Append results to output list
@@ -73,7 +74,7 @@ namespace HistoGrading.Models
             return output;
         }
 
-        public static vtkImageData inference_to_vtk(IList<IList<float>> input, int[] output_size, int[] extent, int axis)
+        public static vtkImageData inference_to_vtk(IList<IList<float>> input, int[] output_size, int[] extent, int axis, double weight = 1.0)
         {
             int[] orientation = new int[3];
             if (axis == 0)
@@ -95,13 +96,13 @@ namespace HistoGrading.Models
                 output_size = new int[] { output_size[2], output_size[0], output_size[1] };
             }
             //Data to byte array
-            byte[,,] bytedata = DataTypes.batchToByte(input, output_size, extent);
+            byte[,,] bytedata = DataTypes.batchToByte(input, output_size, extent, weight);
             vtkImageData output = DataTypes.byteToVTK(bytedata, orientation);
 
             return output;
         }
 
-        public static void segmentation_pipeline(out List<vtkImageData> outputs, Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int[] axes, int bs = 2)
+        public static void segmentation_pipeline(out List<vtkImageData> outputs, Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int[] axes, int bs = 2, double weight = 1.0)
         {
             //Outputs
             outputs = new List<vtkImageData>();
@@ -118,9 +119,8 @@ namespace HistoGrading.Models
             foreach (int axis in axes)
             {
                 IList<IList<float>> result = segment_sample(volume, model, extent, axis, bs, (float)113.05652141, (float)39.87462853);
-                //Convert back to vtkimage data
-                vtkImageData tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axis);
-                outputs.Add(tmp);
+                vtkImageData _tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axis, weight);
+                outputs.Add(_tmp);                
             }            
         }
     }

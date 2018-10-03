@@ -287,16 +287,16 @@ namespace HistoGrading.Components
                     //Current int value / max value
                     double val = (double)cvalue / (double)cmax;
                     //Values below maximum are set to appropriate value
-                    if (val < 1.0 && cvalue >= cmin)
+                    if (val < 1.0 && cvalue > cmin)
                     {
                         maskcolorTable.SetTableValue(cvalue, val, 0, 0, 0.9);
                     }
-                    if (val < 1.0 && cvalue < cmin)
+                    if (val < 1.0 && cvalue <= cmin)
                     {
                         maskcolorTable.SetTableValue(cvalue, 0, 0, 0, 0);
                     }
                     //Values over maximum are set to 1
-                    if (val >= 1 && cvalue >= cmin)
+                    if (val >= 1 && cvalue > cmin)
                     {
                         maskcolorTable.SetTableValue(cvalue, 1.0, 0, 0, 0.9);
                     }
@@ -432,17 +432,30 @@ namespace HistoGrading.Components
             /// Connect bone mask from memory.
             /// </summary>
             /// <param name="input_mask">Bone mask input to be connected.</param>
-            public void connectMaskFromData(vtkImageData input_mask)
+            public void connectMaskFromData(vtkImageData input_mask, double threshold = 0)
             {
-                /*
                 vtkImageMathematics math = vtkImageMathematics.New();
                 math.SetInput1(idata);
-                math.SetInput2(input_mask);
+
+                if (threshold > 0)
+                {
+                    vtkImageThreshold t = vtkImageThreshold.New();
+                    t.ThresholdByLower(threshold);
+                    t.SetInput(input_mask);
+                    t.Update();
+                    math.SetInput2(t.GetOutput());
+                }
+                else
+                {
+                    math.SetInput2(input_mask);
+                }
+                
                 math.SetOperationToMultiply();
+                math.SetNumberOfThreads(24);
                 math.Update();
                 imask = math.GetOutput();
-                */
-                imask = input_mask;
+                
+                //imask = input_mask;
             }
 
             /// <summary>
@@ -621,9 +634,9 @@ namespace HistoGrading.Components
                 return voi;
             }
 
-            public void center_crop()
-            {
-                imask = Processing.center_crop(idata);
+            public void center_crop(int size = 400)
+            {                
+                idata = Processing.center_crop(idata,size);
             }
         }
     }

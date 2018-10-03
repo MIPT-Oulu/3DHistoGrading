@@ -213,7 +213,7 @@ namespace HistoGrading.Components
         /// Converts minibatch data to 3D byte array.
         /// </summary>
         /// <returns>3D byte array.</returns>
-        public static byte[,,] batchToByte(IList<IList<float>> batch, int[] output_size = null, int[] extent = null)
+        public static byte[,,] batchToByte(IList<IList<float>> batch, int[] output_size = null, int[] extent = null, double threshold = 0.7*255.0 )
         {
             //Get number of slices
             int n_slices = batch.Count();
@@ -249,9 +249,9 @@ namespace HistoGrading.Components
                 {
                     Parallel.For(extent[4], extent[5], (int w) =>
                     {
-                        int pos = (h - extent[2]) * dim + w - extent[4];
-                        byte val = (byte)(tmp[pos] * 255);
-                        outarray[d, h, w] = val;
+                        int pos = (h - extent[2]) * (extent[5] - extent[4] + 1) + w - extent[4];                        
+                        byte val = (byte)(tmp[pos] * 255.0);
+                        if (val > threshold) { outarray[d, h, w] = 255; }                       
                     });
                 });
                 d++;

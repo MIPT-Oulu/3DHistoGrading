@@ -455,44 +455,37 @@ namespace HistoGrading
 
         private void segmentButton_Click(object sender, EventArgs e)
         {
-
-            /*
             //VOI for segmentation
 
             //Get sample dimensions
-            //int[] cur_extent = volume.getDims();
-            //Get center from XY plane
-            //int[] c = new int[] { (cur_extent[1]- cur_extent[0]) / 2, (cur_extent[3] - cur_extent[2]) / 2};
+            int[] extent = volume.getDims();            
 
-            //768*768 VOI from the center
-            int[] voi_extent = new int[] { 141, 908, 141, 908, 0, 767 };
-            int[] batch_dims = new int[] { 768, 768, 1 };
+            //480*416 VOI from the center
+            int[] voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], 20, 20+447 };
+            int[] batch_dims = new int[] { 448, 448, 1 };
 
             //Segmentation
             List<vtkImageData> outputs;
-            IO.segmentation_pipeline(out outputs, volume, batch_dims, voi_extent, new int[] { 0 }, 16);
+            IO.segmentation_pipeline(out outputs, volume, batch_dims, voi_extent, new int[] { 0 }, 32, 0.7 * 255.0);
 
-            //False positive suppression
-            //vtkImageData BCI = Processing.SWFPSuppression(outputs.ElementAt(0),voi_extent);
+            /*
+            vtkImageMathematics math = vtkImageMathematics.New();
+            math.SetInput1(outputs.ElementAt(0));
+            math.SetInput2(outputs.ElementAt(1));
+
+            math.SetOperationToAdd();
+            math.Update();
+            */
+
+            volume.connectMaskFromData(outputs.ElementAt(0), 0);
 
             //Update rendering pipeline
             maskLabel.Text = "Automatic";
-            */
 
-            /*
-            vtkImageData center = vtkImageData.New();
-            center.DeepCopy(volume.getVOI());
-            center = Processing.center_crop(center);
-            */
-            //Connect mask to segmentation pipeline
-            volume.center_crop();
-            //Update pipeline
-            volume.updateCurrent(sliceN, ori, gray);
-           
             //Render
             if (ori == -1)
             {
-                volume.renderImageMask();
+                volume.renderVolumeMask();
                 volume.setVolumeColor();
             }
             if (ori > -1)
@@ -500,10 +493,36 @@ namespace HistoGrading
                 volume.renderImageMask();
             }
 
+        }
+
+        private void cropButton_Click(object sender, EventArgs e)
+        {
+
+
+            /*
+            vtkImageData center = vtkImageData.New();
+            center.DeepCopy(volume.getVOI());
+            center = Processing.center_crop(center);
+            */
+            //Connect mask to segmentation pipeline
+            volume.center_crop(448);
+            //Update pipeline
+            volume.updateCurrent(sliceN, ori, gray);
+
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolume();
+                volume.setVolumeColor();
+            }
+            if (ori > -1)
+            {
+                volume.renderImage();
+            }
+
             //Update flags
             is_mask = 1;
             maskButton.Text = "Remove Mask";
-
         }
     }
 }
