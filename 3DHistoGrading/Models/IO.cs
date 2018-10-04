@@ -74,7 +74,7 @@ namespace HistoGrading.Models
             return output;
         }
 
-        public static vtkImageData inference_to_vtk(IList<IList<float>> input, int[] output_size, int[] extent, int axis, double weight = 1.0)
+        public static vtkImageData inference_to_vtk(IList<IList<float>> input, int[] output_size, int[] extent, int axis)
         {
             int[] orientation = new int[3];
             if (axis == 0)
@@ -96,13 +96,13 @@ namespace HistoGrading.Models
                 output_size = new int[] { output_size[2], output_size[0], output_size[1] };
             }
             //Data to byte array
-            byte[,,] bytedata = DataTypes.batchToByte(input, output_size, extent, weight);
+            byte[,,] bytedata = DataTypes.batchToByte(input, output_size, extent);
             vtkImageData output = DataTypes.byteToVTK(bytedata, orientation);
 
             return output;
         }
 
-        public static void segmentation_pipeline(out List<vtkImageData> outputs, Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int[] axes, int bs = 2, double weight = 1.0)
+        public static void segmentation_pipeline(out List<vtkImageData> outputs, Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int[] axes, int bs = 2)
         {
             //Outputs
             outputs = new List<vtkImageData>();
@@ -115,11 +115,13 @@ namespace HistoGrading.Models
             UNet model = new UNet();
             model.Initialize(24, batch_d, wpath, false);
 
+            List<byte[,,]> results = new List<byte[,,]>();
+
             //Segment BCI from axis
             foreach (int axis in axes)
             {
                 IList<IList<float>> result = segment_sample(volume, model, extent, axis, bs, (float)113.05652141, (float)39.87462853);
-                vtkImageData _tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axis, weight);
+                vtkImageData _tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axis);
                 outputs.Add(_tmp);                
             }            
         }

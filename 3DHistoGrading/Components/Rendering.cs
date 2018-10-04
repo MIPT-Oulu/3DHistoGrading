@@ -416,6 +416,7 @@ namespace HistoGrading.Components
             /// </summary>
             /// <param name="input">Bone mask input to be connected.</param>
             public void connectMask(string input)
+
             {
                 imask = Functions.loadVTK(input);
                 //Set graylevel
@@ -432,24 +433,11 @@ namespace HistoGrading.Components
             /// Connect bone mask from memory.
             /// </summary>
             /// <param name="input_mask">Bone mask input to be connected.</param>
-            public void connectMaskFromData(vtkImageData input_mask, double threshold = 0)
+            public void connectMaskFromData(vtkImageData input_mask)
             {
                 vtkImageMathematics math = vtkImageMathematics.New();
-                math.SetInput1(idata);
-
-                if (threshold > 0)
-                {
-                    vtkImageThreshold t = vtkImageThreshold.New();
-                    t.ThresholdByLower(threshold);
-                    t.SetInput(input_mask);
-                    t.Update();
-                    math.SetInput2(t.GetOutput());
-                }
-                else
-                {
-                    math.SetInput2(input_mask);
-                }
-                
+                math.SetInput1(idata);                
+                math.SetInput2(input_mask);
                 math.SetOperationToMultiply();
                 math.SetNumberOfThreads(24);
                 math.Update();
@@ -638,6 +626,20 @@ namespace HistoGrading.Components
             {                
                 idata = Processing.center_crop(idata,size);
             }
+        }
+
+        /// <summary>
+        /// Render input data to new window.
+        /// </summary>
+        /// <param name="inputData">vtkImageData to be rendered.</param>
+        public static void RenderToNewWindow(vtkImageData inputData)
+        {
+            // Render cropped volume
+            var renwin = vtkRenderWindow.New();
+            var vol = new renderPipeLine();
+            vol.connectWindow(renwin);
+            vol.connectDataFromMemory(inputData);
+            vol.renderVolume();
         }
     }
 }

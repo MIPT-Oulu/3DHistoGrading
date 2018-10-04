@@ -78,7 +78,7 @@
       <HintPath>..\packages\Activiz.NET.x64.5.8.0\lib\net20\Kitware.VTK.dll</HintPath>
     </Reference>
     <Reference Include="LBPLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LBPLibrary.1.0.6\lib\net461\LBPLibrary.dll</HintPath>
+      <HintPath>..\packages\LBPLibrary.1.0.8\lib\net461\LBPLibrary.dll</HintPath>
     </Reference>
     <Reference Include="OpenCvSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=6adad1e807fea099, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenCvSharp3-AnyCPU.3.2.0.20171112\lib\net46\OpenCvSharp.dll</HintPath>
@@ -112,6 +112,12 @@
     <Compile Include="Components\HDF5Loader.cs" />
     <Compile Include="Components\Processing.cs" />
     <Compile Include="Components\Rendering.cs" />
+    <Compile Include="GradingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GradingForm.designer.cs">
+      <DependentUpon>GradingForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -122,6 +128,9 @@
     <Compile Include="Models\UNet.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="GradingForm.resx">
+      <DependentUpon>GradingForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
       <SubType>Designer</SubType>

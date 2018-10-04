@@ -7,11 +7,9 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Windows.Forms;
 
 using Kitware.VTK;
-using OpenCvSharp;
 
 using HistoGrading.Components;
 using HistoGrading.Models;
@@ -48,6 +46,9 @@ namespace HistoGrading
         //Mouse interactor
         bool mouseDown1 = false;
         bool mouseDown2 = false;
+
+        // Sample name
+        string fname = null;
 
         // Grading variables
         Model model = new Model();
@@ -176,10 +177,21 @@ namespace HistoGrading
             {
                 //Update renderwindow
                 renderWindowControl_Load(this, null);
-                
+
                 //Get path and files
                 string impath = fileDialog.FileName;
                 string folpath = Path.GetDirectoryName(@impath);
+
+                // Get sample name
+                var file = Path.GetFileName(impath).Split('_');
+                for (int k = 0; k < file.Length - 1; k++)
+                {
+                    fname += file[k];
+                    if (k < file.Length - 2)
+                    {
+                        fname += "_";
+                    }
+                }
 
                 //Update GUI text to tell path to data folder
                 fileLabel.Text = folpath;
@@ -228,8 +240,10 @@ namespace HistoGrading
                 panel2.Enabled = true;
                 sliceBar.Enabled = true;
                 renderWindowControl.Enabled = true;
+                cropButton.Enabled = true;
+                segmentButton.Enabled = true;
+                predict.Enabled = true;
 
-                //renderVolumeControl_Load(this, null);
             }
         }
 
@@ -246,9 +260,6 @@ namespace HistoGrading
                         //Select a file
                         if (fileDialog.ShowDialog() == DialogResult.OK)
                         {
-                            //Clear Memory
-                            //GC.Collect();
-
                             //Get path and files
                             string impath = fileDialog.FileName;
                             string extension = Path.GetExtension(@impath);
@@ -257,7 +268,7 @@ namespace HistoGrading
                             maskLabel.Text = folpath;
                             //Load image data
                             volume.connectMask(impath);
-                            //Update pipelin
+                            //Update pipeline
                             volume.updateCurrent(sliceN, ori, gray);
 
                         //Render
@@ -301,8 +312,6 @@ namespace HistoGrading
         //Reset camera
         private void resetButton_Click(object sender, EventArgs e)
         {
-            //Memory management
-            //GC.Collect();
             if (is_rendering == 1)
             {
                 volume.resetCamera();
@@ -370,7 +379,7 @@ namespace HistoGrading
         private void coronalButton_Click(object sender, EventArgs e)
         {
             if (is_rendering == 1)
-            {
+            {                
                 //Set orientation
                 ori = 0;
                 //Update scroll bar
@@ -416,7 +425,7 @@ namespace HistoGrading
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
-            string grade = Grading.Predict(model, ref features, ref volume);
+            string grade = Grading.PredictSurface(ref volume, fname, out int[,] surfaceCoordinates);
             sliceLabel.Text = grade;
         }
 
@@ -461,24 +470,57 @@ namespace HistoGrading
             int[] extent = volume.getDims();            
 
             //480*416 VOI from the center
-            int[] voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], 20, 20+447 };
-            int[] batch_dims = new int[] { 448, 448, 1 };
+            int[] voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], 20, 20+511 };
+            int[] batch_dims = new int[] { 512, 448, 1 };
 
             //Segmentation
             List<vtkImageData> outputs;
-            IO.segmentation_pipeline(out outputs, volume, batch_dims, voi_extent, new int[] { 0 }, 32, 0.7 * 255.0);
+            IO.segmentation_pipeline(out outputs, volume, batch_dims, voi_extent, new int[] { 0,1 }, 32);
+            vtkImageThreshold t = vtkImageThreshold.New();
+            if(outputs.Count() == 2)
+            {
+                //Sum operation
+                vtkImageMathematics math = vtkImageMathematics.New();
+                math.SetOperationToAdd();
 
-            /*
-            vtkImageMathematics math = vtkImageMathematics.New();
-            math.SetInput1(outputs.ElementAt(0));
-            math.SetInput2(outputs.ElementAt(1));
+                //Weighting
+                vtkImageMathematics _tmp1 = vtkImageMathematics.New();
+                _tmp1.SetInput1(outputs.ElementAt(0));
+                _tmp1.SetConstantK(0.5);
+                _tmp1.SetOperationToMultiplyByK();
+                _tmp1.Update();
 
-            math.SetOperationToAdd();
-            math.Update();
-            */
+                vtkImageMathematics _tmp2 = vtkImageMathematics.New();
+                _tmp2.SetInput1(outputs.ElementAt(1));
+                _tmp2.SetConstantK(0.5);
+                _tmp2.SetOperationToMultiplyByK();
+                _tmp2.Update();
 
-            volume.connectMaskFromData(outputs.ElementAt(0), 0);
+                math.SetInput1(_tmp1.GetOutput());
+                math.SetInput2(_tmp2.GetOutput());
 
+                math.Update();
+
+                //Threshold
+                t = vtkImageThreshold.New();
+                t.SetInputConnection(math.GetOutputPort());                
+                t.ThresholdByUpper(0.7 * 255.0);                
+                t.SetOutValue(0);
+                t.SetInValue(255.0);
+                t.Update();
+            }           
+            else
+            {
+                //Threshold
+                t = vtkImageThreshold.New();
+                t.SetInput(outputs.ElementAt(0));
+                t.ThresholdByUpper(0.7 * 255.0);
+                t.SetOutValue(0);
+                t.SetInValue(255.0);
+                t.Update();
+            }
+            
+            volume.connectMaskFromData(t.GetOutput());
             //Update rendering pipeline
             maskLabel.Text = "Automatic";
 
@@ -498,14 +540,13 @@ namespace HistoGrading
         private void cropButton_Click(object sender, EventArgs e)
         {
 
-
-            /*
-            vtkImageData center = vtkImageData.New();
-            center.DeepCopy(volume.getVOI());
-            center = Processing.center_crop(center);
-            */
             //Connect mask to segmentation pipeline
             volume.center_crop(448);
+            //Update sample dimensions
+            dims = volume.getDims();
+            sliceN[0] = (dims[1] - dims[0]) / 2;
+            sliceN[1] = (dims[3] - dims[2]) / 2;
+            sliceN[2] = (dims[5] - dims[4]) / 2;
             //Update pipeline
             volume.updateCurrent(sliceN, ori, gray);
 
@@ -522,7 +563,7 @@ namespace HistoGrading
 
             //Update flags
             is_mask = 1;
-            maskButton.Text = "Remove Mask";
+            maskButton.Text = "Remove Mask";            
         }
     }
 }

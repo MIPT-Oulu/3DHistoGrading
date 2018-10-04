@@ -213,7 +213,7 @@ namespace HistoGrading.Components
         /// Converts minibatch data to 3D byte array.
         /// </summary>
         /// <returns>3D byte array.</returns>
-        public static byte[,,] batchToByte(IList<IList<float>> batch, int[] output_size = null, int[] extent = null, double threshold = 0.7*255.0 )
+        public static byte[,,] batchToByte(IList<IList<float>> batch, int[] output_size = null, int[] extent = null )
         {
             //Get number of slices
             int n_slices = batch.Count();
@@ -250,14 +250,30 @@ namespace HistoGrading.Components
                     Parallel.For(extent[4], extent[5], (int w) =>
                     {
                         int pos = (h - extent[2]) * (extent[5] - extent[4] + 1) + w - extent[4];                        
-                        byte val = (byte)(tmp[pos] * 255.0);
-                        if (val > threshold) { outarray[d, h, w] = 255; }                       
+                        byte val = (byte)((double)tmp[pos] * 255.0);
+                        outarray[d, h, w] = val;
                     });
                 });
                 d++;
             }
 
             return outarray;
+        }
+
+        /// <summary>
+        /// Convert 2D double array to Bitmap.
+        /// Scales array from 0 to 255. Should be used mainly for visualizations.
+        /// </summary>
+        /// <param name="array">2D array to be converted.</param>
+        /// <returns>Bitmap</returns>
+        public static Bitmap DoubleToBitmap(double[,] array)
+        {
+            // Scale
+            array = LBPLibrary.Functions.Normalize(array).Multiply(255);
+            // To byte
+            byte[,] bytearray = array.Round().ToByte(); // Round and convert to byte
+            // To Bitmap
+            return new Bitmap(LBPLibrary.Functions.ByteMatrixToBitmap(bytearray));
         }
 
         /// <summary>
