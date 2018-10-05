@@ -68,13 +68,14 @@ namespace HistoGrading.Components
             //Rendering.RenderToNewWindow(flipper.GetOutput());
 
             // Convert vtkImageData to byte[,,]
-            int[] dims = new int[] { crop[1] + 1, crop[3] + 1, (crop[5]-crop[4]) + 1 };
+            int[] dims = new int[] { crop[1] - crop[0] + 1, crop[3] - crop[2] + 1, crop[5] - crop[4] + 1 };
             byte[,,] byteVolume =
                 DataTypes.VectorToVolume(
                 DataTypes.vtkToByte(flipper.GetOutput()), dims);
 
             // Get sample center coordinates
-            int[] center = GetCenter(byteVolume, threshold);
+            //int[] center = GetCenter(byteVolume, threshold);
+            int[] center = new int[] { dims[0] / 2, dims[1] / 2 };
 
             // Get surface
             GetSurface(byteVolume, center, size, threshold, out surfacecoordinates, out surfacevoi);

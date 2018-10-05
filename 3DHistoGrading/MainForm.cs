@@ -32,7 +32,8 @@ namespace HistoGrading
         int ori = -1;
 
         //Gray values
-        int[] gray = new int[2] { 0, 255 };
+        int[] gray = new int[2] { 70, 110 };
+       
 
         //Rendering object
         Rendering.renderPipeLine volume = new Rendering.renderPipeLine();
@@ -158,6 +159,8 @@ namespace HistoGrading
         {
             //Set renderwindow
             renWin = renderWindowControl.RenderWindow;
+            renWin.SetStereoTypeToRedBlue();
+
             //Initialize interactor
             iactor = renWin.GetInteractor();
             iactor.Initialize();
@@ -173,6 +176,10 @@ namespace HistoGrading
             {
                 //Update renderwindow
                 renderWindowControl_Load(this, null);
+
+                // Update grayscale sliders
+                gminBar.Value = gray[0];
+                gmaxBar.Value = gray[1];
 
                 //Get path and files
                 string impath = fileDialog.FileName;
@@ -190,7 +197,7 @@ namespace HistoGrading
                 }
 
                 //Update GUI text to tell path to data folder
-                fileLabel.Text = folpath;
+                fileLabel.Text = fname;
 
                 //Load data
                 volume.connectData(impath);

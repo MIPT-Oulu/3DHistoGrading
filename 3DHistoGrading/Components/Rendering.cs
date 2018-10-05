@@ -126,9 +126,9 @@ namespace HistoGrading.Components
                 //Opacity, background in microCT data is < 70
                 spwf.AddPoint(0, 0);
                 spwf.AddPoint(70, 0.0);
-                spwf.AddPoint(80, 0.6);
-                spwf.AddPoint(150, 0.8);
-                spwf.AddPoint(255, 0.85);
+                spwf.AddPoint(80, 0.3);
+                spwf.AddPoint(150, 0.4);
+                spwf.AddPoint(255, 0.5);
                 //Volume parameters
                 vol.GetProperty().SetColor(ctf);
                 vol.GetProperty().SetScalarOpacity(spwf);
@@ -141,6 +141,7 @@ namespace HistoGrading.Components
                 renderer.GetActiveCamera().SetPosition(0.5, 1, 0);
                 renderer.GetActiveCamera().SetFocalPoint(0, 0, 0);
                 renderer.GetActiveCamera().SetViewUp(0, 0, 1);
+                renderer.GetActiveCamera().SetEyeAngle(10);
                 renderer.ResetCamera();
             }
 
@@ -629,6 +630,11 @@ namespace HistoGrading.Components
                     voi = permuter.GetOutput();
                 }
                 return voi;
+            }
+
+            public void center_crop(int size = 400)
+            {
+                idata = Processing.center_crop(idata, size);
             }
 
             public void SampleGrids()
