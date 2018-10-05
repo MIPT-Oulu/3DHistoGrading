@@ -30,7 +30,7 @@ namespace HistoGrading.Components
         /// <param name="filename">Name of model file on "Default" folder.</param>
         /// <returns>Model path</returns>
         public static string LoadModel(out Model mod, string filename)
-        {
+        {            
             // Path to model (weights.dat)
             string path =
                     new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory

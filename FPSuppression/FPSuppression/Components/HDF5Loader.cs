@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using HDF5DotNet;
 
-namespace CNTKIntegration.Components
+namespace HistoGrading.Components
 {
     class HDF5Loader
     {

@@ -6,28 +6,28 @@ using System.Threading.Tasks;
 
 using CNTK;
 
-using CNTKUNet.Components;
+using HistoGrading.Components;
 
-namespace CNTKUNet.Models
+namespace HistoGrading.Models
 {
     class UNet
     {
         //Network functions
 
         //Convolution block
-        private static Function ConvBlock(Variable input_var,int[] kernel_size, int in_channels, int out_channels, float[] W = null, float[] B = null,
-            string wpath = null, string[] layer_names=null,bool padding=true, bool use_relu=true, bool use_bn=true)
+        private static Function ConvBlock(Variable input_var, int[] kernel_size, int in_channels, int out_channels, float[] W = null, float[] B = null,
+            string wpath = null, string[] layer_names = null, bool padding = true, bool use_relu = true, bool use_bn = true)
         {
             Function output_function;
 
-            if(W != null & wpath != null)
+            if (W != null & wpath != null)
             {
-                throw new System.ArgumentException("1 parameter must be null!","W, wpath");
+                throw new System.ArgumentException("1 parameter must be null!", "W, wpath");
             }
             //If weight path is given, load weight from path. Otherwise use weight from float array W or, initialize new weights.
-            if(wpath!=null)
+            if (wpath != null)
             {
-                W = weight_fromDisk(wpath,layer_names[0]);
+                W = weight_fromDisk(wpath, layer_names[0]);
             }
             //Initialize weights
             Parameter weight = make_weight(kernel_size, in_channels, out_channels, W, layer_names[0]);
@@ -35,7 +35,7 @@ namespace CNTKUNet.Models
             //Generate convolution function
             Function convW = CNTKLib.Convolution(
                 /*kernel and input*/ weight, input_var,
-                /*strides*/ new int[] { 1, 1, in_channels},
+                /*strides*/ new int[] { 1, 1, in_channels },
                 /*sharing*/ new CNTK.BoolVector { true },
                 /*padding*/ new CNTK.BoolVector { padding });
 
@@ -60,7 +60,7 @@ namespace CNTKUNet.Models
                 Parameter bnbias;
                 Parameter rm;
                 Parameter rv;
-                var n = Constant.Scalar(0.0f, DeviceDescriptor.CPUDevice);
+                var n = Constant.Scalar(0.0f, DeviceDescriptor.GPUDevice(0));
 
                 make_bn_pars(out_channels, add.Output.Shape, out scale, out bnbias, out rm, out rv, wpath, layer_names[0]);
 
@@ -100,9 +100,9 @@ namespace CNTKUNet.Models
                                         (float)1 / (4 * 4), (float)1 / (4 * 2), (float)1 / (4 * 4)};
             int[] kss = new int[2] { 3, 3 };
             //Initialize weights
-            Parameter wtransposedy = make_weight(ksy, n_channels, n_channels, from_kernel(Wt,n_channels), "kernel_y");
-            Parameter wtransposedx = make_weight(ksx, n_channels, n_channels, from_kernel(Wt,n_channels), "kernel_x");
-            Parameter wsmoothing = make_weight(kss, n_channels, n_channels, from_kernel(Ws,n_channels), "kernel_smoothing");
+            Parameter wtransposedy = make_weight(ksy, n_channels, n_channels, from_kernel(Wt, n_channels), "kernel_y");
+            Parameter wtransposedx = make_weight(ksx, n_channels, n_channels, from_kernel(Wt, n_channels), "kernel_x");
+            Parameter wsmoothing = make_weight(kss, n_channels, n_channels, from_kernel(Ws, n_channels), "kernel_smoothing");
 
             //Transposed convolutions
             Function tconvy = CNTKLib.ConvolutionTranspose(
@@ -121,7 +121,7 @@ namespace CNTKUNet.Models
                 /*strides*/ new int[] { 1, 1, n_channels },
                 /*sharing*/new bool[] { true },
                 /*padding*/ new bool[] { true });
-            
+
             return smooth;
 
         }
@@ -139,7 +139,7 @@ namespace CNTKUNet.Models
 
             return CNTKLib.Splice(vec, ax);
         }
-        
+
         //Encoder
         private static void encoder(Variable features, int[] ks, int in_channels, int out_channels,
             out Function down, out Function pooled, string wpath = null, string[] names = null, bool bn = true)
@@ -148,7 +148,7 @@ namespace CNTKUNet.Models
 
             //Layer names
             string[] name1 = new string[2]; string[] name2 = new string[2];
-            if (wpath!=null)
+            if (wpath != null)
             {
                 name1[0] = names[0];
                 name1[1] = names[1];
@@ -162,8 +162,8 @@ namespace CNTKUNet.Models
             }
 
             //Convolution blocks
-            var block1 = ConvBlock(features, ks, in_channels, out_channels, null,null, wpath, name1, true, true, bn);
-            var block2 = ConvBlock(block1, ks, out_channels, out_channels, null,null, wpath, name2, true, true, bn);
+            var block1 = ConvBlock(features, ks, in_channels, out_channels, null, null, wpath, name1, true, true, bn);
+            var block2 = ConvBlock(block1, ks, out_channels, out_channels, null, null, wpath, name2, true, true, bn);
 
             //Max pooling
             var pooling = CNTKLib.Pooling(
@@ -194,7 +194,7 @@ namespace CNTKUNet.Models
                 name2 = null;
             }
             //Concatenation and upsampling
-            var upsampled = UpSampling(feature, in_channels/2);
+            var upsampled = UpSampling(feature, in_channels / 2);
             var catted = cat(upsampled.Output, feature_big);
             //Convolutions
             var block1 = ConvBlock(catted, ks, in_channels, out_channels, null, null, wpath, name1, true, true, bn);
@@ -291,25 +291,25 @@ namespace CNTKUNet.Models
             if (W != null)
             {
                 //Initialize new weight
-                weight = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice, name);
+                weight = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0), name);
                 weight = weight_fromFloat(weight, W, dims);
             }
             else
             {
                 //Initialize new weight
-                weight = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                weight = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
             }
 
             return weight;
         }
-        
+
         //Generates network bias
         private static Parameter make_bias(NDShape dims, float[] W = null, string name = null)
         {
             Parameter bias;
             //Make int array of dims
             int[] bks = new int[dims.Rank];
-            for(int k = 0; k<bks.Length; k++)
+            for (int k = 0; k < bks.Length; k++)
             {
                 bks[k] = dims[k];
             }
@@ -317,19 +317,19 @@ namespace CNTKUNet.Models
             if (W != null)
             {
                 //Initialize new weight
-                bias = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice, name);
+                bias = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0), name);
                 bias = weight_fromFloat(bias, W, bks);
             }
             else
             {
-                bias = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                bias = new Parameter(dims, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
             }
 
             return bias;
         }
 
         //Generates batch normalization parameters
-        private static void make_bn_pars(int out_channels, NDShape shape, out Parameter w, out Parameter b, out Parameter m, out Parameter v, string wpath = null, string layer_name=null)
+        private static void make_bn_pars(int out_channels, NDShape shape, out Parameter w, out Parameter b, out Parameter m, out Parameter v, string wpath = null, string layer_name = null)
         {
             //Set weight values from float array if given
             if (wpath != null)
@@ -341,32 +341,32 @@ namespace CNTKUNet.Models
                 string mn = "bn" + S[0] + "_" + S[1] + "_" + "running_mean";
                 string vn = "bn" + S[0] + "_" + S[1] + "_" + "running_var";
                 //Initialize new weight
-                w = new Parameter(new int[] { out_channels}, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
-                float[] W = make_copies(weight_fromDisk(wpath, wn),shape,true);
+                w = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
+                float[] W = make_copies(weight_fromDisk(wpath, wn), shape, true);
                 w = weight_fromFloat(w, W, new int[] { out_channels });
                 //Initialize new bias
-                b = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                b = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 W = make_copies(weight_fromDisk(wpath, bn), shape, true);
                 b = weight_fromFloat(b, W, new int[] { out_channels });
                 //Initialize new running mean
-                m = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                m = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 W = make_copies(weight_fromDisk(wpath, mn), shape, true);
                 m = weight_fromFloat(m, W, new int[] { out_channels });
                 //Initialize new variance
-                v = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                v = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 W = make_copies(weight_fromDisk(wpath, vn), shape, true);
                 v = weight_fromFloat(v, W, new int[] { out_channels });
             }
             else
             {
                 //Initialize new weight
-                w = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                w = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 //Initialize new bias
-                b = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                b = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 //Initialize new running mean
-                m = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                m = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
                 //Initialize new variance
-                v = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.CPUDevice);
+                v = new Parameter(new int[] { out_channels }, DataType.Float, CNTKLib.GlorotUniformInitializer(), DeviceDescriptor.GPUDevice(0));
             }
         }
 
@@ -374,7 +374,7 @@ namespace CNTKUNet.Models
         private static Parameter weight_fromFloat(Parameter weight, float[] array, int[] view)
         {
             //Generate weight array with correct dimensions
-            NDArrayView nDArray = new NDArrayView(view, array, DeviceDescriptor.CPUDevice);
+            NDArrayView nDArray = new NDArrayView(view, array, DeviceDescriptor.GPUDevice(0));
             weight.SetValue(nDArray);
             return weight;
         }
@@ -400,7 +400,7 @@ namespace CNTKUNet.Models
         }
 
         //Copy bias to match the dimensions of the input
-        private static float[] make_copies(float[] kernel, NDShape dims, bool swap_axes=false)
+        private static float[] make_copies(float[] kernel, NDShape dims, bool swap_axes = false)
         {
             int K = dims[0] * dims[1];
             float[] outarray = new float[dims[0] * dims[1] * dims[2]];
@@ -424,7 +424,7 @@ namespace CNTKUNet.Models
                     //Loop over spatial dimensions
                     for (int kk = 0; kk < dims[2]; kk++)
                     {
-                        outarray[k*dims[2] + kk] = kernel[kk];
+                        outarray[k * dims[2] + kk] = kernel[kk];
                     }
                 }
             }
@@ -442,16 +442,16 @@ namespace CNTKUNet.Models
         private static void print_parameter(Function input)
         {
             IList<Parameter> pars = input.Parameters();
-            foreach(Parameter par in pars)
+            foreach (Parameter par in pars)
             {
                 string name = par.Name;
                 Console.WriteLine(name);
                 NDArrayView view = par.Value();
                 Value wv = new Value(view);
                 IList<IList<float>> wd = wv.GetDenseData<float>(par);
-                foreach(IList<float> L in wd)
+                foreach (IList<float> L in wd)
                 {
-                    foreach(float v in L)
+                    foreach (float v in L)
                     {
                         Console.WriteLine(v);
                     }
@@ -462,22 +462,23 @@ namespace CNTKUNet.Models
 
         //Variable declarations
         public static int BW;
-        public static int[] bdims;
+        public static int[] input_size;
+        public static int n_samples;
         public static string wpath;
         static Function model;
         static Variable feature;
 
         //Model initialization
 
-        public void Initialize(int base_width, int[] batch_dims, string weight_path = null, bool use_bn = true)
+        public void Initialize(int base_width, int[] sample_size, string weight_path = null, bool use_bn = true)
         {
             //Network and data parameters
             BW = base_width;
-            bdims = batch_dims;
+            input_size = sample_size;
             //Path to weights
             wpath = weight_path;
             //Input feature
-            feature = Variable.InputVariable(batch_dims, DataType.Float);
+            feature = Variable.InputVariable(input_size, DataType.Float);
             //Create the model
             create_model(use_bn);
         }
@@ -485,7 +486,6 @@ namespace CNTKUNet.Models
         //Model creation
         private static void create_model(bool use_bn = false)
         {
-            Console.WriteLine("Generating UNet..");
             //Parameters
             int[] ks = new int[2] { 3, 3 };
 
@@ -493,10 +493,10 @@ namespace CNTKUNet.Models
 
             Function down1;
             Function pooled1;
-            string[] namesd1 = new string[] {"down1_0_weight", "down1_0_bias", "down1_1_weight", "down1_1_bias", };
+            string[] namesd1 = new string[] { "down1_0_weight", "down1_0_bias", "down1_1_weight", "down1_1_bias", };
             encoder(feature, ks, 1, BW, out down1, out pooled1, wpath, namesd1, use_bn);
 
-            
+
             Function down2;
             Function pooled2;
             string[] namesd2 = new string[] { "down2_0_weight", "down2_0_bias", "down2_1_weight", "down2_1_bias", };
@@ -511,7 +511,7 @@ namespace CNTKUNet.Models
             Function pooled4;
             string[] namesd4 = new string[] { "down4_0_weight", "down4_0_bias", "down4_1_weight", "down4_1_bias", };
             encoder(pooled3, ks, 4 * BW, 8 * BW, out down4, out pooled4, wpath, namesd4, use_bn);
-            
+
             Function down5;
             Function pooled5;
             string[] namesd5 = new string[] { "down5_0_weight", "down5_0_bias", "down5_1_weight", "down5_1_bias", };
@@ -548,7 +548,7 @@ namespace CNTKUNet.Models
             Function up2;
             string[] namesu2 = new string[] { "up2_0_weight", "up2_0_bias", "up2_1_weight", "up2_1_bias", };
             decoder(up3, down2, ks, 4 * BW, 1 * BW, out up2, wpath, namesu2, use_bn);
-            
+
             Function up1;
             string[] namesu1 = new string[] { "up1_0_weight", "up1_0_bias", "up1_1_weight", "up1_1_bias", };
             decoder(up2, down1, ks, 2 * BW, 1 * BW, out up1, wpath, namesu1, use_bn);
@@ -557,43 +557,40 @@ namespace CNTKUNet.Models
             Function unet;
             string[] namesm = new string[] { "mixer.weight", "mixer.bias" };
             mixer(up1, new int[] { 1, 1 }, BW, 1, out unet, wpath, namesm);
-            
-            model = unet;
 
-            Console.WriteLine("Done!!");
-            
+            model = unet;
         }
 
         //Inference
-        public float[] Inference(float[] data)
+        public IList<IList<float>> Inference(float[] data)
         {
+            //Get number of samples
+            n_samples = data.Length / (input_size[0] * input_size[1]);
             //Generate batch from input data
-            Value inputdata = mapBatch(data);
+            Value inputdata = mapBatch(data, n_samples);
             //Map input array to feature
             var inputDataMap = new Dictionary<Variable, Value>() { { feature, inputdata } };
             //Create output featuremap
             var outputDataMap = new Dictionary<Variable, Value>() { { model.Output, null } };
             //Forward pass
-            model.Evaluate(inputDataMap, outputDataMap, DeviceDescriptor.CPUDevice);
+            model.Evaluate(inputDataMap, outputDataMap, DeviceDescriptor.GPUDevice(0));
             //Get output
-            float[] outarray = get_output(outputDataMap, bdims);
+            IList<IList<float>> output = get_output(outputDataMap, input_size, n_samples);
 
-            //Save the model
-            model.Save("C:\\users\\jfrondel\\desktop\\GITS\\cntkunet.model");
-            return outarray;
+            return output;
         }
 
         //Method for mapping float array to minibatch
-        private static Value mapBatch(float[] data)
+        private static Value mapBatch(float[] data, int n_inputs)
         {
             //Map input data to value
-            Value featureVal = Value.CreateBatch<float>(bdims, data, DeviceDescriptor.CPUDevice);
+            Value featureVal = Value.CreateBatch<float>(input_size, data, 0, data.Length, DeviceDescriptor.GPUDevice(0));
 
             return featureVal;
         }
 
         //Method for extracting inference output
-        private static float[] get_output(Dictionary<Variable, Value> result, int[] dims)
+        private static IList<IList<float>> get_output(Dictionary<Variable, Value> result, int[] dims, int samples)
         {
             //Get dictionary keys
             Dictionary<Variable, Value>.KeyCollection keys = result.Keys;
@@ -605,8 +602,9 @@ namespace CNTKUNet.Models
             var D = result[key];
             outlist = D.GetDenseData<float>(key);
 
+            /*
             //Output array
-            float[] outarray = new float[dims[0]* dims[1]];
+            float[] outarray = new float[dims[0] * dims[1] * samples];
             //Iterator
             int c = 0;
             //Iterate over list elements and collect to array
@@ -619,8 +617,8 @@ namespace CNTKUNet.Models
                     c += 1;
                 }
             }
-
-            return outarray;
+            */
+            return outlist;
         }
 
     }

@@ -165,16 +165,19 @@ namespace HistoGrading.Components
         /// </summary>
         /// <param name="path">Directory that includes images to be loaded.</param>
         /// <returns></returns>
-        public static vtkImageData loadVTK(string path, int rotate = 1)
+        public static vtkImageData loadVTK(string path, int[] dims = null)
         {
+            /*Read all images in folder containing file from given path
+             *Uses ParaLoader class to get the data in vtk format*/
+
             //Declare loader
             ParaLoader loader = new ParaLoader();
             //Set input path to loader
-            loader.setInput(path);
+            loader.setInput(path, dims);
             //Load data
             loader.Load();
             //Extract data to variable
-            vtkImageData data = loader.GetData(rotate);
+            vtkImageData data = loader.GetData();
             return data;
         }
 
@@ -331,94 +334,6 @@ namespace HistoGrading.Components
             });
             return croppedVolume;
         }
-
-        public static void get_bbox(out int min_x, out int max_x, out int min_y, out int max_y, Mat input, double threshold = 80.0, double max_val = 255.0)
-        {
-            Mat BW = input.Threshold(threshold, max_val, ThresholdTypes.Binary);
-            var strct = InputArray.Create(new Mat(25, 25, MatType.CV_8UC1));
-            BW = BW.Dilate(strct);
-            BW = BW.Erode(strct);
-
-            var edges = BW.FindContoursAsMat(RetrievalModes.CComp, ContourApproximationModes.ApproxSimple);
-            if (edges.Count() > 0)
-            {
-                Rect bbox = new Rect();
-                int curArea = 0;
-
-                foreach (MatOfPoint contour in edges)
-                {
-                    var brect = contour.BoundingRect();
-                    var area = brect.Height * brect.Width;
-                    if (area > curArea)
-                    {
-                        bbox = brect;
-                        curArea = area;
-                    }
-                }
-
-                if(bbox.Width*bbox.Height > 1600)
-                {
-                    min_x = bbox.Left;
-                    max_x = bbox.Right;
-                    min_y = bbox.Top;
-                    max_y = bbox.Bottom;
-                }
-                else
-                {
-                    min_x = 0;
-                    max_x = 0;
-                    min_y = 0;
-                    max_y = 0;
-                }
-
-            }
-            else
-            {
-                min_x = 0;
-                max_x = 0;
-                min_y = 0;
-                max_y = 0;
-            }
-        }
-
-        public static double get_angle(int[] data, bool radians = false)
-        {
-            //Compute the mean of the points
-            double mu = 0.0;
-            for (int k = 0; k < data.Length; k++)
-            {
-                if(data[k] > 0) { mu += data[k] / data.Length; }
-            }
-
-            //Generate points object for fitting
-            List<Point2f> points = new List<Point2f>();
-            for (int k = 0; k < data.Length; k++)
-            {
-                if(data[k] > 0)
-                {
-                    points.Add(new Point2f((float)(k - data.Length / 2), (float)(data[k]-mu)));
-                }
-            }
-
-            //Fit line
-            Line2D line = Cv2.FitLine(points, DistanceTypes.L2, 0, 0.01, 0.01);
-
-            double slope = line.Vy / (line.Vx + 1e-9);
-
-            double theta = Math.Atan(slope);
-
-            if(radians == true)
-            {
-                return theta;
-            }
-            else
-            {
-                theta *= 180.0 / Math.PI;
-                return theta;
-            }
-            
-        }
-
     }
 
     /// <summary>
@@ -428,19 +343,15 @@ namespace HistoGrading.Components
     {
         //Declarations
 
-        //Empty byte array
-        byte[,,] data;
-        int[] min_x;
-        int[] max_x;
-        int[] min_y;
-        int[] max_y;
-        //Empty image data
-        vtkImageData vtkdata = vtkImageData.New();
-        //Data dimensions
-        int[] input_dims = new int[3];
-        int[] output_dims = new int[6];
-        //Empty list for files
-        List<string> files;
+            //Empty byte array
+            byte[,,] data;
+            //Empty image data
+            vtkImageData vtkdata = vtkImageData.New();
+            //Data dimensions
+            int[] input_dims = new int[3];
+            int[] output_dims = new int[6];
+            //Empty list for files
+            List<string> files;
 
         /// <summary>
         /// Set input files
@@ -473,10 +384,6 @@ namespace HistoGrading.Components
             //first dimension, and y-axis is along the last dimension.
             //This will be reversed when the data gets converted to vtkImagedata.
             data = new byte[output_dims[5] - output_dims[4], output_dims[3] - output_dims[2], output_dims[1] - output_dims[0]];
-            min_x = new int[output_dims[5] - output_dims[4]];
-            max_x = new int[output_dims[5] - output_dims[4]];
-            min_y = new int[output_dims[5] - output_dims[4]];
-            max_y = new int[output_dims[5] - output_dims[4]];
         }
 
         /// <summary>
@@ -488,13 +395,7 @@ namespace HistoGrading.Components
         {
             //Read image from file idx. The image is read using OpenCV, and converted to Bitmap.
             //Bitmap is then read to the bytearray.
-            Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
-
-            //Get bounding box
-            int tmpxmin; int tmpxmax; int tmpymin; int tmpymax;
-            Functions.get_bbox(out tmpxmin, out tmpxmax, out tmpymin, out tmpymax, _tmp);
-            min_x[idx] = tmpxmin; max_x[idx] = tmpxmax; min_y[idx] = tmpymin; max_y[idx] = tmpymax;            
-            
+            Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);                        
             Bitmap _image = BitmapConverter.ToBitmap(_tmp);
             //Lock bits
             Rectangle _rect = new Rectangle(0, 0, input_dims[1], input_dims[0]);
@@ -541,46 +442,11 @@ namespace HistoGrading.Components
         /// Extract data as vtkImageData
         /// </summary>
         /// <returns>Converted data as vtkImageData variable.</returns>
-        public vtkImageData GetData(int rotate = 0)
+        public vtkImageData GetData()
         {
             //Conver byte data to vtkImageData
             vtkdata = DataTypes.byteToVTK(data);
-            if (rotate == 0)
-            {
-                return vtkdata;
-            }
-            else
-            {
-                double thetax1 = Functions.get_angle(min_x, false);
-                double thetax2 = Functions.get_angle(max_x, false);
-                double thetay1 = Functions.get_angle(min_y, false);
-                double thetay2 = Functions.get_angle(max_y, false);
-
-                int[] dims = vtkdata.GetExtent();
-                int[] centers = new int[] { (dims[1] - dims[0]) / 2, (dims[3] - dims[2]) / 2, (dims[5] - dims[4]) / 2 };
-
-                vtkTransform transform = vtkTransform.New();
-                transform.Translate(centers[0], 0.0, centers[2]);
-                transform.RotateX(-0.5 * (thetax1 + thetax2));
-                transform.Translate(-centers[0], 0.0, -centers[2]);
-                transform.Translate(0.0, centers[1], centers[2]);
-                transform.RotateY(0.5 * (thetay1 + thetay2));
-                transform.Translate(0.0, -centers[1], -centers[2]);                
-                transform.Update();
-
-                //Print the parameters to a file
-                //File.WriteAllText("c:\\users\\Tuomas Frondelius\\Desktop\\rotpars.csv", String.Format("{0} \n {1} \n {2} \n {3} \n", thetax1, thetax2, thetay1, thetay2));
-
-                vtkImageReslice rotater = vtkImageReslice.New();
-                rotater.SetInput(vtkdata);
-                rotater.SetInformationInput(vtkdata);
-                rotater.SetResliceTransform(transform);
-                rotater.SetInterpolationModeToLinear();
-                rotater.Update();                
-                return rotater.GetOutput();
-            }
-
+            return vtkdata;
         }
     }
-
 }

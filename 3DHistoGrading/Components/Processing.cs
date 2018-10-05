@@ -1,19 +1,10 @@
-﻿using System;
-using System.IO;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-using Accord.Math;
-
+﻿using Accord.Math;
 using Kitware.VTK;
 using OpenCvSharp;
-using OpenCvSharp.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace HistoGrading.Components
 {
@@ -304,5 +295,112 @@ namespace HistoGrading.Components
             slice.SetOutputOrigin(volume.GetOrigin()[0], volume.GetOrigin()[1], volume.GetOrigin()[2]);
             slice.SetOutputExtent(outExtent[0], outExtent[1], outExtent[2], outExtent[3], outExtent[4], outExtent[5]);
         }
+
+        public static int[] find_center(vtkImageData stack, double threshold = 80.0)
+        {
+            //Get byte data
+            byte[] bytedata = DataTypes.vtkToByte(stack);
+
+            //Get data dimensions
+            int[] dims = stack.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+            //Get strides
+            int stride_d = h * w;
+            int stride_h = 1;
+            int stride_w = h;
+
+            //Empty array for binary mask
+            byte[,] BW = new byte[h, w];
+
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    for (int z = 0; z < d; z++)
+                    {
+                        int pos = (z * stride_d) + (x * stride_w) + (y * stride_h);
+                        byte val = bytedata[pos];
+                        if (val > threshold) { BW[y, x] = 255; }
+                    }
+
+                });
+            });
+
+            Mat sumim = new Mat(h, w, MatType.CV_8UC1, BW);
+
+            /*
+            using (var window = new Window("window", image: sumim, flags: WindowMode.AutoSize))
+            {
+                Cv2.WaitKey();
+            }
+            */
+
+            int x1; int x2; int y1; int y2;
+            Functions.get_bbox(out x1, out x2, out y1, out y2, sumim);
+
+            //Compute center
+            int[] center = new int[2];
+            center[0] = (y2 + y1) / 2;
+            center[1] = (x2 + x1) / 2;
+
+            return center;
+        }
+
+        public static vtkImageData center_crop(vtkImageData stack, int side = 400)
+        {
+            //Get input dimensions
+            int[] dims = stack.GetExtent();
+
+            //Find the center of the sample
+
+            int[] center = find_center(stack);//GetCenter(bytedata,80);
+            //Compute new volume sides
+            int y2 = Math.Min(center[0] + (side / 2), dims[1]);
+            int y1 = Math.Max(y2 - side + 1, dims[0]);
+            int x2 = Math.Min(center[1] + (side / 2), dims[3]);
+            int x1 = Math.Max(x2 - side + 1, dims[2]);
+
+            //Create VOI extractor
+            vtkExtractVOI cropper = vtkExtractVOI.New();
+            cropper.SetVOI(y1, y2, x1, x2, dims[4], dims[5]);
+            cropper.SetInput(stack);
+            cropper.Update();
+
+            vtkImageData output = cropper.GetOutput();
+            output.SetExtent(0, (y2 - y1), 0, (x2 - x1), dims[4], dims[5]);
+            output.Update();
+
+            return output;
+        }
+
+        /*
+        public static double[,] average_tiles(vtkImageData input, int n_tiles = 16)
+        {
+            //Get dimensions
+            int[] dims = input.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Input to byte array
+            byte[] bytedata = DataTypes.vtkToByte(input);
+
+            //Generate tile coordinates
+            int N = (int)Math.Sqrt(n_tiles);
+            int wh = h / N;
+            int ww = w / N;
+
+            for(int kh = 0; kh <N; kh++)
+            {
+                for (int kh = 0; kh < N; kh++)
+                {
+
+                }
+            }
+
+        }
+        */
     }
 }
