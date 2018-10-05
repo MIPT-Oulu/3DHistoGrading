@@ -367,12 +367,8 @@ namespace HistoGrading.Components
             cropper.SetVOI(y1, y2, x1, x2, dims[4], dims[5]);
             cropper.SetInput(stack);
             cropper.Update();
-
-            vtkImageData output = cropper.GetOutput();
-            output.SetExtent(0, (y2 - y1), 0, (x2 - x1), dims[4], dims[5]);
-            output.Update();
-
-            return output;
+                        
+            return cropper.GetOutput();
         }
 
         /*

@@ -20,7 +20,7 @@ namespace HistoGrading.Components
         /// and memory management.
         /// </summary>
         public class volumePipeLine
-        {
+        {            
             /**/
 
             //Volume components
@@ -38,14 +38,14 @@ namespace HistoGrading.Components
             private vtkVolume maskvol = vtkVolume.New();
             private vtkFixedPointVolumeRayCastMapper maskmapper = vtkFixedPointVolumeRayCastMapper.New();
             private vtkColorTransferFunction maskctf = vtkColorTransferFunction.New();
-            private vtkPiecewiseFunction maskspwf = vtkPiecewiseFunction.New();
+            private vtkPiecewiseFunction maskspwf = vtkPiecewiseFunction.New();            
 
             //Renderer
             public vtkRenderer renderer = vtkRenderer.New();
 
             //Method for initializing components
             public void Initialize()
-            {
+            {                
                 //Initialize new volume components
                 vol = vtkVolume.New();
                 mapper = vtkFixedPointVolumeRayCastMapper.New();
@@ -111,7 +111,7 @@ namespace HistoGrading.Components
             /// </summary>
             /// <param name="input">Volume data input.</param>
             /// <param name="inputRenderer">Renderer object.</param>
-            public void connectComponents(vtkImageData input, vtkRenderer inputRenderer)
+            public void connectComponents(vtkImageData input, vtkRenderer inputRenderer, int cmin, int cmax)
             {
                 /*Arguments: volumetric data and renderer*/
 
@@ -121,8 +121,8 @@ namespace HistoGrading.Components
                 mapper.SetInput(input);
                 mapper.Update();
                 //Color
-                ctf.AddRGBPoint(0, 0.0, 0.0, 0.0);
-                ctf.AddRGBPoint(255, 0.8, 0.8, 0.8);
+                ctf.AddRGBPoint(cmin, 0.0, 0.0, 0.0);
+                ctf.AddRGBPoint(cmax, 0.8, 0.8, 0.8);
                 //Opacity, background in microCT data is < 70
                 spwf.AddPoint(0, 0);
                 spwf.AddPoint(70, 0.0);
@@ -136,7 +136,7 @@ namespace HistoGrading.Components
                 vol.Update();
                 //Renderer back ground
                 renderer.SetBackground(0, 0, 0);
-                renderer.AddVolume(vol);
+                renderer.AddVolume(vol);                
                 //Set Camera
                 renderer.GetActiveCamera().SetPosition(0.5, 1, 0);
                 renderer.GetActiveCamera().SetFocalPoint(0, 0, 0);
@@ -464,6 +464,9 @@ namespace HistoGrading.Components
             /// </summary>
             public void renderVolume()
             {
+                vtkFileOutputWindow fow = vtkFileOutputWindow.New();
+                fow.SetFileName("c:\\users\\Tuomas Frondelius\\Desktop\\errors.txt");
+                vtkOutputWindow.SetInstance(fow);
                 //Detach first renderer from render window. Prevents multiple images from being
                 //rendered on top of each other, and helps with memory management.
                 renWin.RemoveRenderer(renWin.GetRenderers().GetFirstRenderer());
@@ -477,7 +480,7 @@ namespace HistoGrading.Components
                 volPipe.Dispose();
                 volPipe.Initialize();
                 //Connect input data and renderer to rendering pipeline
-                volPipe.connectComponents(idata, renderer);
+                volPipe.connectComponents(idata, renderer, gray[0], gray[1]);
                 //Connect renderer to render window
                 renWin.AddRenderer(renderer);
 
@@ -624,7 +627,11 @@ namespace HistoGrading.Components
 
             public void center_crop(int size = 400)
             {                
-                idata = Processing.center_crop(idata,size);
+                vtkImageData tmp = Processing.center_crop(idata,size);
+                idata.Dispose();
+                idata = vtkImageData.New();
+                idata.DeepCopy(tmp);
+                tmp.Dispose();
             }
         }
 

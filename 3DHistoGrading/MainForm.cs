@@ -75,17 +75,17 @@ namespace HistoGrading
             //Tell coronal rendering
             if (ori == 2)
             {
-                sliceLabel.Text = String.Format("Transverse, XY | {0} / {1}", sliceN[ori], dims[5]);
+                sliceLabel.Text = String.Format("Transverse, XY | {0} / {1}", sliceN[ori]-dims[4], dims[5]-dims[4]);
             }
             //Tell transverse rendering
             if (ori == 0)
             {
-                sliceLabel.Text = String.Format("Coronal, XZ | {0} / {1}", sliceN[ori], dims[3]);
+                sliceLabel.Text = String.Format("Coronal, XZ | {0} / {1}", sliceN[ori]-dims[0], dims[1]-dims[0]);
             }
             //Tell transverse rendering
             if (ori == 1)
             {
-                sliceLabel.Text = String.Format("Sagittal, YZ | {0} / {1}", sliceN[ori], dims[1]);
+                sliceLabel.Text = String.Format("Sagittal, YZ | {0} / {1}", sliceN[ori]-dims[2], dims[3]-dims[2]);
             }
         }
 
@@ -178,6 +178,15 @@ namespace HistoGrading
                 //Update renderwindow
                 renderWindowControl_Load(this, null);
 
+                //Remove mask if loaded
+                if(is_mask == 1)
+                {
+                    volume.removeMask();                    
+                    is_mask = 0;
+                    maskButton.Text = "Load Mask";
+                    maskLabel.Text = "No Mask Loaded";
+                }
+
                 //Get path and files
                 string impath = fileDialog.FileName;
                 string folpath = Path.GetDirectoryName(@impath);
@@ -194,16 +203,17 @@ namespace HistoGrading
                 }
 
                 //Update GUI text to tell path to data folder
-                fileLabel.Text = folpath;
+                fileLabel.Text = fname;
+                gradeLabel.Text = "No Grade";
 
                 //Load data
                 volume.connectData(impath);
                 
                 //Get dimensions and set slices. Middle slice is set to current slice
                 dims = volume.getDims();
-                sliceN[0] = (dims[1] - dims[0]) / 2;
-                sliceN[1] = (dims[3] - dims[2]) / 2;
-                sliceN[2] = (dims[5] - dims[4]) / 2;
+                sliceN[0] = (dims[1] + dims[0]) / 2;
+                sliceN[1] = (dims[3] + dims[2]) / 2;
+                sliceN[2] = (dims[5] + dims[4]) / 2;
 
                 //Connect slice to renderer
                 volume.connectWindow(renWin);
@@ -241,8 +251,9 @@ namespace HistoGrading
                 sliceBar.Enabled = true;
                 renderWindowControl.Enabled = true;
                 cropButton.Enabled = true;
-                segmentButton.Enabled = true;
-                predict.Enabled = true;
+
+                segmentButton.Enabled = false;
+                predict.Enabled = false;
 
             }
         }
@@ -342,12 +353,12 @@ namespace HistoGrading
             volume.updateCurrent(sliceN, ori, gray);
             //Render volume
             volume.renderVolume();
-            volume.setVolumeColor();
 
             if (is_mask==1)
             {
                 volume.renderVolumeMask();
             }
+
             TellSlice();
             iactor.Enable();
         }
@@ -360,6 +371,7 @@ namespace HistoGrading
                 //Set orientation
                 ori = 2;
                 //Update scroll bar
+                sliceBar.Minimum = dims[4];
                 sliceBar.Maximum = dims[5];
                 sliceBar.Value = sliceN[2];
                 //Update rendering pipeline and render
@@ -383,6 +395,7 @@ namespace HistoGrading
                 //Set orientation
                 ori = 0;
                 //Update scroll bar
+                sliceBar.Minimum = dims[0];
                 sliceBar.Maximum = dims[1];
                 sliceBar.Value = sliceN[0];
                 //Update rendering pipeline and render
@@ -407,6 +420,7 @@ namespace HistoGrading
                 //Set orientation
                 ori = 1;
                 //Update scroll bar
+                sliceBar.Maximum = dims[2];
                 sliceBar.Maximum = dims[3];
                 sliceBar.Value = sliceN[1];
                 //Update rendering pipeline and render
@@ -422,11 +436,131 @@ namespace HistoGrading
             }
         }
 
+        //Automatically segment the BC interface
+        private void segmentButton_Click(object sender, EventArgs e)
+        {
+            //VOI for segmentation
+
+            //Get sample dimensions
+            int[] extent = volume.getDims();
+
+            //480*416 VOI from the center
+            int[] voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], 20, 20 + 511 };
+            int[] batch_dims = new int[] { 512, 448, 1 };
+
+            //Segmentation
+            List<vtkImageData> outputs;
+            IO.segmentation_pipeline(out outputs, volume, batch_dims, voi_extent, new int[] { 0, 1 }, 32);
+            vtkImageThreshold t = vtkImageThreshold.New();
+            if (outputs.Count() == 2)
+            {
+                //Sum operation
+                vtkImageMathematics math = vtkImageMathematics.New();
+                math.SetOperationToAdd();
+
+                //Weighting
+                vtkImageMathematics _tmp1 = vtkImageMathematics.New();
+                _tmp1.SetInput1(outputs.ElementAt(0));
+                _tmp1.SetConstantK(0.5);
+                _tmp1.SetOperationToMultiplyByK();
+                _tmp1.Update();
+
+                vtkImageMathematics _tmp2 = vtkImageMathematics.New();
+                _tmp2.SetInput1(outputs.ElementAt(1));
+                _tmp2.SetConstantK(0.5);
+                _tmp2.SetOperationToMultiplyByK();
+                _tmp2.Update();
+
+                math.SetInput1(_tmp1.GetOutput());
+                math.SetInput2(_tmp2.GetOutput());
+
+                math.Update();
+
+                //Threshold
+                t = vtkImageThreshold.New();
+                t.SetInputConnection(math.GetOutputPort());
+                t.ThresholdByUpper(0.7 * 255.0);
+                t.SetOutValue(0);
+                t.SetInValue(255.0);
+                t.Update();
+            }
+            else
+            {
+                //Threshold
+                t = vtkImageThreshold.New();
+                t.SetInput(outputs.ElementAt(0));
+                t.ThresholdByUpper(0.7 * 255.0);
+                t.SetOutValue(0);
+                t.SetInValue(255.0);
+                t.Update();
+            }
+
+            volume.connectMaskFromData(t.GetOutput());
+            //Update rendering pipeline
+            is_mask = 1;
+            maskLabel.Text = "Automatic";
+
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolumeMask();
+                volume.setVolumeColor();
+            }
+            if (ori > -1)
+            {
+                volume.renderImageMask();
+            }
+
+        }
+
+        //Automatically crop the center of the sample
+        private void cropButton_Click(object sender, EventArgs e)
+        {
+
+            //Connect mask to segmentation pipeline
+            volume.center_crop(448);
+            //Update sample dimensions
+            dims = volume.getDims();
+            sliceN[0] = (dims[1] + dims[0]) / 2;
+            sliceN[1] = (dims[3] + dims[2]) / 2;
+            sliceN[2] = (dims[5] + dims[4]) / 2;
+            //Update pipeline
+            volume.updateCurrent(sliceN, ori, gray);
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolume();
+            }
+            if (ori > -1)
+            {
+                volume.renderImage();
+            }
+
+            
+            segmentButton.Enabled = true;
+            predict.Enabled = true;
+        }
+
+        //Remove preparation artefacts from the surface
+        private void cleanSurfButton_Click(object sender, EventArgs e)
+        {
+            /*
+            cropBar.Enabled = true;
+
+            byte[] surface = new byte[(dims[1]-dims[0]) * (dims[3] - dims[2])];
+            Parallel.For(0, surface.Length, (int k) => 
+            {
+                surface[k] = 1;
+            });
+
+            */
+        }
+
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
             string grade = Grading.PredictSurface(ref volume, fname, out int[,] surfaceCoordinates);
-            sliceLabel.Text = grade;
+            gradeLabel.Text = grade;
         }
 
         //Scroll bars
@@ -462,108 +596,9 @@ namespace HistoGrading
             }
         }
 
-        private void segmentButton_Click(object sender, EventArgs e)
-        {
-            //VOI for segmentation
-
-            //Get sample dimensions
-            int[] extent = volume.getDims();            
-
-            //480*416 VOI from the center
-            int[] voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], 20, 20+511 };
-            int[] batch_dims = new int[] { 512, 448, 1 };
-
-            //Segmentation
-            List<vtkImageData> outputs;
-            IO.segmentation_pipeline(out outputs, volume, batch_dims, voi_extent, new int[] { 0,1 }, 32);
-            vtkImageThreshold t = vtkImageThreshold.New();
-            if(outputs.Count() == 2)
-            {
-                //Sum operation
-                vtkImageMathematics math = vtkImageMathematics.New();
-                math.SetOperationToAdd();
-
-                //Weighting
-                vtkImageMathematics _tmp1 = vtkImageMathematics.New();
-                _tmp1.SetInput1(outputs.ElementAt(0));
-                _tmp1.SetConstantK(0.5);
-                _tmp1.SetOperationToMultiplyByK();
-                _tmp1.Update();
-
-                vtkImageMathematics _tmp2 = vtkImageMathematics.New();
-                _tmp2.SetInput1(outputs.ElementAt(1));
-                _tmp2.SetConstantK(0.5);
-                _tmp2.SetOperationToMultiplyByK();
-                _tmp2.Update();
-
-                math.SetInput1(_tmp1.GetOutput());
-                math.SetInput2(_tmp2.GetOutput());
-
-                math.Update();
-
-                //Threshold
-                t = vtkImageThreshold.New();
-                t.SetInputConnection(math.GetOutputPort());                
-                t.ThresholdByUpper(0.7 * 255.0);                
-                t.SetOutValue(0);
-                t.SetInValue(255.0);
-                t.Update();
-            }           
-            else
-            {
-                //Threshold
-                t = vtkImageThreshold.New();
-                t.SetInput(outputs.ElementAt(0));
-                t.ThresholdByUpper(0.7 * 255.0);
-                t.SetOutValue(0);
-                t.SetInValue(255.0);
-                t.Update();
-            }
-            
-            volume.connectMaskFromData(t.GetOutput());
-            //Update rendering pipeline
-            maskLabel.Text = "Automatic";
-
-            //Render
-            if (ori == -1)
-            {
-                volume.renderVolumeMask();
-                volume.setVolumeColor();
-            }
-            if (ori > -1)
-            {
-                volume.renderImageMask();
-            }
-
-        }
-
-        private void cropButton_Click(object sender, EventArgs e)
+        private void cropBar_Scroll(object sender, ScrollEventArgs e)
         {
 
-            //Connect mask to segmentation pipeline
-            volume.center_crop(448);
-            //Update sample dimensions
-            dims = volume.getDims();
-            sliceN[0] = (dims[1] - dims[0]) / 2;
-            sliceN[1] = (dims[3] - dims[2]) / 2;
-            sliceN[2] = (dims[5] - dims[4]) / 2;
-            //Update pipeline
-            volume.updateCurrent(sliceN, ori, gray);
-
-            //Render
-            if (ori == -1)
-            {
-                volume.renderVolume();
-                volume.setVolumeColor();
-            }
-            if (ori > -1)
-            {
-                volume.renderImage();
-            }
-
-            //Update flags
-            is_mask = 1;
-            maskButton.Text = "Remove Mask";            
         }
     }
 }
