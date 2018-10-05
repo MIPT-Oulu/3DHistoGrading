@@ -580,6 +580,7 @@ namespace HistoGrading.Models
             model.Evaluate(inputDataMap, outputDataMap, DeviceDescriptor.GPUDevice(0));
             //Get output
             IList<IList<float>> output = get_output(outputDataMap, input_size, n_samples);
+
             return output;
         }
 

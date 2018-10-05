@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("CNTKIntegration")]
+[assembly: AssemblyTitle("FPSuppression")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("CNTKIntegration")]
+[assembly: AssemblyProduct("FPSuppression")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("df287675-fbd0-4e44-ac82-7a5b3dc9f5b5")]
+[assembly: Guid("29bbfec7-5f9d-46af-95d0-cbd159cedc43")]
 
 // Version information for an assembly consists of the following four values:
 //
