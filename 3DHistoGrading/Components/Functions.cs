@@ -419,6 +419,64 @@ namespace HistoGrading.Components
             
         }
 
+        public static int[,] get_surface_index_from_tiles(double[,,] array, double threshold)
+        {
+            int h = array.GetLength(0);
+            int w = array.GetLength(1);
+            int d = array.GetLength(2);
+
+            int[,] idx = new int[h, w];
+
+            Parallel.For(0,h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    for(int k = d-1; k > -1; k-=1)
+                    {
+                        double val = array[y, x, k];
+                        if(val > threshold)
+                        {
+                            idx[y, x] = k;
+                            break;
+                        }
+                    }
+                });
+            });
+
+            return idx;
+        }
+
+        public static double[] get_tile_angles(vtkImageData input,double threshold = 70.0)
+        {
+            //Get parameters
+            double[,,] tiles; int[] steps;
+            Processing.average_tiles(out tiles, out steps,input);
+            int[,] idx = get_surface_index_from_tiles(tiles,threshold);
+
+            //Surface coordinates to points                       
+
+            List<Point2f> pointsx = new List<Point2f>();
+            List<Point2f> pointsy = new List<Point2f>();
+
+            for (int y = 0; y < idx.GetLength(0); y++)
+            {
+                for (int x = 0; x < idx.GetLength(1); x++)
+                {
+                    pointsx.Add(new Point2f((float)(x * steps[1]), (float)(idx[y, x])));
+                    pointsy.Add(new Point2f((float)(y * steps[0]), (float)(idx[y, x])));
+                }
+            }
+
+            //Surface fit
+            Line2D linex = Cv2.FitLine(pointsx, DistanceTypes.L2, 0, 0.01, 0.01);
+            Line2D liney = Cv2.FitLine(pointsy, DistanceTypes.L2, 0, 0.01, 0.01);
+
+            //Get angles as degrees
+            double thetax = Math.Atan(linex.Vy / (linex.Vx + 1e-9))*180.0/Math.PI;
+            double thetay = Math.Atan(liney.Vy / (liney.Vx + 1e-9)) * 180.0 / Math.PI;
+
+            return new double[] { thetax, thetay};
+        }
     }
 
     /// <summary>

@@ -518,7 +518,7 @@ namespace HistoGrading
         {
 
             //Connect mask to segmentation pipeline
-            volume.center_crop(448);
+            volume.center_crop(448);            
             //Update sample dimensions
             dims = volume.getDims();
             sliceN[0] = (dims[1] + dims[0]) / 2;
@@ -526,6 +526,8 @@ namespace HistoGrading
             sliceN[2] = (dims[5] + dims[4]) / 2;
             //Update pipeline
             volume.updateCurrent(sliceN, ori, gray);
+            
+            /*
             //Render
             if (ori == -1)
             {
@@ -535,10 +537,55 @@ namespace HistoGrading
             {
                 volume.renderImage();
             }
+            */
 
             
             segmentButton.Enabled = true;
             predict.Enabled = true;
+
+            //Get surface orientation
+            double[] angles = Functions.get_tile_angles(volume.getVOI());
+            Console.WriteLine("thetax: {0}, thetax: {1}",angles[0],angles[1]);
+
+            //Rotate the image data
+            vtkImageData vtkdata = volume.getVOI();
+            int[] centers = new int[] { (dims[1] - dims[0]) / 2, (dims[3] - dims[2]) / 2, (dims[5] - dims[4]) / 2 };
+
+            vtkTransform transform = vtkTransform.New();
+            transform.Translate(centers[0], 0.0, centers[2]);
+            transform.RotateX(angles[0]);
+            transform.Translate(-centers[0], 0.0, -centers[2]);
+            transform.Translate(0.0, centers[1], centers[2]);
+            transform.RotateY(-angles[1]);
+            transform.Translate(0.0, -centers[1], -centers[2]);
+            transform.Update();
+
+            vtkImageReslice rotater = vtkImageReslice.New();
+            rotater.SetInput(vtkdata);
+            rotater.SetInformationInput(vtkdata);
+            rotater.SetResliceTransform(transform);
+            rotater.SetInterpolationModeToLinear();
+            rotater.SetOutputExtent(0, 1200, 0, 1200, 0, 1500);
+            rotater.Update();
+
+            volume.connectDataFromMemory(rotater.GetOutput());
+
+            dims = volume.getDims();
+            sliceN[0] = (dims[1] + dims[0]) / 2;
+            sliceN[1] = (dims[3] + dims[2]) / 2;
+            sliceN[2] = (dims[5] + dims[4]) / 2;
+            //Update pipeline
+            volume.updateCurrent(sliceN, ori, gray);
+
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolume();
+            }
+            if (ori > -1)
+            {
+                volume.renderImage();
+            }
         }
 
         //Remove preparation artefacts from the surface

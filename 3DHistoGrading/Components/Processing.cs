@@ -371,8 +371,7 @@ namespace HistoGrading.Components
             return cropper.GetOutput();
         }
 
-        /*
-        public static double[,] average_tiles(vtkImageData input, int n_tiles = 16)
+        public static void average_tiles(out double[,,] averages, out int[] steps, vtkImageData input, int n_tiles = 16)
         {
             //Get dimensions
             int[] dims = input.GetExtent();
@@ -388,15 +387,45 @@ namespace HistoGrading.Components
             int wh = h / N;
             int ww = w / N;
 
-            for(int kh = 0; kh <N; kh++)
-            {
-                for (int kh = 0; kh < N; kh++)
-                {
+            steps = new int[] { wh, ww};
 
+            List<int[]> tiles = new List<int[]>();            
+
+            for (int kh = 0; kh <N; kh++)
+            {
+                for (int kw = 0; kw < N; kw++)
+                {
+                    int[] tmp = new int[] { kh * wh, (kh + 1) * wh, kw * ww, (kw + 1) * ww };
+                    tiles.Add(tmp);
+                    Console.WriteLine("{0},{1},{2},{3}",tmp[0], tmp[1], tmp[2], tmp[3]);
                 }
             }
 
+            //Iterate over tiles, and average the grayscale values
+
+            //Empty array for averages
+            double[,,] _averages = new double[N,N,d];
+            //Number of elements
+            N = wh * ww;
+            foreach(int[] tile in tiles)
+            {
+                Parallel.For(tile[0],tile[1],(int y) =>
+                {
+                    Parallel.For(tile[2], tile[3], (int x) =>
+                    {
+                        Parallel.For(0, d, (int z) =>
+                        {
+                            int pos = z * (h * w) + x * (h) + y;
+                            byte val = bytedata[pos];                            
+                            _averages[y / wh, x / ww, z] += (double)val / (double)N;
+                        });
+                    });
+                });
+            }
+
+            averages = _averages;
         }
-        */
+        
+
     }
 }
