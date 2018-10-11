@@ -246,6 +246,7 @@ namespace HistoGrading
                 cropButton.Enabled = true;
                 segmentButton.Enabled = true;
                 predict.Enabled = true;
+                cropButton.Enabled = true;
 
             }
         }

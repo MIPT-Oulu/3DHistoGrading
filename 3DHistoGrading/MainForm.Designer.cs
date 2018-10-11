@@ -111,6 +111,7 @@
             // segmentButton
             // 
             this.segmentButton.Location = new System.Drawing.Point(9, 412);
+            this.segmentButton.Enabled = false;
             this.segmentButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.segmentButton.Name = "segmentButton";
             this.segmentButton.Size = new System.Drawing.Size(94, 42);
@@ -142,6 +143,7 @@
             // predict
             // 
             this.predict.Location = new System.Drawing.Point(9, 312);
+            this.predict.Enabled = false;
             this.predict.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.predict.Name = "predict";
             this.predict.Size = new System.Drawing.Size(94, 42);
@@ -358,6 +360,7 @@
             // cropButton
             // 
             this.cropButton.Location = new System.Drawing.Point(9, 359);
+            this.cropButton.Enabled = false;
             this.cropButton.Name = "cropButton";
             this.cropButton.Size = new System.Drawing.Size(94, 48);
             this.cropButton.TabIndex = 12;
