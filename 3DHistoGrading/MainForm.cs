@@ -328,9 +328,9 @@ namespace HistoGrading
                 volume.resetCamera();
 
                 //Reset slices
-                sliceN[0] = (dims[1] - dims[0]) / 2;
-                sliceN[1] = (dims[3] - dims[2]) / 2;
-                sliceN[2] = (dims[5] - dims[4]) / 2;
+                sliceN[0] = (dims[1] + dims[0]) / 2;
+                sliceN[1] = (dims[3] + dims[2]) / 2;
+                sliceN[2] = (dims[5] + dims[4]) / 2;
 
                 if (ori > -1)
                 {
@@ -374,6 +374,7 @@ namespace HistoGrading
                 sliceBar.Minimum = dims[4];
                 sliceBar.Maximum = dims[5];
                 sliceBar.Value = sliceN[2];
+                sliceBar.Update();
                 //Update rendering pipeline and render
                 volume.updateCurrent(sliceN, ori, gray);
                 volume.renderImage();
@@ -398,6 +399,8 @@ namespace HistoGrading
                 sliceBar.Minimum = dims[0];
                 sliceBar.Maximum = dims[1];
                 sliceBar.Value = sliceN[0];
+                sliceBar.Update();
+
                 //Update rendering pipeline and render
                 volume.updateCurrent(sliceN, ori, gray);
                 volume.renderImage();
@@ -420,9 +423,10 @@ namespace HistoGrading
                 //Set orientation
                 ori = 1;
                 //Update scroll bar
-                sliceBar.Maximum = dims[2];
+                sliceBar.Minimum = dims[2];
                 sliceBar.Maximum = dims[3];
                 sliceBar.Value = sliceN[1];
+                sliceBar.Update();
                 //Update rendering pipeline and render
                 volume.updateCurrent(sliceN, ori, gray);
                 volume.renderImage();
@@ -511,6 +515,20 @@ namespace HistoGrading
                 volume.renderImageMask();
             }
 
+            //Find surface VOI
+
+            //Detect orienation
+            
+            //Rotate sample
+
+            //Get VOI
+
+            //Rotate VOI back to original sample coordinates
+
+            //Connect to rendering pipeline and render
+
+            //Same for BCI
+
         }
 
         //Automatically crop the center of the sample
@@ -538,37 +556,15 @@ namespace HistoGrading
                 volume.renderImage();
             }
             */
-
+            
             
             segmentButton.Enabled = true;
             predict.Enabled = true;
 
-            //Get surface orientation
-            double[] angles = Functions.get_tile_angles(volume.getVOI());
-            Console.WriteLine("thetax: {0}, thetax: {1}",angles[0],angles[1]);
-
-            //Rotate the image data
-            vtkImageData vtkdata = volume.getVOI();
-            int[] centers = new int[] { (dims[1] - dims[0]) / 2, (dims[3] - dims[2]) / 2, (dims[5] - dims[4]) / 2 };
-
-            vtkTransform transform = vtkTransform.New();
-            transform.Translate(centers[0], 0.0, centers[2]);
-            transform.RotateX(angles[0]);
-            transform.Translate(-centers[0], 0.0, -centers[2]);
-            transform.Translate(0.0, centers[1], centers[2]);
-            transform.RotateY(-angles[1]);
-            transform.Translate(0.0, -centers[1], -centers[2]);
-            transform.Update();
-
-            vtkImageReslice rotater = vtkImageReslice.New();
-            rotater.SetInput(vtkdata);
-            rotater.SetInformationInput(vtkdata);
-            rotater.SetResliceTransform(transform);
-            rotater.SetInterpolationModeToLinear();
-            rotater.SetOutputExtent(0, 1200, 0, 1200, 0, 1500);
-            rotater.Update();
-
-            volume.connectDataFromMemory(rotater.GetOutput());
+            
+            vtkImageData vtkdata = Functions.get_surface_voi(volume.getVOI());
+                        
+            volume.connectDataFromMemory(vtkdata);
 
             dims = volume.getDims();
             sliceN[0] = (dims[1] + dims[0]) / 2;
@@ -586,6 +582,9 @@ namespace HistoGrading
             {
                 volume.renderImage();
             }
+            
+            
+            
         }
 
         //Remove preparation artefacts from the surface

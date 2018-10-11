@@ -296,6 +296,91 @@ namespace HistoGrading.Components
             slice.SetOutputExtent(outExtent[0], outExtent[1], outExtent[2], outExtent[3], outExtent[4], outExtent[5]);
         }
 
+        /// <summary>
+        /// Rotates 3D vtk volume around x and y axes.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="angles"></param>
+        /// <param name="mode"></param>
+        /// <param name="invert"></param>
+        /// <returns></returns>
+        public static vtkImageData rotate_sample(vtkImageData input, double angle, int axis, int out_extent = 0)
+        {            
+            //get input data dimensions
+            int[] dims = input.GetExtent();
+            //Compute centers
+            int[] centers = new int[] { (dims[1] + dims[0]) / 2, (dims[3] + dims[2]) / 2, (dims[5] + dims[4]) / 2 };
+
+            //Set rotation axis
+            int[] axes = new int[3];
+            axes[axis] = 1;
+
+            int[] new_dims = new int[] { dims[0], dims[1], dims[2], dims[3], dims[4], dims[5] };            
+            int[] new_centers = new int[] { centers[0], centers[1], centers[2] };
+
+            //Compute new sample dimensions
+            if (axis == 0)
+            {
+                new_dims[3] = (int)(Math.Cos(Math.Abs(angle / 180) * Math.PI) * new_dims[3] + Math.Sin(Math.Abs(angle / 180) * Math.PI) * new_dims[5]);
+                new_dims[5] = (int)(Math.Sin(Math.Abs(angle / 180) * Math.PI) * new_dims[3] + Math.Cos(Math.Abs(angle / 180) * Math.PI) * new_dims[5]);
+
+                new_centers[1] = (Math.Abs(new_dims[3]) + Math.Abs(new_dims[2])) / 2;
+                new_centers[2] = (Math.Abs(new_dims[5]) + Math.Abs(new_dims[4])) / 2;
+
+                Console.WriteLine("old extent: {0}, {1}, {2}, {3}, {4}, {5}", dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
+                Console.WriteLine("new extent: {0}, {1}, {2}, {3}, {4}, {5}", new_dims[0], new_dims[1], new_dims[2], new_dims[3], new_dims[4], new_dims[5]);
+
+                Console.WriteLine("Angle: {0} | axis: {1}", angle, axis);
+            }
+            if(axis==1)
+            {
+                new_dims[1] = (int)(Math.Cos(Math.Abs(angle / 180) * Math.PI) * new_dims[1] + Math.Sin(Math.Abs(angle / 180) * Math.PI) * new_dims[5]);
+                new_dims[5] = (int)(Math.Sin(Math.Abs(angle / 180) * Math.PI) * new_dims[1] + Math.Cos(Math.Abs(angle / 180) * Math.PI) * new_dims[5]);                
+
+                new_centers[0] = (Math.Abs(new_dims[0]) + Math.Abs(new_dims[1])) / 2;
+                new_centers[2] = (Math.Abs(new_dims[5]) + Math.Abs(new_dims[4])) / 2;
+
+                Console.WriteLine("old extent: {0}, {1}, {2}, {3}, {4}, {5}", dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
+                Console.WriteLine("new extent: {0}, {1}, {2}, {3}, {4}, {5}", new_dims[0], new_dims[1], new_dims[2], new_dims[3], new_dims[4], new_dims[5]);
+
+                Console.WriteLine("Angle: {0} | axis: {1}", angle, axis);
+            }
+
+            
+            //Image transformation
+            vtkTransform transform = vtkTransform.New();
+            transform.Translate(centers[0], centers[1], centers[2]);
+            transform.RotateWXYZ(angle, axes[0], axes[1], axes[2]);
+            if (out_extent == 0)
+            {
+                transform.Translate(-centers[0], -centers[1], -centers[2]);
+            }
+            else
+            {
+                transform.Translate(-new_centers[0], -new_centers[1], -new_centers[2]);
+            }
+
+            //Console.ReadKey();
+
+            transform.Update();           
+            
+            //Image reslicing
+            vtkImageReslice rotater = vtkImageReslice.New();
+            rotater.SetInput(input);
+            rotater.SetInformationInput(input);
+            rotater.SetResliceTransform(transform);
+            rotater.SetInterpolationModeToLinear();
+            if(out_extent == 1)
+            {                
+                rotater.SetOutputSpacing(input.GetSpacing()[0], input.GetSpacing()[1], input.GetSpacing()[2]);
+                rotater.SetOutputOrigin(input.GetOrigin()[0], input.GetOrigin()[1], input.GetOrigin()[2]);
+                rotater.SetOutputExtent(new_dims[0], new_dims[1], new_dims[2], new_dims[3], new_dims[4], new_dims[5]);
+            }            
+            rotater.Update();
+
+            return rotater.GetOutput();
+        }
+
         public static int[] find_center(vtkImageData stack, double threshold = 80.0)
         {
             //Get byte data
@@ -397,7 +482,6 @@ namespace HistoGrading.Components
                 {
                     int[] tmp = new int[] { kh * wh, (kh + 1) * wh, kw * ww, (kw + 1) * ww };
                     tiles.Add(tmp);
-                    Console.WriteLine("{0},{1},{2},{3}",tmp[0], tmp[1], tmp[2], tmp[3]);
                 }
             }
 
@@ -409,18 +493,18 @@ namespace HistoGrading.Components
             N = wh * ww;
             foreach(int[] tile in tiles)
             {
-                Parallel.For(tile[0],tile[1],(int y) =>
+                for (int z = 0; z < d; z++)
                 {
-                    Parallel.For(tile[2], tile[3], (int x) =>
-                    {
-                        Parallel.For(0, d, (int z) =>
-                        {
-                            int pos = z * (h * w) + x * (h) + y;
-                            byte val = bytedata[pos];                            
-                            _averages[y / wh, x / ww, z] += (double)val / (double)N;
-                        });
-                    });
-                });
+                    Parallel.For(tile[0], tile[1], (int y) =>
+                      {
+                          Parallel.For(tile[2], tile[3], (int x) =>
+                          {                              
+                              int pos = z * (h * w) + x * (h) + y;
+                              byte val = bytedata[pos];
+                              _averages[y / wh, x / ww, z] += (double)val / (double)N;                              
+                          });
+                      });
+                }
             }
 
             averages = _averages;

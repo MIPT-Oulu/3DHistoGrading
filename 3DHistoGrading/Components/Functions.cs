@@ -97,29 +97,29 @@ namespace HistoGrading.Components
             if (axis == 0)
             {
                 //Set VOI
-                slicer.SetVOI(sliceN[0] - 1, sliceN[0], dims[2], dims[3], dims[4], dims[5]);
+                slicer.SetVOI(sliceN[0], sliceN[0], dims[2], dims[3], dims[4], dims[5]);
                 slicer.Update();
                 //Permute image (not necessary here)
                 permuter.SetInputConnection(slicer.GetOutputPort());
                 permuter.SetFilteredAxes(1, 2, 0);
                 permuter.Update();
             }
-            //Transverse plane YZ
+            //Sagittal plane
             if (axis == 1)
             {
                 //Set VOI
-                slicer.SetVOI(dims[0], dims[1], sliceN[1] - 1, sliceN[1], dims[4], dims[5]);
+                slicer.SetVOI(dims[0], dims[1], sliceN[1], sliceN[1], dims[4], dims[5]);
                 slicer.Update();
                 //Permute image
                 permuter.SetInputConnection(slicer.GetOutputPort());
                 permuter.SetFilteredAxes(0, 2, 1);
                 permuter.Update();
             }
-            //Transverse plane, XZ
+            //Transverse plane, XY
             if (axis == 2)
             {
                 //Set VOI
-                slicer.SetVOI(dims[0], dims[1], dims[2], dims[3], sliceN[2] - 1, sliceN[2]);
+                slicer.SetVOI(dims[0], dims[1], dims[2], dims[3], sliceN[2], sliceN[2]);
                 slicer.Update();
                 //Permute image
                 permuter.SetInputConnection(slicer.GetOutputPort());
@@ -446,13 +446,8 @@ namespace HistoGrading.Components
             return idx;
         }
 
-        public static double[] get_tile_angles(vtkImageData input,double threshold = 70.0)
+        public static double[] get_tile_angles(int[,] idx, int[] steps)
         {
-            //Get parameters
-            double[,,] tiles; int[] steps;
-            Processing.average_tiles(out tiles, out steps,input);
-            int[,] idx = get_surface_index_from_tiles(tiles,threshold);
-
             //Surface coordinates to points                       
 
             List<Point2f> pointsx = new List<Point2f>();
@@ -472,10 +467,65 @@ namespace HistoGrading.Components
             Line2D liney = Cv2.FitLine(pointsy, DistanceTypes.L2, 0, 0.01, 0.01);
 
             //Get angles as degrees
-            double thetax = Math.Atan(linex.Vy / (linex.Vx + 1e-9))*180.0/Math.PI;
+            double thetax = Math.Atan(linex.Vy / (linex.Vx + 1e-9)) * 180.0/Math.PI;
             double thetay = Math.Atan(liney.Vy / (liney.Vx + 1e-9)) * 180.0 / Math.PI;
 
             return new double[] { thetax, thetay};
+        }
+
+        public static vtkImageData get_surface_voi(vtkImageData input, int n_tiles = 64, double threshold = 50.0)
+        {
+            //Get data dimensions
+            int[] dims = input.GetExtent();
+
+            //Get average tiles
+            double[,,] tiles; int[] steps;
+
+            Processing.average_tiles(out tiles, out steps, input, 64);
+            //Get surface indices
+            int[,] idx = Functions.get_surface_index_from_tiles(tiles, threshold);
+
+            //Find minimum and maximum index
+            int min = 65000; int max = 0;
+            for (int k1 = 0; k1 < idx.GetLength(0); k1++)
+            {
+                for (int k2 = 0; k2 < idx.GetLength(1); k2++)
+                {
+                    if (idx[k1, k2] < min) { min = idx[k1, k2]; }
+                    if (idx[k1, k2] > max) { max = idx[k1, k2]; }
+                }
+            }
+
+            //Crop VOI around minima and maxima
+            int[] outextent = new int[] { dims[0], dims[1], dims[2], dims[3], Math.Max(min - 50, dims[4]), Math.Min(max + 50, dims[5]) };
+
+            vtkExtractVOI cropper = vtkExtractVOI.New();
+            cropper.SetInput(input);
+            cropper.SetVOI(outextent[0], outextent[1], outextent[2], outextent[3], outextent[4], outextent[5]);
+            cropper.Update();
+
+            vtkImageData tmpvtk = cropper.GetOutput();
+
+            //Get surface orientation
+            double[] angles = Functions.get_tile_angles(idx, steps);
+            angles = new double[] { angles[0], -angles[1] };
+            int[] axes = new int[] { 0, 1 };
+            /*
+            Console.WriteLine("Angles: thetaxz {0} | thetayz {1}", angles[0], angles[1]);
+            Console.ReadKey();            
+            */
+
+            //Reorient the surface
+            for (int k=0; k < angles.Length; k++)
+            {
+                tmpvtk = Processing.rotate_sample(tmpvtk, angles[k], axes[k], 0);
+            }
+            
+            
+            
+
+            return tmpvtk;
+
         }
     }
 
@@ -530,7 +580,7 @@ namespace HistoGrading.Components
             //Set data extent. Data extent is set, so z-axis is along the
             //first dimension, and y-axis is along the last dimension.
             //This will be reversed when the data gets converted to vtkImagedata.
-            data = new byte[output_dims[5] - output_dims[4], output_dims[3] - output_dims[2], output_dims[1] - output_dims[0]];
+            data = new byte[output_dims[5] - output_dims[4], output_dims[1] - output_dims[0], output_dims[3] - output_dims[2]];
             min_x = new int[output_dims[5] - output_dims[4]];
             max_x = new int[output_dims[5] - output_dims[4]];
             min_y = new int[output_dims[5] - output_dims[4]];
@@ -578,7 +628,7 @@ namespace HistoGrading.Components
             {
                 Parallel.For(output_dims[2], output_dims[3], (int w) =>
                 {
-                    data[idx - output_dims[4], w - output_dims[2], h - output_dims[0]] = _grayValues[mapPixel(h, w, 0)];
+                    data[idx - output_dims[4], h - output_dims[0], w - output_dims[2]] = _grayValues[mapPixel(h, w, 0)];
                 });
             });
         }
@@ -617,25 +667,53 @@ namespace HistoGrading.Components
                 int[] dims = vtkdata.GetExtent();
                 int[] centers = new int[] { (dims[1] - dims[0]) / 2, (dims[3] - dims[2]) / 2, (dims[5] - dims[4]) / 2 };
 
-                vtkTransform transform = vtkTransform.New();
-                transform.Translate(centers[0], 0.0, centers[2]);
-                transform.RotateX(-0.5 * (thetax1 + thetax2));
-                transform.Translate(-centers[0], 0.0, -centers[2]);
-                transform.Translate(0.0, centers[1], centers[2]);
-                transform.RotateY(0.5 * (thetay1 + thetay2));
-                transform.Translate(0.0, -centers[1], -centers[2]);                
-                transform.Update();
+                double[] angles = new double[] { 0.5 * (thetax1 + thetax2), -0.5 * (thetay1 + thetay2) };
+                int[] axes = new int[] { 0, 1 };
 
-                //Print the parameters to a file
-                //File.WriteAllText("c:\\users\\Tuomas Frondelius\\Desktop\\rotpars.csv", String.Format("{0} \n {1} \n {2} \n {3} \n", thetax1, thetax2, thetay1, thetay2));
+                for(int k = 0; k<angles.Length; k++)
+                {
+                    vtkdata = Processing.rotate_sample(vtkdata, angles[k], axes[k],1);
+                }
 
-                vtkImageReslice rotater = vtkImageReslice.New();
-                rotater.SetInput(vtkdata);
-                rotater.SetInformationInput(vtkdata);
-                rotater.SetResliceTransform(transform);
-                rotater.SetInterpolationModeToLinear();
-                rotater.Update();                
-                return rotater.GetOutput();
+
+                //Check sample dimensions, if dX or dY exceed 100 pixels, crop the axes.
+                int[] new_dims = vtkdata.GetExtent();
+                int[] new_extent = new int[] { new_dims[0], new_dims[1] , new_dims[2] , new_dims[3] , new_dims[4] , new_dims[5] };
+                int flag = 0;
+                if((new_dims[1] - dims[1]) > 100 && new_dims[0] == 0)
+                {
+                    int diff = (new_dims[1] - dims[3]) / 2;
+                    new_extent[0] += diff; new_extent[1] -= diff;
+                    flag = 1;
+                }
+                if ((new_dims[3] - dims[3]) > 100 && new_dims[2] == 0)
+                {
+                    int diff = (new_dims[3] - dims[3]) / 2;
+                    new_extent[2] += diff; new_extent[3] -= diff;
+                    flag = 1;
+                }
+
+                //Check if z-axis has extended more than 100 pixels
+                if(new_dims[5]-dims[5] > 100)
+                {
+                    int diff = (new_dims[5] - dims[5]) / 2;
+                    new_extent[4] += diff; new_extent[5] -= diff;
+                    flag = 1;
+                }
+
+                //Crop the sample
+                if(flag == 1)
+                {
+                    vtkExtractVOI cropper = vtkExtractVOI.New();
+                    cropper.SetVOI(new_extent[0], new_extent[1], new_extent[2], new_extent[3], new_extent[4], new_extent[5]);
+                    cropper.SetInput(vtkdata);
+                    cropper.Update();                    
+                    return cropper.GetOutput();
+                }
+                else
+                {
+                    return vtkdata;
+                }                
             }
 
         }
