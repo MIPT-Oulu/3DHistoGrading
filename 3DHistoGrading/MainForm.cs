@@ -564,7 +564,7 @@ namespace HistoGrading
             
             vtkImageData vtkdata = Functions.get_surface_voi(volume.getVOI());
                         
-            volume.connectDataFromMemory(vtkdata);
+            volume.connectMaskFromData(vtkdata);
 
             dims = volume.getDims();
             sliceN[0] = (dims[1] + dims[0]) / 2;
@@ -577,12 +577,15 @@ namespace HistoGrading
             if (ori == -1)
             {
                 volume.renderVolume();
+                volume.renderVolumeMask();
             }
             if (ori > -1)
             {
                 volume.renderImage();
+                volume.renderImageMask();
             }
-            
+
+            is_mask = 1;
             
             
         }

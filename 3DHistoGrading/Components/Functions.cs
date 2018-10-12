@@ -473,7 +473,7 @@ namespace HistoGrading.Components
             return new double[] { thetax, thetay};
         }
 
-        public static vtkImageData get_surface_voi(vtkImageData input, int n_tiles = 64, double threshold = 50.0)
+        public static vtkImageData get_surface_voi(vtkImageData input, int n_tiles = 64, double threshold = 70.0, double mult = 0.10)
         {
             //Get data dimensions
             int[] dims = input.GetExtent();
@@ -481,7 +481,9 @@ namespace HistoGrading.Components
             //Get average tiles
             double[,,] tiles; int[] steps;
 
-            Processing.average_tiles(out tiles, out steps, input, 64);
+            threshold *= mult;
+
+            Processing.average_tiles(out tiles, out steps, input, 256);
             //Get surface indices
             int[,] idx = Functions.get_surface_index_from_tiles(tiles, threshold);
 
@@ -508,23 +510,31 @@ namespace HistoGrading.Components
 
             //Get surface orientation
             double[] angles = Functions.get_tile_angles(idx, steps);
-            angles = new double[] { angles[0], -angles[1] };
+            angles = new double[] { angles[0], angles[1] };
             int[] axes = new int[] { 0, 1 };
             /*
             Console.WriteLine("Angles: thetaxz {0} | thetayz {1}", angles[0], angles[1]);
             Console.ReadKey();            
             */
 
+            
             //Reorient the surface
             for (int k=0; k < angles.Length; k++)
             {
                 tmpvtk = Processing.rotate_sample(tmpvtk, angles[k], axes[k], 0);
             }
-            
-            
-            
 
-            return tmpvtk;
+            //Detect surface indices and compute mean and standard deviation images
+            double[,] mu; double[,] std; vtkImageData output;
+            Processing.get_voi_mu_std(out output, out mu, out std, tmpvtk, 25);
+
+            //Invert the reorienting            
+            for (int k = 0; k < angles.Length; k++)
+            {
+                output = Processing.rotate_sample(output, -angles[k], axes[k], 0);
+            }
+
+            return output;
 
         }
     }
@@ -673,47 +683,10 @@ namespace HistoGrading.Components
                 for(int k = 0; k<angles.Length; k++)
                 {
                     vtkdata = Processing.rotate_sample(vtkdata, angles[k], axes[k],1);
-                }
-
-
-                //Check sample dimensions, if dX or dY exceed 100 pixels, crop the axes.
-                int[] new_dims = vtkdata.GetExtent();
-                int[] new_extent = new int[] { new_dims[0], new_dims[1] , new_dims[2] , new_dims[3] , new_dims[4] , new_dims[5] };
-                int flag = 0;
-                if((new_dims[1] - dims[1]) > 100 && new_dims[0] == 0)
-                {
-                    int diff = (new_dims[1] - dims[3]) / 2;
-                    new_extent[0] += diff; new_extent[1] -= diff;
-                    flag = 1;
-                }
-                if ((new_dims[3] - dims[3]) > 100 && new_dims[2] == 0)
-                {
-                    int diff = (new_dims[3] - dims[3]) / 2;
-                    new_extent[2] += diff; new_extent[3] -= diff;
-                    flag = 1;
-                }
-
-                //Check if z-axis has extended more than 100 pixels
-                if(new_dims[5]-dims[5] > 100)
-                {
-                    int diff = (new_dims[5] - dims[5]) / 2;
-                    new_extent[4] += diff; new_extent[5] -= diff;
-                    flag = 1;
-                }
-
-                //Crop the sample
-                if(flag == 1)
-                {
-                    vtkExtractVOI cropper = vtkExtractVOI.New();
-                    cropper.SetVOI(new_extent[0], new_extent[1], new_extent[2], new_extent[3], new_extent[4], new_extent[5]);
-                    cropper.SetInput(vtkdata);
-                    cropper.Update();                    
-                    return cropper.GetOutput();
-                }
-                else
-                {
-                    return vtkdata;
                 }                
+                
+                return vtkdata;
+                                
             }
 
         }

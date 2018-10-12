@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace HistoGrading.Components
 {
@@ -325,12 +326,7 @@ namespace HistoGrading.Components
                 new_dims[5] = (int)(Math.Sin(Math.Abs(angle / 180) * Math.PI) * new_dims[3] + Math.Cos(Math.Abs(angle / 180) * Math.PI) * new_dims[5]);
 
                 new_centers[1] = (Math.Abs(new_dims[3]) + Math.Abs(new_dims[2])) / 2;
-                new_centers[2] = (Math.Abs(new_dims[5]) + Math.Abs(new_dims[4])) / 2;
-
-                Console.WriteLine("old extent: {0}, {1}, {2}, {3}, {4}, {5}", dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
-                Console.WriteLine("new extent: {0}, {1}, {2}, {3}, {4}, {5}", new_dims[0], new_dims[1], new_dims[2], new_dims[3], new_dims[4], new_dims[5]);
-
-                Console.WriteLine("Angle: {0} | axis: {1}", angle, axis);
+                new_centers[2] = (Math.Abs(new_dims[5]) + Math.Abs(new_dims[4])) / 2;                
             }
             if(axis==1)
             {
@@ -338,12 +334,7 @@ namespace HistoGrading.Components
                 new_dims[5] = (int)(Math.Sin(Math.Abs(angle / 180) * Math.PI) * new_dims[1] + Math.Cos(Math.Abs(angle / 180) * Math.PI) * new_dims[5]);                
 
                 new_centers[0] = (Math.Abs(new_dims[0]) + Math.Abs(new_dims[1])) / 2;
-                new_centers[2] = (Math.Abs(new_dims[5]) + Math.Abs(new_dims[4])) / 2;
-
-                Console.WriteLine("old extent: {0}, {1}, {2}, {3}, {4}, {5}", dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
-                Console.WriteLine("new extent: {0}, {1}, {2}, {3}, {4}, {5}", new_dims[0], new_dims[1], new_dims[2], new_dims[3], new_dims[4], new_dims[5]);
-
-                Console.WriteLine("Angle: {0} | axis: {1}", angle, axis);
+                new_centers[2] = (Math.Abs(new_dims[5]) + Math.Abs(new_dims[4])) / 2;                
             }
 
             
@@ -362,8 +353,14 @@ namespace HistoGrading.Components
 
             //Console.ReadKey();
 
-            transform.Update();           
-            
+            transform.Update();
+
+            //Compute new data extent
+            int[] diff = new int[] { new_dims[1] - dims[1], new_dims[3] - dims[3], new_dims[5] - dims[5] };
+            new_dims[0] += diff[0] / 2; new_dims[1] -= diff[0] / 2;
+            new_dims[2] += diff[1] / 2; new_dims[3] -= diff[1] / 2;
+            new_dims[4] += diff[2] / 2; new_dims[5] -= diff[2] / 2;        
+
             //Image reslicing
             vtkImageReslice rotater = vtkImageReslice.New();
             rotater.SetInput(input);
@@ -381,7 +378,7 @@ namespace HistoGrading.Components
             return rotater.GetOutput();
         }
 
-        public static int[] find_center(vtkImageData stack, double threshold = 80.0)
+        public static int[] find_center(vtkImageData stack, double threshold = 70.0)
         {
             //Get byte data
             byte[] bytedata = DataTypes.vtkToByte(stack);
@@ -427,8 +424,8 @@ namespace HistoGrading.Components
 
             //Compute center
             int[] center = new int[2];
-            center[0] = (y2 + y1) / 2;
-            center[1] = (x2 + x1) / 2;
+            center[0] = (y2 + y1) / 2 + dims[0];
+            center[1] = (x2 + x1) / 2 + dims[2];
 
             return center;
         }
@@ -508,6 +505,88 @@ namespace HistoGrading.Components
             }
 
             averages = _averages;
+        }
+
+        public static void get_voi_mu_std(out vtkImageData output, out double[,] mu, out double[,] std, vtkImageData input, int depth, double threshold = 70.0)
+        {
+            //Get data extent
+            int[] dims = input.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Copute strides
+            int stridew = h;
+            int strideh = 1;
+            int strided = h * w;
+
+            byte[] bytedata = DataTypes.vtkToByte(input);
+
+            byte[] voidata = new byte[bytedata.Length];
+
+            double[,] _mu = new double[h,w];
+            double[,] _std = new double[h, w];
+
+            //Get voi indices
+            Parallel.For(24, h-24, (int y) =>
+            {
+                Parallel.For(24, w-24, (int x) =>
+                {
+                    int start = d - 1;
+                    int stop = 0;
+                    int flag = 0;
+                    //Compute mean
+                    for (int z = d-1; z > stop; z-=1)
+                    {
+                        int pos = z * strided + y * strideh + x * stridew;
+                        double val = (double)bytedata[pos];
+                        if(val>threshold)
+                        {
+                            voidata[pos] = (byte)val;
+                            _mu[y, x] += val / depth;
+                            if (flag == 0)
+                            {
+                                start = z;
+                                stop = Math.Max(z - depth,0);
+                                flag = 1;
+                            }
+                            
+                        }
+                    }
+
+                    //Compute std
+                    for (int z = start; z > stop; z-=1)
+                    {
+                        int pos = z * strided + y * strideh + x * stridew;
+                        double val = (double)bytedata[pos];                        
+                        voidata[pos] = (byte)val;
+                        _std[y, x] += ((double)val - _mu[y, x]) * ((double)val - _mu[y, x]);                        
+                    }
+
+                    _std[y,x] = Math.Pow(_std[y, x]/(depth-1),0.5);
+                });
+            });
+
+            mu = _mu;
+            std = _std;
+            output = vtkImageData.New();
+            //Copy voi data to input array
+            vtkUnsignedCharArray charArray = vtkUnsignedCharArray.New();
+            //Pin byte array
+            GCHandle pinnedArray = GCHandle.Alloc(voidata, GCHandleType.Pinned);
+            //Set character array input
+            charArray.SetArray(pinnedArray.AddrOfPinnedObject(), dims[0] * dims[1] * dims[2], 1);
+            //Set vtkdata properties and connect array
+            //Data from char array
+            output.GetPointData().SetScalars(charArray);
+            //Number of scalars/pixel
+            output.SetNumberOfScalarComponents(1);
+            //Data extent, 1st and last axis are swapped from the char array
+            //Data is converted back to original orientation
+            output.SetExtent(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
+            //Scalar type
+            output.SetScalarTypeToUnsignedChar();
+            output.Update();            
         }
         
 

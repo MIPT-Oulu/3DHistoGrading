@@ -435,6 +435,7 @@ namespace HistoGrading.Components
             /// <param name="input_mask">Bone mask input to be connected.</param>
             public void connectMaskFromData(vtkImageData input_mask)
             {
+                /*
                 vtkImageMathematics math = vtkImageMathematics.New();
                 math.SetInput1(idata);                
                 math.SetInput2(input_mask);
@@ -442,8 +443,8 @@ namespace HistoGrading.Components
                 math.SetNumberOfThreads(24);
                 math.Update();
                 imask = math.GetOutput();
-                
-                //imask = input_mask;
+                */
+                imask = input_mask;
             }
 
             /// <summary>
