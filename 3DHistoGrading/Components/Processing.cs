@@ -366,7 +366,8 @@ namespace HistoGrading.Components
             rotater.SetInput(input);
             rotater.SetInformationInput(input);
             rotater.SetResliceTransform(transform);
-            rotater.SetInterpolationModeToLinear();
+            rotater.SetInterpolationModeToCubic();
+            //rotater.SetInterpolationModeToLinear();
             if(out_extent == 1)
             {                
                 rotater.SetOutputSpacing(input.GetSpacing()[0], input.GetSpacing()[1], input.GetSpacing()[2]);
@@ -498,9 +499,11 @@ namespace HistoGrading.Components
                           {                              
                               int pos = z * (h * w) + x * (h) + y;
                               byte val = bytedata[pos];
-                              _averages[y / wh, x / ww, z] += (double)val / (double)N;                              
+                              _averages[y / wh, x / ww, z] += (double)val;
                           });
                       });
+
+                    _averages[(tile[1]-1) / wh, (tile[3]-1) / ww, z] /= (double)N;
                 }
             }
 
@@ -543,7 +546,7 @@ namespace HistoGrading.Components
                         if(val>threshold)
                         {
                             voidata[pos] = (byte)val;
-                            _mu[y, x] += val / depth;
+                            _mu[y, x] += val / (double)depth;
                             if (flag == 0)
                             {
                                 start = z;

@@ -215,11 +215,15 @@ namespace HistoGrading
                 sliceN[1] = (dims[3] + dims[2]) / 2;
                 sliceN[2] = (dims[5] + dims[4]) / 2;
 
+                Console.WriteLine("Loaded fine");
                 //Connect slice to renderer
                 volume.connectWindow(renWin);
 
+                Console.WriteLine("Connected window fine");
                 //Render
                 volume.renderVolume();
+
+                Console.WriteLine("rendering..");
 
                 //Flags for GUI components
                 is_rendering = 1;

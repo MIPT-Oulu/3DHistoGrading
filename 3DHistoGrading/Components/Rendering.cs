@@ -28,7 +28,9 @@ namespace HistoGrading.Components
             //VTKVolume
             private vtkVolume vol = vtkVolume.New();
             //Mapper
-            private vtkFixedPointVolumeRayCastMapper mapper = vtkFixedPointVolumeRayCastMapper.New();
+            private vtkFixedPointVolumeRayCastMapper mapper = vtkFixedPointVolumeRayCastMapper.New();            
+            //private vtkSmartVolumeMapper mapper = vtkSmartVolumeMapper.New();
+
             //Colortransfer function for gray values
             private vtkColorTransferFunction ctf = vtkColorTransferFunction.New();
             //Picewise function for opacity
@@ -37,6 +39,7 @@ namespace HistoGrading.Components
             //Mask components, same as above
             private vtkVolume maskvol = vtkVolume.New();
             private vtkFixedPointVolumeRayCastMapper maskmapper = vtkFixedPointVolumeRayCastMapper.New();
+            //private vtkSmartVolumeMapper maskmapper = vtkSmartVolumeMapper.New();
             private vtkColorTransferFunction maskctf = vtkColorTransferFunction.New();
             private vtkPiecewiseFunction maskspwf = vtkPiecewiseFunction.New();            
 
@@ -48,16 +51,12 @@ namespace HistoGrading.Components
             {                
                 //Initialize new volume components
                 vol = vtkVolume.New();
+                //mapper = vtkSmartVolumeMapper.New();
                 mapper = vtkFixedPointVolumeRayCastMapper.New();
                 ctf = vtkColorTransferFunction.New();
                 spwf = vtkPiecewiseFunction.New();
                 renderer = vtkRenderer.New();
 
-                //Initialize new mask components
-                maskvol = vtkVolume.New();
-                maskmapper = vtkFixedPointVolumeRayCastMapper.New();
-                maskctf = vtkColorTransferFunction.New();
-                maskspwf = vtkPiecewiseFunction.New();
             }
 
             //Method for disposing components, useful for memory management
@@ -76,6 +75,7 @@ namespace HistoGrading.Components
             {
                 //Initialize mask
                 maskvol = vtkVolume.New();
+                //maskmapper = vtkSmartVolumeMapper.New();
                 maskmapper = vtkFixedPointVolumeRayCastMapper.New();
                 maskctf = vtkColorTransferFunction.New();
                 maskspwf = vtkPiecewiseFunction.New();
