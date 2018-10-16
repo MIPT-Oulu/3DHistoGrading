@@ -519,11 +519,39 @@ namespace HistoGrading.Components
             int d = dims[5] - dims[4] + 1;
 
             //Copute strides
-            int stridew = h;
-            int strideh = 1;
+            int stridew = 1;
+            int strideh = w;
             int strided = h * w;
 
             byte[] bytedata = DataTypes.vtkToByte(input);
+
+            /*
+            //Create top and bottom images
+            byte[] bottom = new byte[h*w];
+            byte[] top = new byte[h*w];
+
+            for(int k = 0; k < h*w; k++)
+            {
+                int pos1 = k;
+                int pos2 = (d-1) * (h * w) + k;
+
+                bottom[k] = bytedata[pos1];
+                top[k] = bytedata[pos2];
+            }
+
+            Mat im1 = new Mat(h, w, MatType.CV_8UC1, bottom);
+            Mat im2 = new Mat(h, w, MatType.CV_8UC1, top);
+
+            using (var window = new Window("bottom", image: im1, flags: WindowMode.AutoSize))
+            {
+                Cv2.WaitKey();
+            }
+
+            using (var window = new Window("top", image: im2, flags: WindowMode.AutoSize))
+            {
+                Cv2.WaitKey();
+            }
+            */
 
             byte[] voidata = new byte[bytedata.Length];
 
@@ -535,38 +563,39 @@ namespace HistoGrading.Components
             {
                 Parallel.For(24, w-24, (int x) =>
                 {
-                    int start = d - 1;
-                    int stop = 0;
-                    int flag = 0;
+                    int start = d-1;
+                    int stop = 0;                    
                     //Compute mean
-                    for (int z = d-1; z > stop; z-=1)
+                    for (int z = d-1; z > 0; z-=1)
                     {
                         int pos = z * strided + y * strideh + x * stridew;
                         double val = (double)bytedata[pos];
-                        if(val>threshold)
+                        if(val>=threshold)
                         {
-                            voidata[pos] = (byte)val;
-                            _mu[y, x] += val / (double)depth;
-                            if (flag == 0)
+                            start = z;
+                            stop = Math.Max(z - depth,0);
+                            //Compute mean and std
+                            for (int zz = start; zz > stop; zz -= 1)
                             {
-                                start = z;
-                                stop = Math.Max(z - depth,0);
-                                flag = 1;
+                                int newpos = zz * strided + y * strideh + x * stridew;
+                                double newval = (double)bytedata[newpos];
+                                voidata[newpos] = (byte)newval;
+                                _mu[y, x] = newval / (double)depth;
                             }
-                            
+
+                            for (int zz = start; zz > stop; zz -= 1)
+                            {
+                                int newpos = zz * strided + y * strideh + x * stridew;
+                                double newval = (double)bytedata[newpos];
+                                _std[y, x] += ((double)newval - _mu[y, x]) * ((double)newval - _mu[y, x]);
+                            }
+
+                            _std[y, x] = Math.Pow(_std[y, x] / (depth - 1), 0.5);
+                            break;
                         }
                     }
 
-                    //Compute std
-                    for (int z = start; z > stop; z-=1)
-                    {
-                        int pos = z * strided + y * strideh + x * stridew;
-                        double val = (double)bytedata[pos];                        
-                        voidata[pos] = (byte)val;
-                        _std[y, x] += ((double)val - _mu[y, x]) * ((double)val - _mu[y, x]);                        
-                    }
 
-                    _std[y,x] = Math.Pow(_std[y, x]/(depth-1),0.5);
                 });
             });
 
@@ -578,7 +607,7 @@ namespace HistoGrading.Components
             //Pin byte array
             GCHandle pinnedArray = GCHandle.Alloc(voidata, GCHandleType.Pinned);
             //Set character array input
-            charArray.SetArray(pinnedArray.AddrOfPinnedObject(), dims[0] * dims[1] * dims[2], 1);
+            charArray.SetArray(pinnedArray.AddrOfPinnedObject(), h * w * d, 1);
             //Set vtkdata properties and connect array
             //Data from char array
             output.GetPointData().SetScalars(charArray);

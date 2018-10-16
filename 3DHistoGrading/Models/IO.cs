@@ -30,21 +30,21 @@ namespace HistoGrading.Models
                 if (axis == 0)
                 {
                     int start = extent[0] + k * step;
-                    int stop = Math.Min(extent[0] + (k + 1) * step - 1, extent[1]);
+                    int stop = Math.Min(start + step - 1, extent[1]);
                     _curext = new int[] { start, stop, extent[2], extent[3], extent[4], extent[5] };
                     _ori = new int[] { 2, 1, 0 };
                 }
                 if (axis == 1)
                 {
                     int start = extent[2] + k * step;
-                    int stop = Math.Min(extent[2] + (k + 1) * step - 1, extent[3]);
+                    int stop = Math.Min(start + step - 1, extent[3]);
                     _curext = new int[] { extent[0], extent[1], start, stop, extent[4], extent[5] };
                     _ori = new int[] { 2, 0, 1 };
                 }
                 if (axis == 2)
                 {
                     int start = extent[4] + k * step;
-                    int stop = Math.Min(extent[4] + (k + 1) * step - 1, extent[5]);
+                    int stop = Math.Min(start + step - 1, extent[5]);
                     _curext = new int[] { extent[0], extent[1], extent[2], extent[3], start, stop };
                     _ori = new int[] { 0, 1, 2 };
                 }

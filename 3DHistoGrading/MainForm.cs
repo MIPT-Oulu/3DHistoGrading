@@ -453,8 +453,9 @@ namespace HistoGrading
             int[] extent = volume.getDims();
 
             //480*416 VOI from the center
-            int[] voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], 20, 20 + 511 };
+            int[] voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4]+20, extent[4] + 20 + 511 };
             int[] batch_dims = new int[] { 512, 448, 1 };
+            
 
             //Segmentation
             List<vtkImageData> outputs;
@@ -519,20 +520,6 @@ namespace HistoGrading
                 volume.renderImageMask();
             }
 
-            //Find surface VOI
-
-            //Detect orienation
-            
-            //Rotate sample
-
-            //Get VOI
-
-            //Rotate VOI back to original sample coordinates
-
-            //Connect to rendering pipeline and render
-
-            //Same for BCI
-
         }
 
         //Automatically crop the center of the sample
@@ -549,7 +536,7 @@ namespace HistoGrading
             //Update pipeline
             volume.updateCurrent(sliceN, ori, gray);
             
-            /*
+            
             //Render
             if (ori == -1)
             {
@@ -559,7 +546,7 @@ namespace HistoGrading
             {
                 volume.renderImage();
             }
-            */
+            
             
             
             segmentButton.Enabled = true;

@@ -481,12 +481,12 @@ namespace HistoGrading.Models
             feature = Variable.InputVariable(input_size, DataType.Float);
             //Create the model
             create_model(use_bn);
+            //model.Save("Z:\\Tuomas\\UNetNew.model");
         }
 
         //Model creation
         private static void create_model(bool use_bn = false)
         {
-            Console.WriteLine("Generating UNet..");
             //Parameters
             int[] ks = new int[2] { 3, 3 };
 
@@ -560,9 +560,6 @@ namespace HistoGrading.Models
             mixer(up1, new int[] { 1, 1 }, BW, 1, out unet, wpath, namesm);
 
             model = unet;
-
-            Console.WriteLine("Done!!");
-
         }
 
         //Inference

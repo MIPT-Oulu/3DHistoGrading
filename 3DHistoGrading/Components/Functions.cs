@@ -514,6 +514,7 @@ namespace HistoGrading.Components
             angles = new double[] { angles[0], -angles[1] };
             int[] axes = new int[] { 0, 1 };
             
+            
             //Reorient the surface
             for (int k=0; k < angles.Length; k++)
             {
@@ -523,7 +524,7 @@ namespace HistoGrading.Components
             
             //Detect surface indices and compute mean and standard deviation images
             double[,] mu; double[,] std; vtkImageData output;
-            Processing.get_voi_mu_std(out output, out mu, out std, tmpvtk, 25);
+            Processing.get_voi_mu_std(out output, out mu, out std, tmpvtk, 25,80.0);
             
             
             //Invert the reorienting            
@@ -531,9 +532,6 @@ namespace HistoGrading.Components
             {
                 output = Processing.rotate_sample(output, -angles[k], axes[k], 0);
             }
-            
-
-            //return output;
             
 
             return output;
