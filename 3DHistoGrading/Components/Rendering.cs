@@ -433,18 +433,29 @@ namespace HistoGrading.Components
             /// Connect bone mask from memory.
             /// </summary>
             /// <param name="input_mask">Bone mask input to be connected.</param>
-            public void connectMaskFromData(vtkImageData input_mask)
+            public void connectMaskFromData(vtkImageData input_mask,int multiply = 1)
             {
-                /*
-                vtkImageMathematics math = vtkImageMathematics.New();
-                math.SetInput1(idata);                
-                math.SetInput2(input_mask);
-                math.SetOperationToMultiply();
-                math.SetNumberOfThreads(24);
-                math.Update();
-                imask = math.GetOutput();
-                */
-                imask = input_mask;
+                if (multiply == 1)
+                {
+                    //Multiply data with input mask
+                    vtkImageMathematics math = vtkImageMathematics.New();
+                    math.SetInput1(idata);
+                    math.SetInput2(input_mask);
+                    math.SetOperationToMultiply();
+                    math.SetNumberOfThreads(24);
+                    math.Update();
+                    //Set mask extent to match with the data extent
+                    int[] dims = idata.GetExtent();
+                    vtkImageReslice reslice = vtkImageReslice.New();
+                    reslice.SetInputConnection(math.GetOutputPort());
+                    reslice.SetOutputExtent(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
+                    reslice.Update();
+                    imask = reslice.GetOutput();
+                }
+                if(multiply == 0)
+                {
+                    imask = input_mask;
+                }                
             }
 
             /// <summary>
@@ -610,6 +621,41 @@ namespace HistoGrading.Components
                     //Extract VOI
                     vtkExtractVOI extractor = vtkExtractVOI.New();
                     extractor.SetInput(idata);
+                    extractor.SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+                    extractor.Update();
+                    voi = extractor.GetOutput();
+                }
+                //If order of the axes is specified, the return array is permuted
+                if (orientation != null)
+                {
+                    vtkImagePermute permuter = vtkImagePermute.New();
+                    permuter.SetInput(voi);
+                    permuter.SetFilteredAxes(orientation[0], orientation[1], orientation[2]);
+                    permuter.Update();
+                    voi = permuter.GetOutput();
+                }
+                return voi;
+            }
+
+            /// <summary>
+            /// Get VOI from the data
+            /// </summary>
+            /// <returns> VOI</returns>
+            public vtkImageData getMaskVOI(int[] extent = null, int[] orientation = null)
+            {
+                //Empty output data
+                vtkImageData voi;
+
+                //If no VOI is specified, full data is returned
+                if (extent == null)
+                {
+                    voi = imask;
+                }
+                else
+                {
+                    //Extract VOI
+                    vtkExtractVOI extractor = vtkExtractVOI.New();
+                    extractor.SetInput(imask);
                     extractor.SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
                     extractor.Update();
                     voi = extractor.GetOutput();

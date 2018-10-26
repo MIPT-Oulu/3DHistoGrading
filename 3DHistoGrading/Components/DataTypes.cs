@@ -64,6 +64,39 @@ namespace HistoGrading.Components
         }
 
         /// <summary>
+        /// Converts 3D byte array to vtkImageData.
+        /// </summary>
+        /// <param name="data">Input array.</param>
+        /// <returns>Converted array.</returns>
+        public static vtkImageData byteToVTK1D(byte[] data, int[] dims)
+        {
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+            //Create VTK data for putput
+            vtkImageData vtkdata = vtkImageData.New();
+            //Character array for conversion
+            vtkUnsignedCharArray charArray = vtkUnsignedCharArray.New();
+            //Pin byte array
+            GCHandle pinnedArray = GCHandle.Alloc(data, GCHandleType.Pinned);
+            //Set character array input
+            charArray.SetArray(pinnedArray.AddrOfPinnedObject(), h*w*d, 1);
+            //Set vtkdata properties and connect array
+            //Data from char array
+            vtkdata.GetPointData().SetScalars(charArray);
+            //Number of scalars/pixel
+            vtkdata.SetNumberOfScalarComponents(1);
+            //Set data extent
+            vtkdata.SetExtent(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
+            //Scalar type
+            vtkdata.SetScalarTypeToUnsignedChar();
+            vtkdata.Update();
+                        
+            return vtkdata;
+            
+        }
+
+        /// <summary>
         /// Converts 3D vtkImageData to 1D byte array.
         /// </summary>
         /// <param name="vtkdata">Input data.</param>

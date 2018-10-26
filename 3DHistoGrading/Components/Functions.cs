@@ -332,7 +332,7 @@ namespace HistoGrading.Components
             return croppedVolume;
         }
 
-        public static void get_bbox(out int min_x, out int max_x, out int min_y, out int max_y, Mat input, double threshold = 80.0, double max_val = 255.0)
+        public static void get_bbox(out int min_x, out int max_x, out int min_y, out int max_y, Mat input, double threshold = 70.0, double max_val = 255.0)
         {
             Mat BW = input.Threshold(threshold, max_val, ThresholdTypes.Binary);
             var strct = InputArray.Create(new Mat(25, 25, MatType.CV_8UC1));
@@ -537,6 +537,203 @@ namespace HistoGrading.Components
             return output;
             
 
+        }
+
+        public static int[,] get_surface(vtkImageData mask, double threshold = 0.0)
+        {
+            //Get data dimensions
+            int[] dims = mask.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Get strides
+            int strideh = w;
+            int stridew = 1;
+            int strided = h * w;
+
+            //Convert mask to byte data
+            byte[] bytedata = DataTypes.vtkToByte(mask);
+
+            //Empty array for surface indices
+            int[,] indices = new int[h, w];
+            //Find the mask surface
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    for(int z = d-1; z >= 0; z -= 1)
+                    {
+                        int pos = z * strided + y * strideh + x * stridew;
+                        byte val = bytedata[pos];
+                        if((double)val>threshold)
+                        {
+                            indices[y, x] = z;
+                            break;
+                        }
+                    }
+                });
+            });
+
+            //Return indices
+            return indices;
+        }
+
+        public static vtkImageData get_deep_ac(vtkImageData sample, int[,] BCI, int[,] depth, int offset = 10)
+        {
+            //vtk to byte
+            byte[] bytedata = DataTypes.vtkToByte(sample);
+
+            //Get dims
+            int[] dims = sample.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Output array
+            byte[] output = new byte[bytedata.Length];
+
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    for(int z = BCI[y,x] + offset; z < BCI[y,x] + depth[y,x]; z+=1)
+                    {
+                        int pos = z * (h * w) + y * w + x;
+                        output[pos] = bytedata[pos];
+                    }
+                });
+            });
+
+            //Convert output to vtkImageData
+            return DataTypes.byteToVTK1D(output, dims);
+
+        }
+
+        public static vtkImageData get_calcified_cartilage(vtkImageData sample, int[,] BCI, int offset = 10)
+        {
+            //vtk to byte
+            byte[] bytedata = DataTypes.vtkToByte(sample);
+
+            //Get dims
+            int[] dims = sample.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Output array
+            byte[] output = new byte[bytedata.Length];
+
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    for (int z = BCI[y, x] + offset; z > 0; z -= 1)
+                    {
+                        int pos = z * (h * w) + y * w + x;
+                        output[pos] = bytedata[pos];
+                    }
+                });
+            });
+
+            return DataTypes.byteToVTK1D(output,dims);
+        }
+
+        public static vtkImageData get_cartilage_surface(vtkImageData sample, int[,] surface, int depth = 25)
+        {
+            //Get dims
+            int[] dims = sample.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Insert rotations
+
+            //Input to byte data
+            byte[] bytedata = DataTypes.vtkToByte(sample);
+
+            //Empty byte array for output
+            byte[] output = new byte[bytedata.Length];
+
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    for(int z = surface[y,x]; z > surface[y,x]-depth; z-=1)
+                    {
+                        int pos = z * (h * w) + y * w + x;
+                        output[pos] = bytedata[pos];
+                    }
+                });
+            });
+
+            return DataTypes.byteToVTK1D(output, dims);
+        }
+
+        public static void get_analysis_vois(out vtkImageData dcartilage, out vtkImageData ccartilage, out vtkImageData scartilage,
+            vtkImageData input, vtkImageData BCImask, int surf_depth = 25, int bone_depth = 0, double cartilage_depth = 0.3)
+        {
+            //Get input dimensions
+            int[] dims = input.GetExtent();
+
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Get strides
+            int strideh = w;
+            int stridew = 1;
+            int strided = h * w;
+
+            //Get Surface indices
+            int[,] surface = get_surface(input,60.0);
+
+            //Get BCI indices
+            int[,] BCI = get_surface(BCImask);
+
+            //Empty array for depth
+            int[,] depth = new int[BCI.GetLength(0),BCI.GetLength(1)];
+            
+            Console.WriteLine("BCI dimensions: {0},{1}",BCI.GetLength(0), BCI.GetLength(1));
+            Console.WriteLine("surface dimensions: {0},{1}", surface.GetLength(0), surface.GetLength(1));
+
+            //Compute depth
+            int dmin = 65000; int dmax = 0;
+            for (int y = 0; y < BCI.GetLength(0);y++)
+            {
+                //Compute depth
+                for (int x = 0; x < BCI.GetLength(1); x++)
+                {
+                    int val = (int)((surface[y, x] - BCI[y, x]) * cartilage_depth);
+                    depth[y, x] = val;
+                    if(val > dmax) { dmax = val; }
+                    if (val < dmin) { dmin = val; }
+                }
+            }
+
+            Console.WriteLine("Depth min | max: {0},{1}",dmin/cartilage_depth,dmax/cartilage_depth);
+
+            //Get deep cartilage VOI
+            dcartilage = get_deep_ac(input, BCI, depth);
+
+            //Get calcified cartilage VOI
+            ccartilage = get_calcified_cartilage(input, BCI);
+
+            //Get cartilage surface
+            scartilage = get_cartilage_surface(input,surface);
+
+            /*
+            //Get surface VOI
+            int mean_idx = 0;
+            for(int y = 0; y>surface.GetLength(0);y++)
+            {
+                for (int x = 0; x > surface.GetLength(0); x++)
+                {
+                    mean_idx += surface[y, x];
+                }
+            }
+            mean_idx /= surface.GetLength(0) * surface.GetLength(1);
+            */
         }
     }
 

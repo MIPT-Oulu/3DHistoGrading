@@ -520,6 +520,8 @@ namespace HistoGrading
                 volume.renderImageMask();
             }
 
+            cleanSurfButton.Enabled = true;            
+
         }
 
         //Automatically crop the center of the sample
@@ -552,7 +554,7 @@ namespace HistoGrading
             segmentButton.Enabled = true;
             predict.Enabled = true;
 
-            
+            /*
             vtkImageData vtkdata = Functions.get_surface_voi(volume.getVOI());
                         
             volume.connectMaskFromData(vtkdata);
@@ -577,13 +579,32 @@ namespace HistoGrading
             }
 
             is_mask = 1;
-            
+            */
             
         }
 
         //Remove preparation artefacts from the surface
         private void cleanSurfButton_Click(object sender, EventArgs e)
         {
+            vtkImageData ccartilage; vtkImageData dcartilage; vtkImageData scartilage;
+            Functions.get_analysis_vois(out dcartilage, out ccartilage, out scartilage, volume.getVOI(), volume.getMaskVOI());
+
+            volume.removeMask();
+
+            volume.connectMaskFromData(scartilage,0);
+
+            is_mask = 1;
+
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolumeMask();
+                volume.setVolumeColor();
+            }
+            if (ori > -1)
+            {
+                volume.renderImageMask();
+            }
             /*
             cropBar.Enabled = true;
 
