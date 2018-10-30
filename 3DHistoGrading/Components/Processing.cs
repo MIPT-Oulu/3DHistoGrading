@@ -359,7 +359,9 @@ namespace HistoGrading.Components
             int[] diff = new int[] { new_dims[1] - dims[1], new_dims[3] - dims[3], new_dims[5] - dims[5] };
             new_dims[0] += diff[0] / 2; new_dims[1] -= diff[0] / 2;
             new_dims[2] += diff[1] / 2; new_dims[3] -= diff[1] / 2;
-            new_dims[4] += diff[2] / 2; new_dims[5] -= diff[2] / 2;        
+            new_dims[4] += diff[2] / 2; new_dims[5] -= diff[2] / 2;
+
+            
 
             //Image reslicing
             vtkImageReslice rotater = vtkImageReslice.New();
@@ -368,8 +370,8 @@ namespace HistoGrading.Components
             rotater.SetResliceTransform(transform);
             rotater.SetInterpolationModeToCubic();
             //rotater.SetInterpolationModeToLinear();
-            if(out_extent == 1)
-            {                
+            if (out_extent == 1)
+            {
                 rotater.SetOutputSpacing(input.GetSpacing()[0], input.GetSpacing()[1], input.GetSpacing()[2]);
                 rotater.SetOutputOrigin(input.GetOrigin()[0], input.GetOrigin()[1], input.GetOrigin()[2]);
                 rotater.SetOutputExtent(new_dims[0], new_dims[1], new_dims[2], new_dims[3], new_dims[4], new_dims[5]);
@@ -379,7 +381,7 @@ namespace HistoGrading.Components
             return rotater.GetOutput();
         }
 
-        public static int[] find_center(vtkImageData stack, double threshold = 70.0)
+        public static int[] find_center(vtkImageData stack, double threshold = 70.0, int[] zrange = null)
         {
             //Get byte data
             byte[] bytedata = DataTypes.vtkToByte(stack);
@@ -397,11 +399,24 @@ namespace HistoGrading.Components
             //Empty array for binary mask
             byte[,] BW = new byte[h, w];
 
+            //z range
+            int zstart = 0; int zstop = 0;
+            if(zrange == null)
+            {
+                zstart = 0;
+                zstop = d;                
+            }
+            else
+            {
+                zstart = zrange[0];
+                zstop = zrange[1];
+            }
+
             Parallel.For(0, h, (int y) =>
             {
                 Parallel.For(0, w, (int x) =>
                 {
-                    for (int z = 0; z < d; z++)
+                    for (int z = zstart; z < zstop; z++)
                     {
                         int pos = (z * stride_d) + (x * stride_w) + (y * stride_h);
                         byte val = bytedata[pos];
@@ -413,12 +428,12 @@ namespace HistoGrading.Components
 
             Mat sumim = new Mat(h, w, MatType.CV_8UC1, BW);
 
-            /*
+            
             using (var window = new Window("window", image: sumim, flags: WindowMode.AutoSize))
             {
                 Cv2.WaitKey();
             }
-            */
+            
 
             int x1; int x2; int y1; int y2;
             Functions.get_bbox(out x1, out x2, out y1, out y2, sumim);
@@ -438,7 +453,7 @@ namespace HistoGrading.Components
 
             //Find the center of the sample
 
-            int[] center = find_center(stack);//GetCenter(bytedata,80);
+            int[] center = find_center(stack,70, new int[] { 0, (dims[5] - dims[4] + 1)/2 });//GetCenter(bytedata,80);
             //Compute new volume sides
             int y2 = Math.Min(center[0] + (side / 2), dims[1]);
             int y1 = Math.Max(y2 - side + 1, dims[0]);
@@ -508,6 +523,87 @@ namespace HistoGrading.Components
             }
 
             averages = _averages;
+        }
+
+        public static vtkImageData otsu3D(vtkImageData input,int axis = 0, double threshold = 60.0)
+        {
+            //Get dimensions
+            int[] dims = input.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Convert to byte array
+            byte[] bytedata = DataTypes.vtkToByte(input);
+            byte[] output = new byte[bytedata.Length];
+
+            //Iterate over axis
+            if (axis == 0)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    byte[,] plane = new byte[d, h];
+                    Parallel.For(0, h, (int y) =>
+                    {
+                        Parallel.For(0, d, (int z) =>
+                        {
+                            int pos = z * (h * w) + y * w + x;
+                            plane[z, y] = bytedata[pos];
+                        });
+                    });
+
+                    //Convert 2D byte array to opencv Mat
+                    Mat image = new Mat(d, h, MatType.CV_8UC1, plane);
+                    Mat BW = image.Threshold(threshold, 255.0, ThresholdTypes.Otsu);
+
+                    IntPtr pointer = BW.Data;
+                    byte[] tmp = new byte[h * d];
+                    Marshal.Copy(pointer, tmp, 0, h * d);
+                    Parallel.For(0, h, (int y) =>
+                    {
+                        Parallel.For(0, d, (int z) =>
+                        {
+                            int tmppos = z * h + y;
+                            int pos = z * (h * w) + y * w + x;
+                            output[pos] = tmp[tmppos];
+                        });
+                    });
+                }
+            }
+            else
+            {
+                for (int y = 0; y < h; y++)
+                {
+                    byte[,] plane = new byte[d, w];
+                    Parallel.For(0, w, (int x) =>
+                    {
+                        Parallel.For(0, d, (int z) =>
+                        {
+                            int pos = z * (h * w) + y * w + x;
+                            plane[z, x] = bytedata[pos];
+                        });
+                    });
+
+                    //Convert 2D byte array to opencv Mat
+                    Mat image = new Mat(d, w, MatType.CV_8UC1, plane);
+                    Mat BW = image.Threshold(threshold, 255.0, ThresholdTypes.Otsu);
+
+                    IntPtr pointer = BW.Data;
+                    byte[] tmp = new byte[w * d];
+                    Marshal.Copy(pointer, tmp, 0, w * d);
+                    Parallel.For(0, w, (int x) =>
+                    {
+                        Parallel.For(0, d, (int z) =>
+                        {
+                            int tmppos = z * w + x;
+                            int pos = z * (h * w) + y * w + x;
+                            output[pos] = tmp[tmppos];
+                        });
+                    });
+                }
+            }
+
+            return DataTypes.byteToVTK1D(output,dims);
         }
 
         public static void get_voi_mu_std(out vtkImageData output, out double[,] mu, out double[,] std, vtkImageData input, int depth, double threshold = 70.0)

@@ -257,7 +257,7 @@ namespace HistoGrading
                 cropButton.Enabled = true;
 
                 segmentButton.Enabled = false;
-                predict.Enabled = false;
+                predict.Enabled = false;                
 
             }
         }
@@ -504,7 +504,10 @@ namespace HistoGrading
                 t.Update();
             }
 
-            volume.connectMaskFromData(t.GetOutput());
+            List<vtkImageData> masks = new List<vtkImageData>();
+            masks.Add(t.GetOutput());
+
+            volume.connectMaskFromData(masks,1);
             //Update rendering pipeline
             is_mask = 1;
             maskLabel.Text = "Automatic";
@@ -586,23 +589,33 @@ namespace HistoGrading
         //Remove preparation artefacts from the surface
         private void cleanSurfButton_Click(object sender, EventArgs e)
         {
+            
             vtkImageData ccartilage; vtkImageData dcartilage; vtkImageData scartilage;
-            Functions.get_analysis_vois(out dcartilage, out ccartilage, out scartilage, volume.getVOI(), volume.getMaskVOI());
+            Functions.get_analysis_vois(out dcartilage, out ccartilage, out scartilage, volume.getVOI(), volume.getMaskVOI(0));
+
+            List<vtkImageData> masks = new List<vtkImageData>();
+            masks.Add(ccartilage);
+            masks.Add(dcartilage);
+            masks.Add(scartilage);
+
+            //volume.connectDataFromMemory(BWdata);
 
             volume.removeMask();
 
-            volume.connectMaskFromData(scartilage,0);
+            volume.connectMaskFromData(masks,0);
 
-            is_mask = 1;
+            //is_mask = 1;
 
             //Render
             if (ori == -1)
             {
+                //volume.renderVolume();
                 volume.renderVolumeMask();
                 volume.setVolumeColor();
             }
             if (ori > -1)
             {
+                //volume.renderImage();
                 volume.renderImageMask();
             }
             /*

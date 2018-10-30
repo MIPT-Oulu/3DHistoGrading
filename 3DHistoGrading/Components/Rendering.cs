@@ -148,29 +148,36 @@ namespace HistoGrading.Components
             /// Method for connecting mask components.
             /// </summary>
             /// <param name="mask"></param>
-            public void connectMask(vtkImageData mask)
+            public void connectMask(List<vtkImageData> masks, List<double[]> colors)
             {
-                /*Takes bone mask data as input*/
-                //Mapper
-                maskmapper.SetInput(mask);
-                maskmapper.Update();
-                //Color
-                maskctf.AddRGBPoint(0, 0, 0, 0);
-                maskctf.AddRGBPoint(255, 0.9, 0, 0);
-                //Opacity, background in microCT data is < 70
-                maskspwf.AddPoint(0, 0);
-                maskspwf.AddPoint(70, 0.0);
-                maskspwf.AddPoint(80, 0.6);
-                maskspwf.AddPoint(150, 0.8);
-                maskspwf.AddPoint(255, 0.85);                
-                //
-                //Volume parameters
-                maskvol.GetProperty().SetColor(maskctf);
-                maskvol.GetProperty().SetScalarOpacity(maskspwf);
-                maskvol.SetMapper(maskmapper);
-                maskvol.Update();
-                //Renderer back ground
-                renderer.AddVolume(maskvol);
+                for (int k = 0; k < masks.Count(); k++)
+                {
+                    DisposeMask();
+                    InitializeMask();
+                    vtkImageData mask = masks.ElementAt(k);
+                    double[] color = colors.ElementAt(k);
+                    /*Takes bone mask data as input*/
+                    //Mapper
+                    maskmapper.SetInput(mask);
+                    maskmapper.Update();
+                    //Color
+                    maskctf.AddRGBPoint(0, 0, 0, 0);
+                    maskctf.AddRGBPoint(255, color[0], color[1], color[2]);
+                    //Opacity, background in microCT data is < 70
+                    maskspwf.AddPoint(0, 0);
+                    maskspwf.AddPoint(70, 0.0);
+                    maskspwf.AddPoint(80, 0.6);
+                    maskspwf.AddPoint(150, 0.8);
+                    maskspwf.AddPoint(255, 0.85);
+                    //
+                    //Volume parameters
+                    maskvol.GetProperty().SetColor(maskctf);
+                    maskvol.GetProperty().SetScalarOpacity(maskspwf);
+                    maskvol.SetMapper(maskmapper);
+                    maskvol.Update();
+                    //Renderer back ground
+                    renderer.AddVolume(maskvol);
+                }
             }
         }
 
@@ -372,6 +379,8 @@ namespace HistoGrading.Components
             /// Original loaded image data as vtkImageData object.
             /// </summary>
             public vtkImageData idata = vtkImageData.New();
+            List<vtkImageData> imasks = new List<vtkImageData>();
+            List<double[]> maskcolors = new List<double[]>();
             vtkImageData imask = vtkImageData.New();
             //Rendering pipelines
             volumePipeLine volPipe = new volumePipeLine();
@@ -416,46 +425,69 @@ namespace HistoGrading.Components
             /// </summary>
             /// <param name="input">Bone mask input to be connected.</param>
             public void connectMask(string input)
-
             {
-                imask = Functions.loadVTK(input,1);
+                //Clear current masks
+                imasks = new List<vtkImageData>();
+                maskcolors = new List<double[]>();
+                GC.Collect();
+                //Load mask
+                vtkImageData tmp = Functions.loadVTK(input,1);
                 //Set graylevel
                 vtkImageMathematics math = vtkImageMathematics.New();
                 math.SetInput1(idata);
-                math.SetInput2(imask);
+                math.SetInput2(tmp);
                 math.SetOperationToMultiply();
                 math.Update();
-                imask = math.GetOutput();
-
+                //Add new mask to list
+                imasks.Add(math.GetOutput());
+                //Generate colors                
+                maskcolors.Add(new double[] { 0.9, 0.0, 0.0 });
             }
 
             /// <summary>
             /// Connect bone mask from memory.
             /// </summary>
             /// <param name="input_mask">Bone mask input to be connected.</param>
-            public void connectMaskFromData(vtkImageData input_mask,int multiply = 1)
+            public void connectMaskFromData(List<vtkImageData> input_masks, int multiply = 1)
             {
-                if (multiply == 1)
+                //Add masks
+                foreach (vtkImageData input_mask in input_masks)
                 {
-                    //Multiply data with input mask
-                    vtkImageMathematics math = vtkImageMathematics.New();
-                    math.SetInput1(idata);
-                    math.SetInput2(input_mask);
-                    math.SetOperationToMultiply();
-                    math.SetNumberOfThreads(24);
-                    math.Update();
-                    //Set mask extent to match with the data extent
-                    int[] dims = idata.GetExtent();
-                    vtkImageReslice reslice = vtkImageReslice.New();
-                    reslice.SetInputConnection(math.GetOutputPort());
-                    reslice.SetOutputExtent(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
-                    reslice.Update();
-                    imask = reslice.GetOutput();
+                    if (multiply == 1)
+                    {
+                        //Multiply data with input mask
+                        vtkImageMathematics math = vtkImageMathematics.New();
+                        math.SetInput1(idata);
+                        math.SetInput2(input_mask);
+                        math.SetOperationToMultiply();
+                        math.SetNumberOfThreads(24);
+                        math.Update();
+                        //Set mask extent to match with the data extent
+                        int[] dims = idata.GetExtent();
+                        vtkImageReslice reslice = vtkImageReslice.New();
+                        reslice.SetInputConnection(math.GetOutputPort());
+                        reslice.SetOutputExtent(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
+                        reslice.Update();
+                        imasks.Add(reslice.GetOutput());
+                    }
+                    if (multiply == 0)
+                    {
+                        imasks.Add(input_mask);
+                    }
                 }
-                if(multiply == 0)
+
+                //Add colors
+                for(int c = 0; c < input_masks.Count(); c++)
                 {
-                    imask = input_mask;
-                }                
+                    double val = (c / 3) * 0.2;
+                    double[] cur = new double[3];
+                    for(int k = 0; k < 3; k++)
+                    {
+                        cur[k] += val;                        
+                    }
+                    cur[c % 3] = 0.9;
+                    maskcolors.Add(cur);
+                }
             }
 
             /// <summary>
@@ -540,7 +572,7 @@ namespace HistoGrading.Components
                 volPipe.InitializeMask();
 
                 //Initialize new volume rendering and connect components
-                volPipe.connectMask(imask);
+                volPipe.connectMask(imasks,maskcolors);
                 //Render volume
                 renWin.Render();
             }
@@ -641,7 +673,7 @@ namespace HistoGrading.Components
             /// Get VOI from the data
             /// </summary>
             /// <returns> VOI</returns>
-            public vtkImageData getMaskVOI(int[] extent = null, int[] orientation = null)
+            public vtkImageData getMaskVOI(int idx, int[] extent = null, int[] orientation = null)
             {
                 //Empty output data
                 vtkImageData voi;
@@ -649,13 +681,13 @@ namespace HistoGrading.Components
                 //If no VOI is specified, full data is returned
                 if (extent == null)
                 {
-                    voi = imask;
+                    voi = imasks.ElementAt(idx);
                 }
                 else
                 {
                     //Extract VOI
                     vtkExtractVOI extractor = vtkExtractVOI.New();
-                    extractor.SetInput(imask);
+                    extractor.SetInput(imasks.ElementAt(idx));
                     extractor.SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
                     extractor.Update();
                     voi = extractor.GetOutput();
