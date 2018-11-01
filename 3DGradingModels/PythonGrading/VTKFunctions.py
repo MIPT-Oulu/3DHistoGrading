@@ -64,6 +64,15 @@ def RenderVolume(data):
     renderWin.AddRenderer(renderer)
     renderInteractor = vtk.vtkRenderWindowInteractor()
     renderInteractor.SetRenderWindow(renderWin)
+    
+    # Set outline
+    outline = vtk.vtkOutlineFilter()
+    outline.SetInputConnection(dataImporter.GetOutputPort())
+    mapper2 = vtk.vtkPolyDataMapper()
+    mapper2.SetInputConnection(outline.GetOutputPort())
+    actor2 = vtk.vtkActor()
+    actor2.SetMapper(mapper2)
+    renderer.AddActor(actor2)
 
     # We add the volume to the renderer ...
     renderer.AddVolume(volume)
@@ -71,6 +80,9 @@ def RenderVolume(data):
     renderer.SetBackground(0,0,0)
     # ... and set window size.
     renderWin.SetSize(600, 600)
+
+    # Set grid
+    
 
     # A simple function to be called when the user decides to quit the application.
     def exitCheck(obj, event):
