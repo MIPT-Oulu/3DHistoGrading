@@ -32,9 +32,9 @@ def RenderVolume(data):
     alphaChannelFunc = vtk.vtkPiecewiseFunction()
     alphaChannelFunc.AddPoint(0, 0.0)
     alphaChannelFunc.AddPoint(70, 0.0)
-    alphaChannelFunc.AddPoint(80, 0.05)
-    alphaChannelFunc.AddPoint(100, 0.1)
-    alphaChannelFunc.AddPoint(150, 0.2)
+    alphaChannelFunc.AddPoint(80, 0.1)
+    alphaChannelFunc.AddPoint(100, 0.2)
+    alphaChannelFunc.AddPoint(150, 0.9)
 
     # This class stores color data and can create color tables from a few color points. For this demo, we want the three cubes
     # to be of the colors red green and blue.
@@ -96,3 +96,37 @@ def RenderVolume(data):
     # Because nothing will be rendered without any input, we order the first render manually before control is handed over to the main-loop.
     renderWin.Render()
     renderInteractor.Start()
+    
+def ArrayToVTK(A):
+    imagedata = vtk.vtkImageData()
+    depthArray = numpy_support.numpy_to_vtk(A.ravel(), deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
+    imagedata.SetDimensions(A.shape)
+    imagedata.SetOrigin(0,0,0)
+    imagedata.GetPointData().SetScalars(depthArray)
+    return imagedata
+
+def VTKToArray(vtkdata, shape):
+    array = numpy_support.vtk_to_numpy(vtkdata)
+    array = array.reshape(shape)
+    return array
+
+def RotateVTK(vtkdata, angles):
+    # Initialize
+    mapper = vtk.vtkFixedPointVolumeRayCastMapper()
+    mapper.SetInputData(vtkdata)
+    actor = vtk.vtkActor()
+
+    cx, cy, cz = actor.GetCenter()
+
+    transf = vtk.vtkTransform()
+    transf.Translate(cx, cy, cz)
+    transf.RotateX(angles[0])
+    transf.RotateY(angles[1])
+    transf.RotateZ(angles[2])
+    transf.Translate(-cx, -cy, -cz)
+    
+    slicer = vtk.vtkImageReslice()
+    slicer.SetInputData(vtkdata)
+    slicer.Set
+
+    return vtkdata

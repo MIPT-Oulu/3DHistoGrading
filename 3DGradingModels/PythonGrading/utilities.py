@@ -41,12 +41,14 @@ def Load(path):
     #data = np.array(data)
     return data, (min_x, max_x, min_y, max_y)
 
+
 def Save(path, fname, data):
     nfiles = np.shape(data)[2]
     for k in range(nfiles):
         cv2.imwrite(path + '\\' + fname + str(k).zfill(8) + '.png', data[:,:,k])
-        
-def BoundingBox(image, threshold = 80, max_val = 255, min_area = 1600):
+
+
+def BoundingBox(image, threshold=80, max_val=255, min_area=1600):
     # Threshold
     _, mask = cv2.threshold(image, threshold, max_val, 0)
     # Get contours
@@ -74,7 +76,55 @@ def BoundingBox(image, threshold = 80, max_val = 255, min_area = 1600):
         left = 0; right = 0
         top = 0; bottom = 0
     return left, right, top, bottom
+
+
+def cv_rotate(image,theta):
+    #Get image sape
+    h,w = image.shape
     
+    #Compute centers
+    ch = h//2
+    cw = w//2
+    
+    #Get rotation matrix
+    M = cv2.getRotationMatrix2D((cw,ch),theta,1.0)
+        
+    return cv2.warpAffine(image,M,(w,h))
+
+
+def opencvRotate(stack,axis,theta):
+    h,w,d = stack.shape
+    new_stack = np.zeros((h,w,d))
+    if axis == 0:
+        for k in range(h):
+            stack[k,:,:] = cv_rotate(stack[k,:,:],theta)
+    elif axis == 1:
+        for k in range(w):
+            stack[:,k,:] = cv_rotate(stack[:,k,:],theta)
+    elif axis == 2:
+        for k in range(d):
+            stack[:,:,k] = cv_rotate(stack[:,:,k],theta)
+    return stack
+
+
+def otsuThreshold(data):
+
+    if len(data.shape) == 2:
+        val, mask = cv2.threshold(data.astype('uint8'), 0, 255, cv2.THRESH_OTSU)
+        return mask, val
+
+    mask1 = np.zeros(data.shape)
+    mask2 = np.zeros(data.shape)
+    values1 = np.zeros(data.shape[0])
+    values2 = np.zeros(data.shape[1])
+    for i in range(data.shape[0]):
+        values1[i], mask1[i,:,:] = cv2.threshold(data[i,:,:].astype('uint8'), 0, 255, cv2.THRESH_OTSU)
+    for i in range(data.shape[1]):
+        values2[i], mask2[:,i,:] = cv2.threshold(data[:,i,:].astype('uint8'), 0, 255, cv2.THRESH_OTSU)
+    value = (np.mean(values1) + np.mean(values2)) / 2
+    return data > value, value
+
+
 def PrintOrthogonal(data):
     dims = np.array(np.shape(data))
     for i in range(len(dims)):
@@ -87,7 +137,8 @@ def PrintOrthogonal(data):
     plt.subplot(133)
     plt.imshow(data[dims[0],:,:])
     plt.show()
-    
+
+
 def SaveOrthogonal(path, data):
     dims = np.array(np.shape(data))
     for i in range(len(dims)):
@@ -106,8 +157,9 @@ def SaveOrthogonal(path, data):
     fig.savefig(path, bbox_inches="tight", transparent = True)
     #plt.gcf().clear()
     plt.close()
-    
-def writebinaryimage(path, image, dtype = 'int'):
+
+
+def writebinaryimage(path, image, dtype='int'):
     with open(path, "wb") as f:
         if dtype == 'double':
             f.write(struct.pack('<q', image.shape[0])) # Width
@@ -124,7 +176,8 @@ def writebinaryimage(path, image, dtype = 'int'):
                     f.write(struct.pack('<i', image[i, j]))                    
     return True
 
-def loadbinary(path, datatype = np.int32):
+
+def loadbinary(path, datatype=np.int32):
     if datatype == np.float64:
         bytesarray = np.fromfile(path, dtype = np.int64) # read everything as int32
     else:
