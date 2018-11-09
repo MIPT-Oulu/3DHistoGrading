@@ -10,7 +10,7 @@ using HistoGrading.Components;
 
 namespace HistoGrading.Models
 {
-    class UNet
+    class UNet : IDisposable
     {
         //Network functions
 
@@ -578,7 +578,12 @@ namespace HistoGrading.Models
             //Get output
             IList<IList<float>> output = get_output(outputDataMap, input_size, n_samples);
 
+            inputdata.Dispose();
+            inputDataMap.Clear();
+            outputDataMap.Clear();
+
             return output;
+            
         }
 
         //Method for mapping float array to minibatch
@@ -622,5 +627,18 @@ namespace HistoGrading.Models
             return outlist;
         }
 
+        //Methods for disposing the object
+        public void Dispose()
+        {
+            model.Dispose();
+            feature.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            Disposed = true;
+        }
+        protected bool Disposed { get; private set; }
     }
 }

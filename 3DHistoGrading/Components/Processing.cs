@@ -7,6 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
+using Accord;
+using Accord.Statistics.Analysis;
+
 namespace HistoGrading.Components
 {
     /// <summary>
@@ -69,7 +72,7 @@ namespace HistoGrading.Components
             //Rendering.RenderToNewWindow(flipper.GetOutput());
 
             // Convert vtkImageData to byte[,,]
-            int[] dims = new int[] { crop[1] + 1, crop[3] + 1, (crop[5] - crop[4]) + 1 };
+            int[] dims = new int[] { (crop[1] - crop[0]) + 1, (crop[3] - crop[2]) + 1, (crop[5] - crop[4]) + 1 };
             byte[,,] byteVolume =
                 DataTypes.VectorToVolume(
                 DataTypes.vtkToByte(flipper.GetOutput()), dims);
@@ -378,7 +381,56 @@ namespace HistoGrading.Components
             }            
             rotater.Update();
 
-            return rotater.GetOutput();
+            vtkImageData output = vtkImageData.New();
+            output.DeepCopy(rotater.GetOutput());
+
+            rotater.Dispose();
+            transform.Dispose();
+
+            return output;
+        }
+
+        public static vtkImageData rescale_sample(vtkImageData input, double scale)
+        {
+            //Get sample dimensions
+            int[] dims = input.GetExtent();
+
+            vtkImageResample samplery = vtkImageResample.New();
+            samplery.SetInput(input);
+            samplery.SetOutputSpacing(input.GetSpacing()[0], input.GetSpacing()[1], input.GetSpacing()[2]);
+            samplery.SetOutputOrigin(input.GetOrigin()[0], input.GetOrigin()[1], input.GetOrigin()[2]);
+            samplery.SetOutputExtent((int)(scale * dims[0]), (int)(scale * dims[1]), dims[2], dims[3], dims[4], dims[5]);
+            samplery.SetInterpolationModeToCubic();
+            samplery.SetAxisMagnificationFactor(0, scale);
+            samplery.Update();
+
+            vtkImageResample samplerx = vtkImageResample.New();
+            samplerx.SetInputConnection(samplery.GetOutputPort());
+            samplerx.SetOutputSpacing(samplery.GetOutputSpacing()[0], samplery.GetOutputSpacing()[1], samplery.GetOutputSpacing()[2]);
+            samplerx.SetOutputOrigin(samplery.GetOutputOrigin()[0], samplery.GetOutputOrigin()[1], samplery.GetOutputOrigin()[2]);
+            samplerx.SetOutputExtent((int)(scale * dims[0]), (int)(scale * dims[1]), (int)(scale * dims[2]), (int)(scale * dims[3]), dims[4], dims[5]);
+            samplerx.SetInterpolationModeToCubic();
+            samplerx.SetAxisMagnificationFactor(1, scale);
+            samplerx.Update();
+
+            vtkImageResample samplerz = vtkImageResample.New();
+            samplerz.SetInputConnection(samplerx.GetOutputPort());
+            samplerz.SetOutputSpacing(samplerx.GetOutputSpacing()[0], samplerx.GetOutputSpacing()[1], samplerx.GetOutputSpacing()[2]);
+            samplerz.SetOutputOrigin(samplerx.GetOutputOrigin()[0], samplerx.GetOutputOrigin()[1], samplerx.GetOutputOrigin()[2]);
+            samplerz.SetOutputExtent((int)(scale * dims[0]), (int)(scale * dims[1]), (int)(scale * dims[2]),
+                (int)(scale * dims[3]), (int)(scale * dims[4]), (int)(scale *dims[5]));
+            samplerz.SetInterpolationModeToCubic();
+            samplerz.SetAxisMagnificationFactor(2, scale);
+            samplerz.Update();
+
+            vtkImageData output = vtkImageData.New();
+            output.DeepCopy(samplerz.GetOutput());
+
+            samplerz.Dispose();
+            samplerx.Dispose();
+            samplery.Dispose();
+
+            return output;
         }
 
         public static int[] find_center(vtkImageData stack, double threshold = 70.0, int[] zrange = null)
@@ -428,12 +480,8 @@ namespace HistoGrading.Components
 
             Mat sumim = new Mat(h, w, MatType.CV_8UC1, BW);
 
-            
-            using (var window = new Window("window", image: sumim, flags: WindowMode.AutoSize))
-            {
-                Cv2.WaitKey();
-            }
-            
+            //Get largest binary object
+            sumim = Functions.largest_connected_component(sumim);
 
             int x1; int x2; int y1; int y2;
             Functions.get_bbox(out x1, out x2, out y1, out y2, sumim);
@@ -716,7 +764,202 @@ namespace HistoGrading.Components
             output.SetScalarTypeToUnsignedChar();
             output.Update();            
         }
-        
 
+        static double find_ori_pca(double[][] data, int axis = 1, int use_radians = 1)
+        {
+            //Get first principal component            
+            var pca = new PrincipalComponentAnalysis();// data, AnalysisMethod.Standardize);
+            pca.Learn(data);
+            var components = pca.Components;
+            var x = components.First().Eigenvector;
+
+            //Normalize and find orientation between y-axis and 1st pc
+            var _x = x.Normalize();
+            var _ypos = new double[2];
+            var _yneg = new double[2];
+            _ypos[axis] = 1; _yneg[axis] = -1;
+
+            double theta1 = Math.Acos(_ypos.Dot(_x));
+            double theta2 = Math.Acos(_yneg.Dot(_x));
+            double theta = 0.0;
+
+
+            if (theta1<theta2){ theta = theta1; }
+            else { theta = -theta2; }
+
+            if (use_radians == 1)
+            {
+                theta *= 180 / Math.PI;
+            }           
+
+            return theta;
+        }
+
+        public static double find_slice_ori(vtkImageData slice, double threshold = 70.0)
+        {
+            //Get dimensions
+            int[] dims = slice.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+
+            //Convert slice to mat
+            byte[] bytedata = DataTypes.vtkToByte(slice);
+
+            
+            List<int[]> _idx = new List<int[]>();
+
+            byte[] cont = new byte[h * w];
+
+            //for (int k = 0; k < cont.Length; k++)
+            for (int k = 0; k < bytedata.Length; k++)
+            {
+                int _x = k / h;
+                int _y = k % h;                
+                if ((double)bytedata[k] > threshold)
+                {
+                    _idx.Add(new int[] { _y, _x });
+                    cont[k] = 255;
+                }                
+            }
+
+            Mat im = new Mat(w, h, MatType.CV_8UC1, cont);
+            using (var window = new Window("Indices", image: im, flags: WindowMode.AutoSize))
+            {
+                Cv2.WaitKey();
+            }
+
+            //Convert list to double array
+            double[][] idx = new double[_idx.Count()][];            
+
+            //Iterate over the list and collect indices to the array
+            for (int k = 0; k < _idx.Count(); k++)
+            {
+                int[] _tmp = _idx.ElementAt(k);
+                idx[k] = new double[] { _tmp[0], _tmp[1] };                
+            }
+
+            double theta = find_ori_pca(idx,0);
+
+            return theta;
+        }
+        
+        public static double circle_loss(vtkImageData input)
+        {
+            //Get dimensions
+            int[] dims = input.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Get non zero indices form projection image
+            byte[] bytedata = DataTypes.vtkToByte(input);
+            byte[] surf = new byte[h*w];
+            Parallel.For(0, h, (int ky) =>
+            {
+                Parallel.For(0, w, (int kx) =>
+                {
+                    for(int kz = d-1; kz > 0; kz -=1 )
+                    {
+                        int pos = kz*(h * w) + kx * h + ky;
+                        int val = bytedata[pos];
+                        if (val > 70.0)
+                        {
+                            surf[ky*w + kx] = 255;
+                            break;
+                        }
+                    }
+                });
+            });
+
+            //Get nonzero indices
+            Mat surfcv = new Mat(h, w, MatType.CV_8UC1, surf);
+            //Find largest blob
+            surfcv = Functions.largest_connected_component(surfcv);
+
+            //Indices
+            Mat nonzero = surfcv.FindNonZero();
+
+            //Fit circle
+            Point2f center; float R;
+            nonzero.MinEnclosingCircle(out center, out R);
+            //Generate a circle
+            byte[] circle = new byte[h*w];
+            Parallel.For(0, h, (int ky) =>
+            {
+                Parallel.For(0, w, (int kx) =>
+                {
+                    float val = (ky - center.Y) * (ky - center.Y) + (kx - center.X) * (kx - center.X);
+                    if(val < R*R){ circle[ky*w + kx] = 255; }
+                });
+            });
+
+            //Get dice score
+            double dice = Functions.dice_score_2d(surf, circle);
+
+            surfcv.Dispose();
+            nonzero.Dispose();
+            bytedata = null;
+
+            return 1 - dice;
+
+        }
+        
+        public static double[] grad_descent(vtkImageData data, double alpha = 0.5, double h = 5.0, int n_iter = 60)
+        {
+            //Starting orientation
+            double[] ori = new double[2];
+            int[] dims = data.GetExtent();
+            int y = dims[1] - dims[0] + 1;
+            int x = dims[3] - dims[2] + 1;
+            int z = dims[5] - dims[4] + 1;
+
+            for(int k = 1; k < n_iter+1; k++)
+            {
+                //Iintialize gradient
+                double[] grads = new double[2];
+
+                //Rotate the sample
+                vtkImageData rotated1 = rotate_sample(data, ori[0] + h, 0, 1);
+                if (ori[1] != 0) { rotated1 = rotate_sample(rotated1, ori[1], 1, 1); }
+
+                vtkImageData rotated2 = rotate_sample(data, ori[0] - h, 0, 1);
+                if (ori[1] != 0) { rotated2 = rotate_sample(rotated2, ori[1], 1, 1); }
+
+                //Get losses
+                double d1 = circle_loss(rotated1);
+                double d2 = circle_loss(rotated2);
+
+                //Compute gradient
+                grads[0] = (d1 - d2) / (2 * h);
+
+                //Rotate the sample
+                vtkImageData rotated3 = rotate_sample(data, ori[1] + h, 1, 1);
+                if (ori[0] != 0) { rotated3 = rotate_sample(rotated3, ori[0], 0, 1); }
+
+                vtkImageData rotated4 = rotate_sample(data, ori[1] - h, 1, 1);
+                if (ori[0] != 0) { rotated4 = rotate_sample(rotated4, ori[0], 0, 1); }
+
+                //Get losses
+                double d3 = circle_loss(rotated3);
+                double d4 = circle_loss(rotated4);
+
+                //Compute gradient
+                grads[1] = (d3 - d4) / (2 * h);
+
+                //Update the orientation
+                ori[0] -= Math.Sign(grads[0]) * alpha;
+                ori[1] -= Math.Sign(grads[1]) * alpha;
+
+                if(k % n_iter/2 == 0){alpha /= 2;}
+
+                rotated1.Dispose();
+                rotated2.Dispose();
+                rotated3.Dispose();
+                rotated4.Dispose();
+            }
+
+            return ori;
+        }
+        
     }
 }

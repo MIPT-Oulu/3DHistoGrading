@@ -47,7 +47,7 @@ namespace HistoGrading.Components
             //Scalar type
             vtkdata.SetScalarTypeToUnsignedChar();
             vtkdata.Update();
-
+            pinnedArray.Free();
             //Return vtk data
             if (orientation == null)
             {
@@ -237,7 +237,7 @@ namespace HistoGrading.Components
                     }
                 }
             });
-
+            bytedata = null;
             //return float data
             return floatdata;
         }

@@ -67,6 +67,7 @@ namespace HistoGrading.Models
                         output.Add(item);
                     }
                 }
+                input_array = null;
                 GC.Collect();
             }
 
@@ -98,7 +99,9 @@ namespace HistoGrading.Models
             //Data to byte array
             byte[,,] bytedata = DataTypes.batchToByte(input, output_size, extent);
             vtkImageData output = DataTypes.byteToVTK(bytedata, orientation);
-
+            bytedata = null;
+            input = null;
+            GC.Collect();
             return output;
         }
 
@@ -114,16 +117,22 @@ namespace HistoGrading.Models
 
             UNet model = new UNet();
             model.Initialize(24, batch_d, wpath, false);
-
-            List<byte[,,]> results = new List<byte[,,]>();
+                        
+            for(int k = 0; k< axes.Length; k++)
+            {
+                outputs.Add(vtkImageData.New());
+            }
 
             //Segment BCI from axis
-            foreach (int axis in axes)
+            for(int k = 0; k<axes.Length; k++)
             {
-                IList<IList<float>> result = segment_sample(volume, model, extent, axis, bs, (float)113.05652141, (float)39.87462853);
-                vtkImageData _tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axis);
-                outputs.Add(_tmp);                
-            }            
+                IList<IList<float>> result = segment_sample(volume, model, extent, axes[k], bs, (float)113.05652141, (float)39.87462853);
+                vtkImageData _tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axes[k]);
+                outputs.ElementAt(k).DeepCopy(_tmp);
+                _tmp.Dispose();
+                result = null;
+            }
+            model.Dispose();
         }
     }
 }

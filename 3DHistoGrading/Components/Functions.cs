@@ -165,7 +165,7 @@ namespace HistoGrading.Components
         /// </summary>
         /// <param name="path">Directory that includes images to be loaded.</param>
         /// <returns></returns>
-        public static vtkImageData loadVTK(string path, int rotate = 1)
+        public static vtkImageData loadVTK(string path)
         {
             //Declare loader
             ParaLoader loader = new ParaLoader();
@@ -174,7 +174,9 @@ namespace HistoGrading.Components
             //Load data
             loader.Load();
             //Extract data to variable
-            vtkImageData data = loader.GetData(rotate);
+            vtkImageData data = vtkImageData.New();
+            data.DeepCopy(loader.GetData());
+            loader.Dispose();
             return data;
         }
 
@@ -268,6 +270,49 @@ namespace HistoGrading.Components
             }
         }
         
+        public static void saveVTK(vtkImageData input, string path, string name, string extension = "png")
+        {
+            //Get dimensiosn
+            int[] dims = input.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+            //Convert to bytedata
+            byte[] bytedata = DataTypes.vtkToByte(input);
+            //Iterate over z-axis
+            for(int kz = 0; kz<d; kz++)
+            {
+                //Empty array for slice
+                byte[] _tmp = new byte[h * w];
+                //Iterate over x and y axes
+                Parallel.For(0, w, (int kx) =>
+                {
+                    //Iterate over x and y axes
+                    Parallel.For(0, h, (int ky) =>
+                    {
+                        int pos = kz * (h * w) + ky * w + kx;
+                        int _pos = ky * w + kx;
+                        _tmp[_pos] = bytedata[pos];
+                    });
+                });
+                //Convert slice to Mat
+                Mat image = new Mat(h, w, MatType.CV_8UC1, _tmp);
+                using (var win = new Window("window", WindowMode.AutoSize, image: image))
+                {
+                    Cv2.WaitKey();
+                }
+                    //Save image
+                string dirname = path + "\\" + name;
+                if (kz == 0) { Directory.CreateDirectory(dirname); }
+                string fname = dirname + "\\" + name + "\\" + name + "_" + String.Format("{0}",kz).PadLeft(6, '0') + "." + extension;
+                Console.WriteLine(fname);
+                Image _image = image.ToBitmap();
+                _image.Save(fname,ImageFormat.Png);
+                _image.Dispose();
+                image.Dispose();
+                _tmp = null;
+            }
+        }
 
         /// <summary>
         /// Prompts a folderbrowserdialog with given description.
@@ -332,20 +377,33 @@ namespace HistoGrading.Components
             return croppedVolume;
         }
 
-        public static void get_bbox(out int min_x, out int max_x, out int min_y, out int max_y, Mat input, double threshold = 70.0, double max_val = 255.0)
+        public static void get_bbox(out int min_x, out int max_x, out int min_y, out int max_y, Mat input, double threshold = 70.0, double max_val = 255.0, int ks=25)
         {
+            //Threshold input
             Mat BW = input.Threshold(threshold, max_val, ThresholdTypes.Binary);
-            var strct = InputArray.Create(new Mat(25, 25, MatType.CV_8UC1));
+            //Generate cirular kernel for closing
+            byte[] circle = new byte[ks * ks];
+            for(int k = 0; k<ks*ks; k++)
+            {
+                int y = k / ks;
+                int x = k % ks;
+                double dy = (double)y - (double)ks / 2;
+                double dx = (double)x - (double)ks / 2;
+
+                double val = dy * dy + dx * dx;
+                if(val < ks*ks)
+                {
+                    circle[k] = 255;
+                }
+            }
+            var strct = InputArray.Create(new Mat(ks, ks, MatType.CV_8UC1,circle));
             BW = BW.Dilate(strct);
             BW = BW.Erode(strct);
 
             var edges = BW.FindContoursAsMat(RetrievalModes.CComp, ContourApproximationModes.ApproxSimple);
             if (edges.Count() > 0)
             {
-                using (var window = new Window("window", image: BW, flags: WindowMode.AutoSize))
-                {
-                    Cv2.WaitKey();
-                }
+
                 Rect bbox = new Rect();
                 int curArea = 0;
 
@@ -360,22 +418,10 @@ namespace HistoGrading.Components
                     }
                 }
 
-                if(bbox.Width*bbox.Height > 1600)
-                {
-                    Console.WriteLine("BB area: {0}", curArea);
-                    min_x = bbox.Left;
-                    max_x = bbox.Right;
-                    min_y = bbox.Top;
-                    max_y = bbox.Bottom;
-                }
-                else
-                {
-                    min_x = 0;
-                    max_x = 0;
-                    min_y = 0;
-                    max_y = 0;
-                }
-
+                min_x = bbox.Left;
+                max_x = bbox.Right;
+                min_y = bbox.Top;
+                max_y = bbox.Bottom;
             }
             else
             {
@@ -386,22 +432,73 @@ namespace HistoGrading.Components
             }
         }
 
-        public static double get_angle(int[] data, bool radians = false)
+        public static double get_sample_center(vtkImageData slice, double threshold = 70.0, double scale = 1.0)
+        {
+            //Get slice dimensions, x and y axes swapped in vtk
+            int[] dims = slice.GetExtent();            
+            int w = dims[1] - dims[0] + 1;
+            int h = dims[3] - dims[2] + 1;
+
+            //Convert data to byte array
+            byte[] bytedata = DataTypes.vtkToByte(slice);
+            /*
+            //Set the top 1/3rd to zero
+            Parallel.For(0, h*w, (int k) =>
+            {
+                int y = k / w;
+                if(y>2*h/3)
+                {                    
+                    bytedata[k] = 0;
+                }
+            });
+            */
+            Mat image = new Mat(h, w, MatType.CV_8UC1, bytedata);            
+            //Resize image
+            if(scale != 1.0)
+            {
+                OpenCvSharp.Size size = new OpenCvSharp.Size(scale * w, scale * h);
+                image = image.Resize(size);
+            }            
+            Mat BW = image.Threshold(threshold, 255.0, ThresholdTypes.Binary);
+            Mat inds = BW.FindNonZero();
+
+            using (var window = new Window("BW", WindowMode.AutoSize, BW))
+            {
+                Cv2.WaitKey();
+            }
+
+            var ellip = Cv2.FitEllipse(inds);
+            var theta = ellip.Angle;
+            if(theta > 90)
+            {
+                theta -= 180;
+            }
+
+            return (double)theta;
+            
+            /*
+            //Get enclosing circle
+            Point2f xy; float r;
+            inds.MinEnclosingCircle(out xy, out r);
+
+            int[] output = new int[] { (int)(xy.X/scale), (int)(xy.Y / scale) };
+
+            return output;
+            */
+        }
+
+        public static double get_angle(int[] data, int step = 1, bool radians = false)
         {
             //Compute the mean of the points
             double mu = 0.0;
             double nom = 1e-9;
             double idxmu = 0.0;
 
-            int start = -1; int stop = 0;
             for (int k = 0; k < data.Length; k++)
             {
-                if(data[k] > 0)
-                {
-                    mu += data[k];
-                    nom += 1.0;
-                    idxmu += k;                    
-                }                
+                mu += data[k];
+                nom += 1.0;
+                idxmu += k * step;
             }
             mu /= nom;
             idxmu /= nom;
@@ -410,10 +507,7 @@ namespace HistoGrading.Components
             List<Point2f> points = new List<Point2f>();
             for (int k = 0; k < data.Length; k++)
             {
-                if(data[k] > 0)
-                {
-                    points.Add(new Point2f((float)(k - idxmu), (float)(data[k]-mu)));
-                }
+                points.Add(new Point2f((float)(k - idxmu), (float)(data[k]-mu)));    
             }
 
             //Fit line
@@ -645,6 +739,8 @@ namespace HistoGrading.Components
                 });
             });
 
+            bytedata = null;
+
             //Convert output to vtkImageData
             return DataTypes.byteToVTK1D(output, dims);
 
@@ -676,7 +772,38 @@ namespace HistoGrading.Components
                 });
             });
 
+            bytedata = null;
+
             return DataTypes.byteToVTK1D(output,dims);
+        }
+
+        public static vtkImageData get_cartilage_surface_tmp(vtkImageData sample, int[,] surface, int depth = 25)
+        {
+            //vtk to byte
+            byte[] bytedata = DataTypes.vtkToByte(sample);
+
+            //Get dims
+            int[] dims = sample.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Output array
+            byte[] output = new byte[bytedata.Length];
+
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    for (int z = surface[y, x]; z > surface[y, x] - depth; z -= 1)
+                    {
+                        int pos = z * (h * w) + y * w + x;
+                        output[pos] = bytedata[pos];
+                    }
+                });
+            });
+            bytedata = null;
+            return DataTypes.byteToVTK1D(output, dims);
         }
 
         public static vtkImageData get_cartilage_surface(vtkImageData sample, int[,] surface, int depth = 25)
@@ -687,6 +814,7 @@ namespace HistoGrading.Components
             int w0 = dims0[3] - dims0[2] + 1;
             int d0 = dims0[5] - dims0[4] + 1;
 
+            
             //Get surface orientation and minimum and maximum indices
 
             List<Point2f> pointsx = new List<Point2f>();
@@ -729,7 +857,7 @@ namespace HistoGrading.Components
             {
                 tmpvtk = Processing.rotate_sample(tmpvtk,angles[k],axes[k],0);
             }
-
+            
             //Threshold the voi
             vtkImageData BW0 = Processing.otsu3D(tmpvtk, 0);
             vtkImageData BW1 = Processing.otsu3D(tmpvtk, 1);
@@ -769,11 +897,13 @@ namespace HistoGrading.Components
             tmpvtk = DataTypes.byteToVTK1D(output, dims1);
 
             
+            
             //Return to original rotation
             for (int k = 0; k < angles.Length; k++)
             {
                 tmpvtk = Processing.rotate_sample(tmpvtk, -angles[k], axes[k], 0);
             }
+            
             
 
             return tmpvtk;
@@ -801,6 +931,9 @@ namespace HistoGrading.Components
             //Get Surface indices
             int[,] surface = get_surface(vtk_average(BW0,BW1),0.0);
 
+            BW0.Dispose();
+            BW1.Dispose();
+
             //Get BCI indices
             int[,] BCI = get_surface(BCImask);
 
@@ -825,38 +958,153 @@ namespace HistoGrading.Components
             ccartilage = get_calcified_cartilage(input, BCI);
 
             //Get cartilage surface
-            scartilage = get_cartilage_surface(input,surface);
+            scartilage = get_cartilage_surface_tmp(input,surface);
+        }
 
-            //return BW;
-
-            /*
-            //Get surface VOI
-            int mean_idx = 0;
-            for(int y = 0; y>surface.GetLength(0);y++)
+        public static Mat largest_connected_component(Mat bw)
+        {
+            int h = bw.Height; int w = bw.Width;
+            int[,] label_array = new int[h, w];
+            int N = bw.ConnectedComponents(out label_array, PixelConnectivity.Connectivity8);
+            int[] sums = new int[N-1];
+            List<byte[,]> labels = new List<byte[,]>();
+            
+            //Count pixels in each componenet and make new binary objects
+            for (int tmp = 1; tmp < N; tmp++)
             {
-                for (int x = 0; x > surface.GetLength(0); x++)
+                byte[,] tmparray = new byte[h, w];
+                Parallel.For(0,h, (int ky) =>
                 {
-                    mean_idx += surface[y, x];
+                    Parallel.For(0, w, (int kx) =>
+                    {
+                        if (label_array[ky, kx] == tmp)
+                        {
+                            sums[tmp - 1] += 1;
+                            tmparray[ky, kx] = 255;
+                        }
+                    });
+                });
+                labels.Add(tmparray);
+            }
+
+            //Find the component with largest area
+            int idx = 0; int area = 0;
+            for(int k = 0; k<N-1; k++)
+            {
+                if(sums[k]>area)
+                {
+                    idx = k; area = sums[k];
                 }
             }
-            mean_idx /= surface.GetLength(0) * surface.GetLength(1);
-            */
+
+            return new Mat(h, w, MatType.CV_8UC1, labels.ElementAt(idx));
+
+        }
+
+        public static vtkImageData auto_rotate(vtkImageData vtkdata, double ori_thresh = 5)
+        {
+            //Get sample dimensions
+            int[] dims = vtkdata.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+            byte[] mult_vector = new byte[h * w * d];
+            Parallel.For(0, h, (int ky) =>
+            {
+                Parallel.For(0, w, (int kx) =>
+                {
+                    Parallel.For(0, d / 3, (int kz) =>
+                    {
+                        int pos = kz * (h * w) + ky * w + kx;
+                        mult_vector[pos] = 1;
+                    });
+                });
+            });
+            //Set top of the sample to zero
+            vtkImageData multiplier = DataTypes.byteToVTK1D(mult_vector, dims);
+            vtkImageMathematics math = vtkImageMathematics.New();
+            math.SetInput1(vtkdata);
+            math.SetInput2(multiplier);
+            math.SetOperationToMultiply();
+            math.Update();
+
+            //Downsample the array by a factor of 10
+            double s = 0.1;
+            vtkImageData scaled = Processing.rescale_sample(math.GetOutput(), s);
+            math.Dispose();
+
+
+            //Get sample orientation
+            double[] angles = Processing.grad_descent(scaled);
+            angles = new double[] { angles[0], angles[1] };
+            int[] axes = new int[] { 0, 1 };
+
+            scaled.Dispose();
+
+            Console.WriteLine("Angles: {0} | {1}", angles[0], angles[1]);
+
+            for (int k = 0; k < angles.Length; k++)
+            {
+                if (Math.Abs(angles[k]) > ori_thresh)
+                {
+                    vtkdata = Processing.rotate_sample(vtkdata, angles[k], axes[k], 1);
+                }
+            }
+
+            return vtkdata;
+        }
+
+        public static double dice_score_2d(byte[] image1, byte[] image2, double threshold = 0.0)
+        {
+            //Data dimensions
+            int N = image1.Length;            
+            //Parameters
+            double intersection_sum = 0.0;
+            double m1_sum = 0.0;
+            double m2_sum = 0.0;
+            double e = 1e-9;
+
+            //Iterate over image data
+            for(int k = 0; k < N; k++)
+            {
+                double val1 = (double)image1[k];
+                double val2 = (double)image2[k];                    
+                if (val1 > threshold) { val1 = 1.0; }
+                else { val1 = 0.0; }
+                if (val2 > threshold) { val2 = 1.0; }
+                else { val2 = 0.0; }
+                intersection_sum += val1 * val2;
+                m1_sum += val1;
+                m2_sum += val2;                
+            }
+
+            double score = (2 * intersection_sum) / (m1_sum + m2_sum + e);
+
+            return score;
         }
     }
 
     /// <summary>
     /// Image loader, reads images in parallel 
     /// </summary>
-    public class ParaLoader
+    public class ParaLoader : IDisposable
     {
+        //Methods for disposing the object
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            Disposed = true;
+        }
+        protected bool Disposed { get; private set; }
+
         //Declarations
 
         //Empty byte array
         byte[,,] data;
-        int[] min_x;
-        int[] max_x;
-        int[] min_y;
-        int[] max_y;
         //Empty image data
         vtkImageData vtkdata = vtkImageData.New();
         //Data dimensions
@@ -895,13 +1143,10 @@ namespace HistoGrading.Components
             //Set data extent. Data extent is set, so z-axis is along the
             //first dimension, and y-axis is along the last dimension.
             //This will be reversed when the data gets converted to vtkImagedata.
-            data = new byte[output_dims[5] - output_dims[4], output_dims[1] - output_dims[0], output_dims[3] - output_dims[2]];
-            min_x = new int[output_dims[5] - output_dims[4]];
-            max_x = new int[output_dims[5] - output_dims[4]];
-            min_y = new int[output_dims[5] - output_dims[4]];
-            max_y = new int[output_dims[5] - output_dims[4]];
+            data = new byte[output_dims[5] - output_dims[4], output_dims[1] - output_dims[0], output_dims[3] - output_dims[2]];            
         }
 
+        /*
         /// <summary>
         /// Read image from file idx. The image is read using OpenCV, and converted to Bitmap.
         /// Bitmap is then read to the bytearray.
@@ -911,20 +1156,7 @@ namespace HistoGrading.Components
         {
             //Read image from file idx. The image is read using OpenCV, and converted to Bitmap.
             //Bitmap is then read to the bytearray.
-            Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
-
-            //Get bounding box
-            int tmpxmin; int tmpxmax; int tmpymin; int tmpymax;
-            Functions.get_bbox(out tmpxmin, out tmpxmax, out tmpymin, out tmpymax, _tmp);
-            if(idx < input_dims[2]/3)
-            {
-                min_x[idx] = tmpxmin; max_x[idx] = tmpxmax; min_y[idx] = tmpymin; max_y[idx] = tmpymax;
-            }
-            else
-            {
-                min_x[idx] = 0; max_x[idx] = 0; min_y[idx] = 0; max_y[idx] = 0;
-            }
-            
+            Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);           
             
             Bitmap _image = BitmapConverter.ToBitmap(_tmp);
             //Lock bits
@@ -953,7 +1185,35 @@ namespace HistoGrading.Components
                 {
                     data[idx - output_dims[4], h - output_dims[0], w - output_dims[2]] = _grayValues[mapPixel(h, w, 0)];
                 });
+            });            
+        }
+        */
+
+        /// <summary>
+        /// Read image from file idx. The image is read using OpenCV, and converted to byte array.
+        /// </summary>
+        /// <param name="idx">File index.</param>
+        private void readImage(int idx)
+        {
+            //Read image from file idx. The image is read using OpenCV, and converted to byte array.            
+            Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
+            byte[] _vals = new byte[_tmp.Width * _tmp.Height];
+            IntPtr pointer = _tmp.Data;
+            Marshal.Copy(pointer, _vals, 0, _tmp.Width * _tmp.Height);
+            
+            //Read bits to byte array in parallel
+            //Remember the data orientation
+            Parallel.For(output_dims[0], output_dims[1], (int h) =>
+            {
+                Parallel.For(output_dims[2], output_dims[3], (int w) =>
+                {
+                    int pos = h * (_tmp.Width) + w;
+                    data[idx - output_dims[4], h - output_dims[0], w - output_dims[2]] = _vals[pos];
+                });
             });
+
+            _tmp.Dispose();
+            _vals = null;
         }
 
         /// <summary>
@@ -972,39 +1232,11 @@ namespace HistoGrading.Components
         /// Extract data as vtkImageData
         /// </summary>
         /// <returns>Converted data as vtkImageData variable.</returns>
-        public vtkImageData GetData(int rotate = 0)
+        public vtkImageData GetData()
         {
             //Conver byte data to vtkImageData
             vtkdata = DataTypes.byteToVTK(data);
-            if (rotate == 0)
-            {
-                return vtkdata;
-            }
-            else
-            {
-                double thetax1 = Functions.get_angle(min_x, false);
-                double thetax2 = Functions.get_angle(max_x, false);
-                double thetay1 = Functions.get_angle(min_y, false);
-                double thetay2 = Functions.get_angle(max_y, false);
-                
-
-                int[] dims = vtkdata.GetExtent();
-                //int[] centers = new int[] { (dims[1] + dims[0]) / 2, (dims[3] + dims[2]) / 2, (dims[5] + dims[4]) / 2 };
-
-                double[] angles = new double[] { -0.5 * (thetax1 + thetax2), -0.5 * (thetay1 + thetay2) };
-                int[] axes = new int[] { 0, 1 };
-
-                Console.WriteLine("Angles: {0} | {1}", angles[0], angles[1]);
-
-                for(int k = 0; k<angles.Length; k++)
-                {
-                    vtkdata = Processing.rotate_sample(vtkdata, angles[k], axes[k],1);
-                }                
-                
-                return vtkdata;
-                                
-            }
-
+            return vtkdata;
         }
     }
 

@@ -30,7 +30,9 @@
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.cleanSurfButton = new System.Windows.Forms.Button();
+            this.saveButton = new System.Windows.Forms.Button();
+            this.rotate_button = new System.Windows.Forms.Button();
+            this.getVoiButton = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.cropButton = new System.Windows.Forms.Button();
             this.segmentButton = new System.Windows.Forms.Button();
@@ -64,16 +66,17 @@
             // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.ColumnCount = 4;
+            this.tableLayoutPanel1.ColumnCount = 5;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 113F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 113F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             this.tableLayoutPanel1.Controls.Add(this.panel1, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.panel2, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.sliceBar, 2, 1);
-            this.tableLayoutPanel1.Controls.Add(this.renderWindowControl, 1, 1);
-            this.tableLayoutPanel1.Controls.Add(this.cropBar, 3, 1);
+            this.tableLayoutPanel1.Controls.Add(this.panel2, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.sliceBar, 3, 1);
+            this.tableLayoutPanel1.Controls.Add(this.renderWindowControl, 2, 1);
+            this.tableLayoutPanel1.Controls.Add(this.cropBar, 4, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
@@ -86,7 +89,9 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.cleanSurfButton);
+            this.panel1.Controls.Add(this.saveButton);
+            this.panel1.Controls.Add(this.rotate_button);
+            this.panel1.Controls.Add(this.getVoiButton);
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.cropButton);
             this.panel1.Controls.Add(this.segmentButton);
@@ -111,17 +116,40 @@
             this.panel1.Size = new System.Drawing.Size(109, 804);
             this.panel1.TabIndex = 0;
             // 
-            // cleanSurfButton
+            // saveButton
             // 
-            this.cleanSurfButton.Enabled = false;
-            this.cleanSurfButton.Location = new System.Drawing.Point(9, 433);
-            this.cleanSurfButton.Margin = new System.Windows.Forms.Padding(2);
-            this.cleanSurfButton.Name = "cleanSurfButton";
-            this.cleanSurfButton.Size = new System.Drawing.Size(94, 42);
-            this.cleanSurfButton.TabIndex = 14;
-            this.cleanSurfButton.Text = "Remove Artefacts";
-            this.cleanSurfButton.UseVisualStyleBackColor = true;
-            this.cleanSurfButton.Click += new System.EventHandler(this.cleanSurfButton_Click);
+            this.saveButton.Enabled = false;
+            this.saveButton.Location = new System.Drawing.Point(10, 658);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(93, 49);
+            this.saveButton.TabIndex = 16;
+            this.saveButton.Text = "Save Results";
+            this.saveButton.UseVisualStyleBackColor = true;
+            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
+            // 
+            // rotate_button
+            // 
+            this.rotate_button.Enabled = false;
+            this.rotate_button.Location = new System.Drawing.Point(10, 347);
+            this.rotate_button.Name = "rotate_button";
+            this.rotate_button.Size = new System.Drawing.Size(93, 40);
+            this.rotate_button.TabIndex = 15;
+            this.rotate_button.Text = "Auto Rotate";
+            this.rotate_button.UseVisualStyleBackColor = true;
+            this.rotate_button.Click += new System.EventHandler(this.rotate_button_Click);
+            // 
+            // getVoiButton
+            // 
+            this.getVoiButton.Enabled = false;
+            this.getVoiButton.Location = new System.Drawing.Point(9, 492);
+            this.getVoiButton.Margin = new System.Windows.Forms.Padding(2);
+            this.getVoiButton.Name = "getVoiButton";
+            this.getVoiButton.Size = new System.Drawing.Size(94, 42);
+            this.getVoiButton.TabIndex = 14;
+            this.getVoiButton.Text = "Get VOIs";
+            this.getVoiButton.UseVisualStyleBackColor = true;
+            this.getVoiButton.Click += new System.EventHandler(this.getVoiButton_Click);
+            //this.getVoiButton.Click += new System.EventHandler(this.cleanSurfButton_Click);
             // 
             // label3
             // 
@@ -136,7 +164,7 @@
             // cropButton
             // 
             this.cropButton.Enabled = false;
-            this.cropButton.Location = new System.Drawing.Point(9, 334);
+            this.cropButton.Location = new System.Drawing.Point(9, 393);
             this.cropButton.Name = "cropButton";
             this.cropButton.Size = new System.Drawing.Size(94, 48);
             this.cropButton.TabIndex = 12;
@@ -147,7 +175,7 @@
             // segmentButton
             // 
             this.segmentButton.Enabled = false;
-            this.segmentButton.Location = new System.Drawing.Point(10, 387);
+            this.segmentButton.Location = new System.Drawing.Point(10, 446);
             this.segmentButton.Margin = new System.Windows.Forms.Padding(2);
             this.segmentButton.Name = "segmentButton";
             this.segmentButton.Size = new System.Drawing.Size(94, 42);
@@ -159,7 +187,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(7, 499);
+            this.label2.Location = new System.Drawing.Point(7, 558);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(44, 13);
@@ -179,7 +207,7 @@
             // predict
             // 
             this.predict.Enabled = false;
-            this.predict.Location = new System.Drawing.Point(9, 515);
+            this.predict.Location = new System.Drawing.Point(9, 574);
             this.predict.Margin = new System.Windows.Forms.Padding(2);
             this.predict.Name = "predict";
             this.predict.Size = new System.Drawing.Size(94, 42);
@@ -288,7 +316,7 @@
             this.gmaxBar.Location = new System.Drawing.Point(-2, 743);
             this.gmaxBar.Maximum = 255;
             this.gmaxBar.Name = "gmaxBar";
-            this.gmaxBar.Size = new System.Drawing.Size(110, 24);
+            this.gmaxBar.Size = new System.Drawing.Size(111, 24);
             this.gmaxBar.TabIndex = 2;
             this.gmaxBar.Value = 255;
             this.gmaxBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.gmaxBar_Scroll);
@@ -326,10 +354,10 @@
             this.panel2.Controls.Add(this.fileLabel);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Enabled = false;
-            this.panel2.Location = new System.Drawing.Point(2, 3);
+            this.panel2.Location = new System.Drawing.Point(115, 3);
             this.panel2.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(1065, 51);
+            this.panel2.Size = new System.Drawing.Size(952, 51);
             this.panel2.TabIndex = 1;
             // 
             // gradeLabel
@@ -350,7 +378,7 @@
             this.sliceLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.sliceLabel.AutoSize = true;
             this.sliceLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.sliceLabel.Location = new System.Drawing.Point(831, 23);
+            this.sliceLabel.Location = new System.Drawing.Point(718, 23);
             this.sliceLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.sliceLabel.Name = "sliceLabel";
             this.sliceLabel.Size = new System.Drawing.Size(65, 20);
@@ -393,10 +421,10 @@
             this.renderWindowControl.AddTestActors = false;
             this.renderWindowControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.renderWindowControl.Enabled = false;
-            this.renderWindowControl.Location = new System.Drawing.Point(117, 61);
+            this.renderWindowControl.Location = new System.Drawing.Point(230, 61);
             this.renderWindowControl.Margin = new System.Windows.Forms.Padding(4);
             this.renderWindowControl.Name = "renderWindowControl";
-            this.renderWindowControl.Size = new System.Drawing.Size(858, 802);
+            this.renderWindowControl.Size = new System.Drawing.Size(745, 802);
             this.renderWindowControl.TabIndex = 3;
             this.renderWindowControl.TestText = null;
             this.renderWindowControl.Load += new System.EventHandler(this.renderWindowControl_Load);
@@ -464,8 +492,10 @@
         private System.Windows.Forms.Button cropButton;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label gradeLabel;
-        private System.Windows.Forms.Button cleanSurfButton;
+        private System.Windows.Forms.Button getVoiButton;
         private System.Windows.Forms.VScrollBar cropBar;
+        private System.Windows.Forms.Button rotate_button;
+        private System.Windows.Forms.Button saveButton;
     }
 }
 

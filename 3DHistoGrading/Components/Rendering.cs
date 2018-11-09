@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using Kitware.VTK;
 
+using HistoGrading.Models;
+
 namespace HistoGrading.Components
 {
     /// <summary>
@@ -19,10 +21,8 @@ namespace HistoGrading.Components
         /// Volume rendering pipeline. Contains methods for connecting components
         /// and memory management.
         /// </summary>
-        public class volumePipeLine
-        {            
-            /**/
-
+        public class volumePipeLine : IDisposable
+        {
             //Volume components
 
             //VTKVolume
@@ -37,11 +37,10 @@ namespace HistoGrading.Components
             private vtkPiecewiseFunction spwf = vtkPiecewiseFunction.New();
 
             //Mask components, same as above
-            private vtkVolume maskvol = vtkVolume.New();
-            private vtkFixedPointVolumeRayCastMapper maskmapper = vtkFixedPointVolumeRayCastMapper.New();
-            //private vtkSmartVolumeMapper maskmapper = vtkSmartVolumeMapper.New();
-            private vtkColorTransferFunction maskctf = vtkColorTransferFunction.New();
-            private vtkPiecewiseFunction maskspwf = vtkPiecewiseFunction.New();            
+            private List<vtkVolume> maskvols = new List<vtkVolume>();
+            private List<vtkFixedPointVolumeRayCastMapper> maskmappers = new List<vtkFixedPointVolumeRayCastMapper>();
+            private List<vtkColorTransferFunction> maskctfs = new List<vtkColorTransferFunction>();
+            private List<vtkPiecewiseFunction> maskspwfs = new List<vtkPiecewiseFunction>();            
 
             //Renderer
             public vtkRenderer renderer = vtkRenderer.New();
@@ -59,36 +58,37 @@ namespace HistoGrading.Components
 
             }
 
-            //Method for disposing components, useful for memory management
-            public void Dispose()
-            {
-                //Dispose volume components
-                vol.Dispose();
-                mapper.Dispose();
-                ctf.Dispose();
-                spwf.Dispose();
-                renderer.Dispose();
-            }
-
             //Method for initializing mask components
-            public void InitializeMask()
+            public void InitializeMasks(int N)
             {
-                //Initialize mask
-                maskvol = vtkVolume.New();
-                //maskmapper = vtkSmartVolumeMapper.New();
-                maskmapper = vtkFixedPointVolumeRayCastMapper.New();
-                maskctf = vtkColorTransferFunction.New();
-                maskspwf = vtkPiecewiseFunction.New();
+                maskvols = new List<vtkVolume>();
+                maskmappers = new List<vtkFixedPointVolumeRayCastMapper>();
+                maskctfs = new List<vtkColorTransferFunction>();
+                maskspwfs = new List<vtkPiecewiseFunction>();
+                for (int k = 0; k< N; k++)
+                {                    
+                    //Initialize mask
+                    maskvols.Add(vtkVolume.New());
+                    //maskmapper = vtkSmartVolumeMapper.New();
+                    maskmappers.Add(vtkFixedPointVolumeRayCastMapper.New());
+                    maskctfs.Add(vtkColorTransferFunction.New());
+                    maskspwfs.Add(vtkPiecewiseFunction.New());
+                }                
             }
 
             //Method for disposing mask components, useful for memory management
-            public void DisposeMask()
+            public void DisposeMasks()
             {
                 //Dispose mask components
-                maskvol.Dispose();
-                maskmapper.Dispose();
-                maskctf.Dispose();
-                maskspwf.Dispose();
+                for (int k = 0; k < maskvols.Count; k++)
+                {
+                    //Remove volume from mask
+                    renderer.RemoveVolume(maskvols.ElementAt(k));
+                    maskvols.ElementAt(k).Dispose();
+                    maskmappers.ElementAt(k).Dispose();
+                    maskctfs.ElementAt(k).Dispose();
+                    maskspwfs.ElementAt(k).Dispose();
+                }                    
             }
 
             //Method for updating volume color
@@ -148,44 +148,66 @@ namespace HistoGrading.Components
             /// Method for connecting mask components.
             /// </summary>
             /// <param name="mask"></param>
-            public void connectMask(List<vtkImageData> masks, List<double[]> colors)
+            public void connectMask(List<vtkImageData> masks, List<double[]> colors, int cmin, int cmax)
             {
+                DisposeMasks();
+                InitializeMasks(masks.Count());
+                Console.WriteLine("N mappers: {0}",maskmappers.Count());
+                Console.WriteLine("N masks: {0}", masks.Count());
                 for (int k = 0; k < masks.Count(); k++)
-                {
-                    DisposeMask();
-                    InitializeMask();
-                    vtkImageData mask = masks.ElementAt(k);
+                {                    
                     double[] color = colors.ElementAt(k);
                     /*Takes bone mask data as input*/
                     //Mapper
-                    maskmapper.SetInput(mask);
-                    maskmapper.Update();
+                    maskmappers.ElementAt(k).SetInput(masks.ElementAt(k));
+                    maskmappers.ElementAt(k).Update();
                     //Color
-                    maskctf.AddRGBPoint(0, 0, 0, 0);
-                    maskctf.AddRGBPoint(255, color[0], color[1], color[2]);
+                    maskctfs.ElementAt(k).AddRGBPoint(cmin, 0, 0, 0);
+                    maskctfs.ElementAt(k).AddRGBPoint(cmax, color[0], color[1], color[2]);
                     //Opacity, background in microCT data is < 70
-                    maskspwf.AddPoint(0, 0);
-                    maskspwf.AddPoint(70, 0.0);
-                    maskspwf.AddPoint(80, 0.6);
-                    maskspwf.AddPoint(150, 0.8);
-                    maskspwf.AddPoint(255, 0.85);
+                    maskspwfs.ElementAt(k).AddPoint(0, 0);
+                    maskspwfs.ElementAt(k).AddPoint(70, 0.0);
+                    maskspwfs.ElementAt(k).AddPoint(80, 0.6);
+                    maskspwfs.ElementAt(k).AddPoint(150, 0.8);
+                    maskspwfs.ElementAt(k).AddPoint(255, 0.85);
                     //
                     //Volume parameters
-                    maskvol.GetProperty().SetColor(maskctf);
-                    maskvol.GetProperty().SetScalarOpacity(maskspwf);
-                    maskvol.SetMapper(maskmapper);
-                    maskvol.Update();
+                    maskvols.ElementAt(k).GetProperty().SetColor(maskctfs.ElementAt(k));
+                    maskvols.ElementAt(k).GetProperty().SetScalarOpacity(maskspwfs.ElementAt(k));
+                    maskvols.ElementAt(k).SetMapper(maskmappers.ElementAt(k));
+                    maskvols.ElementAt(k).Update();
                     //Renderer back ground
-                    renderer.AddVolume(maskvol);
+                    renderer.AddVolume(maskvols.ElementAt(k));
                 }
             }
+
+            //Method s for disposing the object
+            public void Dispose()
+            {
+                DisposeMasks();
+                //Clear the pipeline
+                renderer.RemoveVolume(vol);
+                //Dispose volume components
+                vol.Dispose();
+                mapper.Dispose();
+                ctf.Dispose();
+                spwf.Dispose();
+                renderer.Dispose();
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+            protected virtual void Dispose(bool disposing)
+            {
+                Disposed = true;
+            }
+            protected bool Disposed { get; private set; }
         }
 
         /// <summary>
         /// Pipeline for image rendering. Contains methods for connecting components
         /// and memory management.
         /// </summary>
-        public class imagePipeLine
+        public class imagePipeLine : IDisposable
         {
             //Image variables
             private vtkImageActor actor = vtkImageActor.New();
@@ -193,9 +215,9 @@ namespace HistoGrading.Components
             private vtkImageMapToColors colorMapper = vtkImageMapToColors.New();
 
             //Bone mask variables
-            private vtkImageActor maskactor = vtkImageActor.New();
-            private vtkLookupTable maskcolorTable = vtkLookupTable.New();
-            private vtkImageMapToColors maskcolorMapper = vtkImageMapToColors.New();
+            private List<vtkImageActor> maskactors = new List<vtkImageActor>();
+            private List<vtkLookupTable> maskcolorTables = new List<vtkLookupTable>();
+            private List<vtkImageMapToColors> maskcolorMappers = new List<vtkImageMapToColors>();
 
             /// <summary>
             /// Renderer object.
@@ -213,33 +235,34 @@ namespace HistoGrading.Components
             }
 
             /// <summary>
-            /// Dispose, memory management
-            /// </summary>
-            public void Dispose()
-            {
-                actor.Dispose();
-                colorTable.Dispose();
-                colorMapper.Dispose();
-            }
-
-            /// <summary>
             /// Initialize mask components
             /// </summary>
-            public void InitializeMask()
+            public void InitializeMask(int N)
             {
-                maskactor = vtkImageActor.New();
-                maskcolorTable = vtkLookupTable.New();
-                maskcolorMapper = vtkImageMapToColors.New();
+                //New lists
+                maskactors = new List<vtkImageActor>();
+                maskcolorTables = new List<vtkLookupTable>();
+                maskcolorMappers = new List<vtkImageMapToColors>();
+                for (int k = 0; k < N; k++)
+                {
+                    maskactors.Add(vtkImageActor.New());
+                    maskcolorTables.Add(vtkLookupTable.New());
+                    maskcolorMappers.Add(vtkImageMapToColors.New());
+                }
             }
 
             /// <summary>
             /// Dispose mask components, memory management
             /// </summary>
-            public void DisposeMask()
+            public void DisposeMasks()
             {
-                maskactor.Dispose();
-                maskcolorTable.Dispose();
-                maskcolorMapper.Dispose();
+                for(int k = 0; k<maskactors.Count(); k++)
+                {
+                    renderer.RemoveActor(maskactors.ElementAt(0));
+                    maskactors.ElementAt(k).Dispose();
+                    maskcolorTables.ElementAt(k).Dispose();
+                    maskcolorMappers.ElementAt(k).Dispose();
+                }                
             }
 
             /// <summary>
@@ -284,10 +307,10 @@ namespace HistoGrading.Components
             /// </summary>
             /// <param name="cmin">Lower limit for color table.</param>
             /// <param name="cmax">Upper limit for color table.</param>
-            public void setMaskGrayLevel(int cmin, int cmax)
+            public void setMaskGrayLevel(int idx, int cmin, int cmax, double[] color)
             {
                 //Set lookup table range
-                maskcolorTable.SetTableRange(cmin, cmax);
+                maskcolorTables.ElementAt(idx).SetTableRange(cmin, cmax);
                 //Loop over range and add points to the table
                 for (int cvalue = 0; cvalue <= 255; cvalue++)
                 {
@@ -296,35 +319,23 @@ namespace HistoGrading.Components
                     //Values below maximum are set to appropriate value
                     if (val < 1.0 && cvalue > cmin)
                     {
-                        maskcolorTable.SetTableValue(cvalue, val, 0, 0, 0.9);
+                        maskcolorTables.ElementAt(idx).SetTableValue(cvalue, color[0]*val, color[1] * val, color[2] * val, 0.9);
                     }
                     if (val < 1.0 && cvalue <= cmin)
                     {
-                        maskcolorTable.SetTableValue(cvalue, 0, 0, 0, 0);
+                        maskcolorTables.ElementAt(idx).SetTableValue(cvalue, 0, 0, 0, 0);
                     }
                     //Values over maximum are set to 1
                     if (val >= 1 && cvalue > cmin)
                     {
-                        maskcolorTable.SetTableValue(cvalue, 1.0, 0, 0, 0.9);
+                        maskcolorTables.ElementAt(idx).SetTableValue(cvalue, color[0], color[1], color[2], 0.9);
                     }
                 }
                 //Build the table
-                maskcolorTable.Build();
+                maskcolorTables.ElementAt(idx).Build();
                 //Attach to color mapper
-                maskcolorMapper.SetLookupTable(maskcolorTable);
+                maskcolorMappers.ElementAt(idx).SetLookupTable(maskcolorTables.ElementAt(idx));
 
-                /*
-                //###//
-                //Create lookup table
-                maskcolorTable.SetTableRange(cmin, cmax);
-                //Min value is set to 0, max value is set 1 => binary table
-                maskcolorTable.SetTableValue(cmin, 0.0, 0.0, 0.0, 0.0);
-                maskcolorTable.SetTableValue(cmax, 1.0, 0.0, 0.0, 1.0);
-                //Build table
-                maskcolorTable.Build();
-                //Attach to color mapper
-                maskcolorMapper.SetLookupTable(maskcolorTable);
-                */
             }
 
             //Method for connecting image components
@@ -349,24 +360,49 @@ namespace HistoGrading.Components
             /// Method for connecting mask components
             /// </summary>
             /// <param name="mask">Mask image data.</param>
-            public void connectMask(vtkImageData mask, int cmin, int cmax)
+            public void connectMask(List<vtkImageData> masks, List<double[]> colors, int cmin, int cmax)
             {
-                //Set mask color and mapper
-                setMaskGrayLevel(cmin, cmax);
-                maskcolorMapper.SetInput(mask);
-                maskcolorMapper.Update();
-                //Connect mapper
-                maskactor.SetInput(maskcolorMapper.GetOutput());
-                //Connect to renderer
-                renderer.AddActor(maskactor);
+                for (int k = 0; k < masks.Count(); k++)
+                {
+                    //Add components
+
+                    //Set mask color and mapper
+                    setMaskGrayLevel(k,cmin, cmax, colors.ElementAt(k));
+                    maskcolorMappers.ElementAt(k).SetInput(masks.ElementAt(k));
+                    maskcolorMappers.ElementAt(k).Update();                    
+                    //Connect mapper
+                    maskactors.ElementAt(k).SetInput(maskcolorMappers.ElementAt(k).GetOutput());
+                    //Connect to renderer
+                    renderer.AddActor(maskactors.ElementAt(k));
+                }
             }
+
+            //Method s for disposing the object
+            public void Dispose()
+            {
+                DisposeMasks();
+                //Clear the pipeline
+                renderer.RemoveActor(actor);
+                //Dispose volume components
+                actor.Dispose();
+                colorMapper.Dispose();
+                colorTable.Dispose();                
+                renderer.Dispose();
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+            protected virtual void Dispose(bool disposing)
+            {
+                Disposed = true;
+            }
+            protected bool Disposed { get; private set; }
         }
 
         /// <summary>
         /// Class for rendering images and 3D volumes. Volume and image pipelines defined above are called,
         /// depending on the input.
         /// </summary>
-        public class renderPipeLine
+        public class renderPipeLine : IDisposable
         {
             //Declarations
 
@@ -381,7 +417,6 @@ namespace HistoGrading.Components
             public vtkImageData idata = vtkImageData.New();
             List<vtkImageData> imasks = new List<vtkImageData>();
             List<double[]> maskcolors = new List<double[]>();
-            vtkImageData imask = vtkImageData.New();
             //Rendering pipelines
             volumePipeLine volPipe = new volumePipeLine();
             imagePipeLine imPipe = new imagePipeLine();
@@ -390,6 +425,11 @@ namespace HistoGrading.Components
             int[] sliceN = new int[3] { 0, 0, 0 };
             int curAx = 0;
             int[] gray = new int[2] { 0, 255 };
+                       
+
+            //flags for components
+            int has_volume = 0;
+            int has_image = 0;
 
             //Methods for communicating with GUI
 
@@ -408,9 +448,19 @@ namespace HistoGrading.Components
             /// <param name="input">Data input to be connected.</param>
             public void connectData(string input)
             {
-                idata = Functions.loadVTK(input,1);
-            }
+                idata.Dispose();
+                vtkImageData tmp = vtkImageData.New();
+                tmp = Functions.loadVTK(input);
+                idata = vtkImageData.New();
+                idata.DeepCopy(tmp);
+                tmp.Dispose();
 
+                for(int k = 0; k<imasks.Count(); k++)
+                {
+                    imasks.ElementAt(k).Dispose();
+                }                
+            }
+            
             /// <summary>
             /// Connect input volume.
             /// </summary>
@@ -427,11 +477,16 @@ namespace HistoGrading.Components
             public void connectMask(string input)
             {
                 //Clear current masks
+                for(int k = 0; k<imasks.Count(); k++)
+                {
+                    imasks.ElementAt(0).Dispose();                    
+                }
+                
                 imasks = new List<vtkImageData>();
                 maskcolors = new List<double[]>();
                 GC.Collect();
                 //Load mask
-                vtkImageData tmp = Functions.loadVTK(input,1);
+                vtkImageData tmp = Functions.loadVTK(input);
                 //Set graylevel
                 vtkImageMathematics math = vtkImageMathematics.New();
                 math.SetInput1(idata);
@@ -468,7 +523,12 @@ namespace HistoGrading.Components
                         reslice.SetInputConnection(math.GetOutputPort());
                         reslice.SetOutputExtent(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
                         reslice.Update();
-                        imasks.Add(reslice.GetOutput());
+                        vtkImageData mask = vtkImageData.New();
+                        mask.DeepCopy(reslice.GetOutput());
+                        imasks.Add(mask);
+                        reslice.Dispose();
+                        math.Dispose();
+                        input_mask.Dispose();
                     }
                     if (multiply == 0)
                     {
@@ -477,16 +537,17 @@ namespace HistoGrading.Components
                 }
 
                 //Add colors
-                for(int c = 0; c < input_masks.Count(); c++)
+                maskcolors = new List<double[]>();
+                for (int c = 0; c < input_masks.Count(); c++)
                 {
-                    double val = (c / 3) * 0.2;
+                    double val = (c / 3 + 1) * 0.25;
                     double[] cur = new double[3];
                     for(int k = 0; k < 3; k++)
                     {
                         cur[k] += val;                        
                     }
-                    cur[c % 3] = 0.9;
-                    maskcolors.Add(cur);
+                    cur[c % 3] = 0.8;
+                    maskcolors.Add(cur);                    
                 }
             }
 
@@ -515,23 +576,38 @@ namespace HistoGrading.Components
                 //rendered on top of each other, and helps with memory management.
                 renWin.RemoveRenderer(renWin.GetRenderers().GetFirstRenderer());
 
+                //Initialize new volume rendering pipeline and connect components
+                //Disposes existing pipeline and initializes new pipeline
+                if(has_volume == 1)
+                {
+                    volPipe.Dispose();                    
+                }
+                if(has_image == 1)
+                {
+                    imPipe.Dispose();
+                    imPipe.Initialize();
+                }
+
+                volPipe.Initialize();
+
                 //Initialize renderer, dispose existing renderer and connect new renderer
                 renderer.Dispose();
                 renderer = vtkRenderer.New();
 
-                //Initialize new volume rendering pipeline and connect components
-                //Disposes existing pipeline and initializes new pipeline
-                volPipe.Dispose();
-                volPipe.Initialize();
+
                 //Connect input data and renderer to rendering pipeline
                 volPipe.connectComponents(idata, renderer, gray[0], gray[1]);
                 //Connect renderer to render window
                 renWin.AddRenderer(renderer);
 
+                //Update flags
+                has_volume = 1;
+                has_image = 0;
+
                 //Render volume
                 renWin.Render();
 
-            }
+            }       
 
             /// <summary>
             /// 2D Image rendering.
@@ -544,11 +620,21 @@ namespace HistoGrading.Components
 
                 //Initialize new image rendering pipeline and connect components
                 //Disposes existing pipeline and initializes new pipeline
-                vtkImageData slice = Functions.volumeSlicer(idata, sliceN, curAx);
+                //Initialize new volume rendering pipeline and connect components
+                //Disposes existing pipeline and initializes new pipeline
+                if (has_volume == 1)
+                {
+                    volPipe.Dispose();
+                }
+                if (has_image == 1)
+                {
+                    imPipe.Dispose();                    
+                }
 
-                //Initialize objects
                 imPipe.Initialize();
 
+                vtkImageData slice = Functions.volumeSlicer(idata, sliceN, curAx);
+                                
                 //Initialize renderer
                 renderer.Dispose();
                 renderer = vtkRenderer.New();
@@ -557,6 +643,10 @@ namespace HistoGrading.Components
                 imPipe.connectComponents(slice, renderer, gray[0], gray[1]);
                 //Connect renderer to render window
                 renWin.AddRenderer(renderer);
+
+                //Update flags
+                has_image = 1;
+                has_volume = 0;
 
                 //Render image
                 renWin.Render();
@@ -568,11 +658,11 @@ namespace HistoGrading.Components
             /// </summary>
             public void renderVolumeMask()
             {
-                volPipe.DisposeMask();
-                volPipe.InitializeMask();
+                volPipe.DisposeMasks();
+                volPipe.InitializeMasks(imasks.Count());
 
                 //Initialize new volume rendering and connect components
-                volPipe.connectMask(imasks,maskcolors);
+                volPipe.connectMask(imasks,maskcolors,gray[0],gray[1]);
                 //Render volume
                 renWin.Render();
             }
@@ -583,12 +673,18 @@ namespace HistoGrading.Components
             public void renderImageMask()
             {
                 /*Connect 2D mask to image rendering pipeline*/
-                imPipe.DisposeMask();
-                imPipe.InitializeMask();
+                imPipe.DisposeMasks();
+                imPipe.InitializeMask(imasks.Count());
 
                 //Get mask slice
-                vtkImageData maskSlice = Functions.volumeSlicer(imask, sliceN, curAx);
-                imPipe.connectMask(maskSlice,gray[0],gray[1]);
+                List<vtkImageData> maskSlices = new List<vtkImageData>();
+                foreach(vtkImageData mask in imasks)
+                {
+                    vtkImageData maskSlice = Functions.volumeSlicer(mask, sliceN, curAx);
+                    maskSlices.Add(maskSlice);
+                }
+                
+                imPipe.connectMask(maskSlices,maskcolors,gray[0],gray[1]);
 
                 //Render image
                 renWin.Render();
@@ -620,8 +716,20 @@ namespace HistoGrading.Components
             /// </summary>
             public void removeMask()
             {
-                imask.Dispose();
-                imask = vtkImageData.New();
+                if (has_volume == 1)
+                {
+                    volPipe.DisposeMasks();
+                }
+                if (has_image == 1)
+                {
+                    imPipe.DisposeMasks();
+                }
+
+                for (int k = 0; k < imasks.Count(); k++)
+                {
+                    imasks.ElementAt(k).Dispose();
+                }
+                imasks = new List<vtkImageData>();                
             }
 
             /// <summary>
@@ -641,7 +749,7 @@ namespace HistoGrading.Components
             public vtkImageData getVOI(int[] extent = null, int[] orientation = null)
             {
                 //Empty output data
-                vtkImageData voi;
+                vtkImageData voi = vtkImageData.New();
 
                 //If no VOI is specified, full data is returned
                 if (extent == null)
@@ -655,7 +763,8 @@ namespace HistoGrading.Components
                     extractor.SetInput(idata);
                     extractor.SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
                     extractor.Update();
-                    voi = extractor.GetOutput();
+                    voi.DeepCopy(extractor.GetOutput());
+                    extractor.Dispose();
                 }
                 //If order of the axes is specified, the return array is permuted
                 if (orientation != null)
@@ -664,7 +773,8 @@ namespace HistoGrading.Components
                     permuter.SetInput(voi);
                     permuter.SetFilteredAxes(orientation[0], orientation[1], orientation[2]);
                     permuter.Update();
-                    voi = permuter.GetOutput();
+                    voi.DeepCopy(permuter.GetOutput());
+                    permuter.Dispose();
                 }
                 return voi;
             }
@@ -676,7 +786,7 @@ namespace HistoGrading.Components
             public vtkImageData getMaskVOI(int idx, int[] extent = null, int[] orientation = null)
             {
                 //Empty output data
-                vtkImageData voi;
+                vtkImageData voi = vtkImageData.New();
 
                 //If no VOI is specified, full data is returned
                 if (extent == null)
@@ -690,7 +800,8 @@ namespace HistoGrading.Components
                     extractor.SetInput(imasks.ElementAt(idx));
                     extractor.SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
                     extractor.Update();
-                    voi = extractor.GetOutput();
+                    voi.DeepCopy(extractor.GetOutput());
+                    extractor.Dispose();
                 }
                 //If order of the axes is specified, the return array is permuted
                 if (orientation != null)
@@ -699,19 +810,166 @@ namespace HistoGrading.Components
                     permuter.SetInput(voi);
                     permuter.SetFilteredAxes(orientation[0], orientation[1], orientation[2]);
                     permuter.Update();
-                    voi = permuter.GetOutput();
+                    voi.DeepCopy(permuter.GetOutput());
+                    permuter.Dispose();
                 }
                 return voi;
             }
 
+            public void auto_rotate()
+            {
+                vtkImageData tmp = vtkImageData.New();
+                tmp.DeepCopy(idata);                
+                tmp = Functions.auto_rotate(tmp, 4);
+                idata = vtkImageData.New();
+                idata.DeepCopy(tmp);
+                tmp.Dispose();
+                GC.Collect();
+            }
+
             public void center_crop(int size = 400)
-            {                
-                vtkImageData tmp = Processing.center_crop(idata,size);
+            {
+                vtkImageData tmp = vtkImageData.New();
+                tmp.DeepCopy(idata);
                 idata.Dispose();
+                tmp = Processing.center_crop(tmp,size);                
                 idata = vtkImageData.New();
                 idata.DeepCopy(tmp);
                 tmp.Dispose();
             }
+
+            public void segmentation()
+            {
+                //Get sample dimensions
+                int[] extent = idata.GetExtent();
+
+                //Check the sample height for segmentation region
+                int sample_height = extent[5] - extent[4] - 1;
+
+                int[] voi_extent = new int[6];
+                int[] batch_dims = new int[3];
+
+                if (sample_height < 1000)
+                {
+                    voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4], extent[4] + 383 };
+                    batch_dims = new int[] { 384, 448, 1 };
+                }
+                if (sample_height >= 1000 && sample_height <= 1600)
+                {
+                    voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4] + 20, extent[4] + 20 + 447 };
+                    batch_dims = new int[] { 448, 448, 1 };
+                }
+                if (sample_height > 1600)
+                {
+                    voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4] + 50, extent[4] + 50 + 511 };
+                    batch_dims = new int[] { 512, 448, 1 };
+                }
+
+                //Empty list for output
+                List<vtkImageData> outputs;
+
+                IO.segmentation_pipeline(out outputs, this, batch_dims, voi_extent, new int[] { 0, 1 }, 32);
+                vtkImageThreshold t = vtkImageThreshold.New();
+                if (outputs.Count() == 2)
+                {
+                    //Sum operation
+                    vtkImageMathematics math = vtkImageMathematics.New();
+                    math.SetOperationToAdd();
+
+                    //Weighting
+                    vtkImageMathematics _tmp1 = vtkImageMathematics.New();
+                    _tmp1.SetInput1(outputs.ElementAt(0));
+                    _tmp1.SetConstantK(0.5);
+                    _tmp1.SetOperationToMultiplyByK();
+                    _tmp1.Update();
+
+                    vtkImageMathematics _tmp2 = vtkImageMathematics.New();
+                    _tmp2.SetInput1(outputs.ElementAt(1));
+                    _tmp2.SetConstantK(0.5);
+                    _tmp2.SetOperationToMultiplyByK();
+                    _tmp2.Update();
+
+                    math.SetInput1(_tmp1.GetOutput());
+                    math.SetInput2(_tmp2.GetOutput());
+
+                    math.Update();
+
+                    //Threshold
+                    t = vtkImageThreshold.New();
+                    t.SetInputConnection(math.GetOutputPort());
+                    t.ThresholdByUpper(0.7 * 255.0);
+                    t.SetOutValue(0);
+                    t.SetInValue(255.0);
+                    t.Update();
+                }
+                else
+                {
+                    //Threshold
+                    t = vtkImageThreshold.New();
+                    t.SetInput(outputs.ElementAt(0));
+                    t.ThresholdByUpper(0.7 * 255.0);
+                    t.SetOutValue(0);
+                    t.SetInValue(255.0);
+                    t.Update();
+                }
+
+                List<vtkImageData> tmpmask = new List<vtkImageData>();
+                tmpmask.Add(vtkImageData.New());
+                tmpmask.ElementAt(0).DeepCopy(t.GetOutput());
+                t.Dispose();
+                connectMaskFromData(tmpmask, 1);
+            }
+
+            public void analysis_vois()
+            {
+                vtkImageData ccartilage; vtkImageData dcartilage; vtkImageData scartilage;
+                Functions.get_analysis_vois(out dcartilage, out ccartilage, out scartilage, idata, imasks.ElementAt(0));
+
+                removeMask();
+
+                connectMaskFromData(new List<vtkImageData> { ccartilage, dcartilage, scartilage}, 0);
+            }
+
+            public void save_data(string name, string path)
+            {
+                Functions.saveVTK(idata, path, name);
+            }
+
+            public void save_masks(string[] names, string path)
+            {
+                for(int k = 0; k<names.Length; k++)
+                {
+                    Functions.saveVTK(imasks.ElementAt(k), path, names[k]);
+                }
+            }
+
+            //Disposing methods
+            public void Dispose()
+            {
+                if(has_volume == 1)
+                {
+                    volPipe.Dispose();
+                }
+                if(has_image == 1)
+                {
+                    imPipe.Dispose();
+                }
+                idata.Dispose();
+                for(int k = 0; k<imasks.Count();k++)
+                {
+                    imasks.ElementAt(k).Dispose();
+                }
+                imasks = null;
+                idata = null;
+                GC.Collect();
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+            protected virtual void Dispose(bool disposing)
+            {
+                Disposed = true;
+            }
+            protected bool Disposed { get; private set; }
         }
 
         /// <summary>
