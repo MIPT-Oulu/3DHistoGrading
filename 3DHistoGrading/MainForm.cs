@@ -110,8 +110,7 @@ namespace HistoGrading
             {
                 //Update gary value range and render volume
                 gray[1] = gmaxBar.Value;
-                volume.updateCurrent(sliceN,ori,gray);
-                volume.setVolumeColor();
+                volume.updateCurrent(sliceN,ori,gray);                
                 //Update slice if rendering
                 if (ori > -1)
                 {
@@ -121,6 +120,10 @@ namespace HistoGrading
                     {
                         volume.renderImageMask();
                     }
+                }
+                else
+                {
+                    volume.setVolumeColor();
                 }
             }
         }
@@ -133,7 +136,6 @@ namespace HistoGrading
                 //Update gary value range and render volume
                 gray[0] = gminBar.Value;
                 volume.updateCurrent(sliceN, ori, gray);
-                volume.setVolumeColor();
                 //Update slice if rendering
                 if(ori>-1)
                 {
@@ -143,6 +145,10 @@ namespace HistoGrading
                     {
                         volume.renderImageMask();
                     }
+                }
+                else
+                {
+                    volume.setVolumeColor();
                 }
             }
         }
@@ -620,7 +626,7 @@ namespace HistoGrading
             if(save_vois == 1)
             {
                 //Save analysis VOIs
-                string[] names = new string[] { fname + "_deep", fname + "_calcified", fname + "_surface" };
+                string[] names = new string[] { fname + "_calcified", fname + "_deep", fname + "_surface" };
                 volume.save_masks(names, savedir);
             }
 

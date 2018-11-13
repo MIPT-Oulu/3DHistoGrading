@@ -128,8 +128,12 @@ namespace HistoGrading.Components
             }
             //slicer.Update();
 
+            vtkImageData output = vtkImageData.New();
+            output.DeepCopy(permuter.GetOutput());
+            permuter.Dispose();
+            slicer.Dispose();
             //Return copy of the slice
-            return permuter.GetOutput();
+            return output;
         }
 
         /// <summary>
@@ -270,6 +274,49 @@ namespace HistoGrading.Components
             }
         }
         
+        /// <summary>
+        /// Also does not work
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        public static void saveVTKPNG(vtkImageData input, string path, string name)
+        {
+            //Data dimensions
+            int[] dims = input.GetExtent();            
+            int d = dims[5] - dims[4] + 1;
+            //Array of indices
+            int[] inds = new int[] { 0, 0, 0 };
+
+            for (int k = 0; k<d;k++)
+            {
+                //Set file name
+                string dirname = path + "\\" + name;
+                if (k == 0) { Directory.CreateDirectory(dirname); }
+                string fname = dirname + "\\" + name + "\\" + name + "_" + String.Format("{0}", k).PadLeft(6, '0') + ".png";
+
+                //Get slice
+                inds[2] += k;
+                vtkImageData tmp = Functions.volumeSlicer(input, inds, 2);
+
+                //New png writer
+                vtkPNGWriter writer = vtkPNGWriter.New();
+                writer.SetInput(tmp);
+                writer.WriteToMemoryOff();
+                writer.SetFileDimensionality(2);
+                writer.SetFileName(fname);                
+                writer.Write();
+                writer.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Does not work
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="extension"></param>
         public static void saveVTK(vtkImageData input, string path, string name, string extension = "png")
         {
             //Get dimensiosn
@@ -281,7 +328,7 @@ namespace HistoGrading.Components
             byte[] bytedata = DataTypes.vtkToByte(input);
             //Iterate over z-axis
             for(int kz = 0; kz<d; kz++)
-            {
+            {         
                 //Empty array for slice
                 byte[] _tmp = new byte[h * w];
                 //Iterate over x and y axes
@@ -297,20 +344,18 @@ namespace HistoGrading.Components
                 });
                 //Convert slice to Mat
                 Mat image = new Mat(h, w, MatType.CV_8UC1, _tmp);
-                using (var win = new Window("window", WindowMode.AutoSize, image: image))
-                {
-                    Cv2.WaitKey();
-                }
-                    //Save image
+                _tmp = null;                
+                //Save image
                 string dirname = path + "\\" + name;
                 if (kz == 0) { Directory.CreateDirectory(dirname); }
-                string fname = dirname + "\\" + name + "\\" + name + "_" + String.Format("{0}",kz).PadLeft(6, '0') + "." + extension;
+                string fname = dirname + "\\" + name + "_" + String.Format("{0}",kz).PadLeft(6, '0') + "." + extension;
+                Console.WriteLine(dirname);
                 Console.WriteLine(fname);
                 Image _image = image.ToBitmap();
-                _image.Save(fname,ImageFormat.Png);
-                _image.Dispose();
                 image.Dispose();
                 _tmp = null;
+                _image.Save(fname,ImageFormat.Png);
+                _image.Dispose();                                
             }
         }
 
@@ -795,7 +840,7 @@ namespace HistoGrading.Components
             {
                 Parallel.For(0, w, (int x) =>
                 {
-                    for (int z = surface[y, x]; z > surface[y, x] - depth; z -= 1)
+                    for (int z = surface[y, x]; z > Math.Max(surface[y, x] - depth,0); z -= 1)
                     {
                         int pos = z * (h * w) + y * w + x;
                         output[pos] = bytedata[pos];

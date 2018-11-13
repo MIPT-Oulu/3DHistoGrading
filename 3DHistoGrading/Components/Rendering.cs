@@ -135,7 +135,7 @@ namespace HistoGrading.Components
                 vol.SetMapper(mapper);
                 vol.Update();
                 //Renderer back ground
-                renderer.SetBackground(0, 0, 0);
+                renderer.SetBackground(0.0, 0.0, 0.0);
                 renderer.AddVolume(vol);                
                 //Set Camera
                 renderer.GetActiveCamera().SetPosition(0.5, 1, 0);
@@ -820,7 +820,7 @@ namespace HistoGrading.Components
             {
                 vtkImageData tmp = vtkImageData.New();
                 tmp.DeepCopy(idata);                
-                tmp = Functions.auto_rotate(tmp, 4);
+                tmp = Functions.auto_rotate(tmp, 3);
                 idata = vtkImageData.New();
                 idata.DeepCopy(tmp);
                 tmp.Dispose();
@@ -932,6 +932,7 @@ namespace HistoGrading.Components
 
             public void save_data(string name, string path)
             {
+                //Functions.saveVTKPNG(idata, path, name);
                 Functions.saveVTK(idata, path, name);
             }
 
@@ -939,6 +940,7 @@ namespace HistoGrading.Components
             {
                 for(int k = 0; k<names.Length; k++)
                 {
+                    //Functions.saveVTKPNG(imasks.ElementAt(k), path, names[k]);
                     Functions.saveVTK(imasks.ElementAt(k), path, names[k]);
                 }
             }
