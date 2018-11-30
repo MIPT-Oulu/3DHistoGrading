@@ -501,7 +501,7 @@ namespace HistoGrading.Components
 
             //Find the center of the sample
 
-            int[] center = find_center(stack,70, new int[] { 0, (dims[5] - dims[4] + 1)/2 });//GetCenter(bytedata,80);
+            int[] center = find_center(stack,70, new int[] { 0, (dims[5] - dims[4] + 1)/3 });//GetCenter(bytedata,80);
             //Compute new volume sides
             int y2 = Math.Min(center[0] + (side / 2), dims[1]);
             int y1 = Math.Max(y2 - side + 1, dims[0]);

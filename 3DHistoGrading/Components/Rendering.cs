@@ -776,6 +776,7 @@ namespace HistoGrading.Components
                     voi.DeepCopy(permuter.GetOutput());
                     permuter.Dispose();
                 }
+
                 return voi;
             }
 
@@ -849,26 +850,32 @@ namespace HistoGrading.Components
                 int[] voi_extent = new int[6];
                 int[] batch_dims = new int[3];
 
-                if (sample_height < 1000)
+                /*
+                if (sample_height < 1000)                                
                 {
                     voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4], extent[4] + 383 };
                     batch_dims = new int[] { 384, 448, 1 };
-                }
-                if (sample_height >= 1000 && sample_height <= 1600)
+                }                
+                if (sample_height >= 1000 && sample_height <= 1600)                
                 {
                     voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4] + 20, extent[4] + 20 + 447 };
                     batch_dims = new int[] { 448, 448, 1 };
                 }
-                if (sample_height > 1600)
+                if (sample_height > 1600)                
                 {
                     voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4] + 50, extent[4] + 50 + 511 };
                     batch_dims = new int[] { 512, 448, 1 };
                 }
+                */
+
+                voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4], extent[4]+767 };
+                batch_dims = new int[] { 448, 768, 1 };
 
                 //Empty list for output
                 List<vtkImageData> outputs;
 
-                IO.segmentation_pipeline(out outputs, this, batch_dims, voi_extent, new int[] { 0, 1 }, 32);
+                IO.segmentation_pipeline(out outputs, this, batch_dims, voi_extent, new int[] { 0,1 }, 24);
+
                 vtkImageThreshold t = vtkImageThreshold.New();
                 if (outputs.Count() == 2)
                 {
@@ -897,7 +904,7 @@ namespace HistoGrading.Components
                     //Threshold
                     t = vtkImageThreshold.New();
                     t.SetInputConnection(math.GetOutputPort());
-                    t.ThresholdByUpper(0.7 * 255.0);
+                    t.ThresholdByUpper(0.5 * 255.0);
                     t.SetOutValue(0);
                     t.SetInValue(255.0);
                     t.Update();
@@ -907,7 +914,7 @@ namespace HistoGrading.Components
                     //Threshold
                     t = vtkImageThreshold.New();
                     t.SetInput(outputs.ElementAt(0));
-                    t.ThresholdByUpper(0.7 * 255.0);
+                    t.ThresholdByUpper(0.5 * 255.0);
                     t.SetOutValue(0);
                     t.SetInValue(255.0);
                     t.Update();

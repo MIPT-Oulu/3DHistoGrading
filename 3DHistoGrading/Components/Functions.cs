@@ -741,13 +741,13 @@ namespace HistoGrading.Components
             {
                 Parallel.For(0, w, (int x) =>
                 {
-                    for(int z = d-1; z >= 0; z -= 1)
+                    for(int z = d-1; z > 0; z-=1)
                     {
                         int pos = z * strided + y * strideh + x * stridew;
                         byte val = bytedata[pos];
                         if((double)val>threshold)
                         {
-                            indices[y, x] = z;
+                            indices[y, x] = z;            
                             break;
                         }
                     }
@@ -776,7 +776,7 @@ namespace HistoGrading.Components
             {
                 Parallel.For(0, w, (int x) =>
                 {
-                    for(int z = BCI[y,x] + offset; z < BCI[y,x] + depth[y,x]; z+=1)
+                    for(int z = BCI[y, x] + depth[y, x]; z > BCI[y,x] + offset; z-=1)
                     {
                         int pos = z * (h * w) + y * w + x;
                         output[pos] = bytedata[pos];
@@ -809,7 +809,7 @@ namespace HistoGrading.Components
             {
                 Parallel.For(0, w, (int x) =>
                 {
-                    for (int z = BCI[y, x] + offset; z > 0; z -= 1)
+                    for ( int z = BCI[y, x] + offset; z > 0; z-=1)
                     {
                         int pos = z * (h * w) + y * w + x;
                         output[pos] = bytedata[pos];
@@ -822,7 +822,7 @@ namespace HistoGrading.Components
             return DataTypes.byteToVTK1D(output,dims);
         }
 
-        public static vtkImageData get_cartilage_surface_tmp(vtkImageData sample, int[,] surface, int depth = 25)
+        public static vtkImageData get_cartilage_surface_tmp(vtkImageData sample, int[,] surface, int depth = 50)
         {
             //vtk to byte
             byte[] bytedata = DataTypes.vtkToByte(sample);
@@ -840,7 +840,7 @@ namespace HistoGrading.Components
             {
                 Parallel.For(0, w, (int x) =>
                 {
-                    for (int z = surface[y, x]; z > Math.Max(surface[y, x] - depth,0); z -= 1)
+                    for (int z = surface[y, x]; z > Math.Max(surface[y, x] - depth,0); z-=1)
                     {
                         int pos = z * (h * w) + y * w + x;
                         output[pos] = bytedata[pos];
@@ -868,9 +868,9 @@ namespace HistoGrading.Components
             int zmin = 65000;
             int zmax = 0;
 
-            for (int y = 0; y<surface.GetLength(0); y+=2)
+            for (int y = 24; y<surface.GetLength(0)-24; y+=4)
             {
-                for (int x = 0; x < surface.GetLength(1); x+=2)
+                for (int x = 24; x < surface.GetLength(1)-24; x+=4)
                 {
                     pointsx.Add(new Point2f((float)x, (float)surface[y, x]));
                     pointsy.Add(new Point2f((float)y, (float)surface[y, x]));
@@ -886,11 +886,11 @@ namespace HistoGrading.Components
             //Get angles as degrees
             double thetax = Math.Atan(linex.Vy / (linex.Vx + 1e-9)) * 180.0 / Math.PI;
             double thetay = Math.Atan(liney.Vy / (liney.Vx + 1e-9)) * 180.0 / Math.PI;
-            double[] angles = new double[] { -thetax, thetay};
+            double[] angles = new double[] { thetax, thetay};
             int[] axes = new int[] {0, 1};
 
             //Crop and rotate
-            int[] voidims = new int[] { dims0[0], dims0[1] , dims0[2] , dims0[3] , Math.Max(zmin-25, dims0[4]), Math.Min(zmax + 25, dims0[5]) };
+            int[] voidims = new int[] { dims0[0], dims0[1] , dims0[2] , dims0[3] , Math.Max(zmin-50, dims0[4]), Math.Min(zmax + 50, dims0[5]) };
             vtkExtractVOI cropper = vtkExtractVOI.New();
             cropper.SetInput(sample);
             cropper.SetVOI(voidims[0], voidims[1], voidims[2], voidims[3], voidims[4], voidims[5]);
@@ -955,7 +955,7 @@ namespace HistoGrading.Components
         }
 
         public static void get_analysis_vois(out vtkImageData dcartilage, out vtkImageData ccartilage, out vtkImageData scartilage,
-            vtkImageData input, vtkImageData BCImask, int surf_depth = 25, int bone_depth = 0, double cartilage_depth = 0.3)
+            vtkImageData input, vtkImageData BCImask, int surf_depth = 25, int bone_depth = 0, double cartilage_depth = 0.6)
         {
             //Get input dimensions
             int[] dims = input.GetExtent();
@@ -980,7 +980,7 @@ namespace HistoGrading.Components
             BW1.Dispose();
 
             //Get BCI indices
-            int[,] BCI = get_surface(BCImask);
+            int[,] BCI = get_surface(BCImask,0);
 
             //Empty array for depth
             int[,] depth = new int[BCI.GetLength(0),BCI.GetLength(1)];
@@ -994,7 +994,7 @@ namespace HistoGrading.Components
                     int val = (int)((surface[y, x] - BCI[y, x]) * cartilage_depth);
                     depth[y, x] = val;                    
                 }
-            }            
+            }
 
             //Get deep cartilage VOI
             dcartilage = get_deep_ac(input, BCI, depth);
@@ -1053,12 +1053,13 @@ namespace HistoGrading.Components
             int h = dims[1] - dims[0] + 1;
             int w = dims[3] - dims[2] + 1;
             int d = dims[5] - dims[4] + 1;
+            /*
             byte[] mult_vector = new byte[h * w * d];
             Parallel.For(0, h, (int ky) =>
             {
                 Parallel.For(0, w, (int kx) =>
                 {
-                    Parallel.For(0, d / 3, (int kz) =>
+                    Parallel.For(0, d, (int kz) =>
                     {
                         int pos = kz * (h * w) + ky * w + kx;
                         mult_vector[pos] = 1;
@@ -1072,11 +1073,11 @@ namespace HistoGrading.Components
             math.SetInput2(multiplier);
             math.SetOperationToMultiply();
             math.Update();
-
+            */
             //Downsample the array by a factor of 10
             double s = 0.1;
-            vtkImageData scaled = Processing.rescale_sample(math.GetOutput(), s);
-            math.Dispose();
+            vtkImageData scaled = Processing.rescale_sample(vtkdata, s);
+            //math.Dispose();
 
 
             //Get sample orientation
@@ -1281,7 +1282,14 @@ namespace HistoGrading.Components
         {
             //Conver byte data to vtkImageData
             vtkdata = DataTypes.byteToVTK(data);
-            return vtkdata;
+            /*
+            //flip the data along z axis
+            vtkImageFlip flipper = vtkImageFlip.New();
+            flipper.SetInput(vtkdata);
+            flipper.SetFilteredAxis(2);
+            flipper.Update();
+            */
+            return vtkdata; //flipper.GetOutput();
         }
     }
 

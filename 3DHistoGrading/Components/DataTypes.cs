@@ -115,9 +115,9 @@ namespace HistoGrading.Components
             IntPtr ptr = pinnedArray.AddrOfPinnedObject();
             //VTK exporter
             vtkImageExport exporter = vtkImageExport.New();
-            //Connect input data to exporter
             exporter.SetInput(vtkdata);
             exporter.Update();
+            
             //Export data to byte array
             exporter.Export(ptr);
             //Free pinned array
@@ -277,6 +277,13 @@ namespace HistoGrading.Components
             {
                 //List to array
                 float[] tmp = item.ToArray();
+                /*
+                Mat image = new Mat((extent[3] - extent[2] + 1), (extent[5] - extent[4] + 1), MatType.CV_32FC1, tmp);
+                using(Window win = new Window("Inference",WindowMode.AutoSize, image: image))
+                {
+                    Cv2.WaitKey();
+                }
+                */
                 //Iterate over the array in parallel
                 Parallel.For(extent[2], extent[3], (int h) =>
                 {
