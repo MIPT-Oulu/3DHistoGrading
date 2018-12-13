@@ -30,6 +30,11 @@
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.saveButton = new System.Windows.Forms.Button();
+            this.rotate_button = new System.Windows.Forms.Button();
+            this.getVoiButton = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.cropButton = new System.Windows.Forms.Button();
             this.segmentButton = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.viewLabel = new System.Windows.Forms.Label();
@@ -46,13 +51,14 @@
             this.maskButton = new System.Windows.Forms.Button();
             this.fileButton = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.gradeLabel = new System.Windows.Forms.Label();
             this.sliceLabel = new System.Windows.Forms.Label();
             this.maskLabel = new System.Windows.Forms.Label();
             this.fileLabel = new System.Windows.Forms.Label();
             this.sliceBar = new System.Windows.Forms.VScrollBar();
             this.renderWindowControl = new Kitware.VTK.RenderWindowControl();
+            this.cropBar = new System.Windows.Forms.VScrollBar();
             this.fileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.cropButton = new System.Windows.Forms.Button();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -60,31 +66,33 @@
             // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.ColumnCount = 3;
+            this.tableLayoutPanel1.ColumnCount = 5;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 113F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 113F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 45F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 85F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 34F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             this.tableLayoutPanel1.Controls.Add(this.panel1, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.panel2, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.sliceBar, 2, 1);
-            this.tableLayoutPanel1.Controls.Add(this.renderWindowControl, 1, 1);
+            this.tableLayoutPanel1.Controls.Add(this.panel2, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.sliceBar, 3, 1);
+            this.tableLayoutPanel1.Controls.Add(this.renderWindowControl, 2, 1);
+            this.tableLayoutPanel1.Controls.Add(this.cropBar, 4, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
-            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 57F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 365F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 297F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(810, 638);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1069, 867);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.saveButton);
+            this.panel1.Controls.Add(this.rotate_button);
+            this.panel1.Controls.Add(this.getVoiButton);
+            this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.cropButton);
             this.panel1.Controls.Add(this.segmentButton);
             this.panel1.Controls.Add(this.label2);
@@ -105,14 +113,71 @@
             this.panel1.Location = new System.Drawing.Point(2, 60);
             this.panel1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(109, 575);
+            this.panel1.Size = new System.Drawing.Size(109, 804);
             this.panel1.TabIndex = 0;
+            // 
+            // saveButton
+            // 
+            this.saveButton.Enabled = false;
+            this.saveButton.Location = new System.Drawing.Point(10, 658);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(93, 49);
+            this.saveButton.TabIndex = 16;
+            this.saveButton.Text = "Save Results";
+            this.saveButton.UseVisualStyleBackColor = true;
+            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
+            // 
+            // rotate_button
+            // 
+            this.rotate_button.Enabled = false;
+            this.rotate_button.Location = new System.Drawing.Point(10, 347);
+            this.rotate_button.Name = "rotate_button";
+            this.rotate_button.Size = new System.Drawing.Size(93, 40);
+            this.rotate_button.TabIndex = 15;
+            this.rotate_button.Text = "Auto Rotate";
+            this.rotate_button.UseVisualStyleBackColor = true;
+            this.rotate_button.Click += new System.EventHandler(this.rotate_button_Click);
+            // 
+            // getVoiButton
+            // 
+            this.getVoiButton.Enabled = false;
+            this.getVoiButton.Location = new System.Drawing.Point(9, 492);
+            this.getVoiButton.Margin = new System.Windows.Forms.Padding(2);
+            this.getVoiButton.Name = "getVoiButton";
+            this.getVoiButton.Size = new System.Drawing.Size(94, 42);
+            this.getVoiButton.TabIndex = 14;
+            this.getVoiButton.Text = "Get VOIs";
+            this.getVoiButton.UseVisualStyleBackColor = true;
+            this.getVoiButton.Click += new System.EventHandler(this.getVoiButton_Click);
+            //this.getVoiButton.Click += new System.EventHandler(this.cleanSurfButton_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(6, 318);
+            this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(59, 13);
+            this.label3.TabIndex = 13;
+            this.label3.Text = "Processing";
+            // 
+            // cropButton
+            // 
+            this.cropButton.Enabled = false;
+            this.cropButton.Location = new System.Drawing.Point(9, 393);
+            this.cropButton.Name = "cropButton";
+            this.cropButton.Size = new System.Drawing.Size(94, 48);
+            this.cropButton.TabIndex = 12;
+            this.cropButton.Text = "Crop Sample";
+            this.cropButton.UseVisualStyleBackColor = true;
+            this.cropButton.Click += new System.EventHandler(this.cropButton_Click);
             // 
             // segmentButton
             // 
-            this.segmentButton.Location = new System.Drawing.Point(9, 412);
             this.segmentButton.Enabled = false;
-            this.segmentButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.segmentButton.Location = new System.Drawing.Point(10, 446);
+            this.segmentButton.Margin = new System.Windows.Forms.Padding(2);
+
             this.segmentButton.Name = "segmentButton";
             this.segmentButton.Size = new System.Drawing.Size(94, 42);
             this.segmentButton.TabIndex = 11;
@@ -123,7 +188,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(7, 296);
+            this.label2.Location = new System.Drawing.Point(7, 558);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(44, 13);
@@ -133,7 +198,7 @@
             // viewLabel
             // 
             this.viewLabel.AutoSize = true;
-            this.viewLabel.Location = new System.Drawing.Point(7, 157);
+            this.viewLabel.Location = new System.Drawing.Point(7, 111);
             this.viewLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.viewLabel.Name = "viewLabel";
             this.viewLabel.Size = new System.Drawing.Size(30, 13);
@@ -142,9 +207,10 @@
             // 
             // predict
             // 
-            this.predict.Location = new System.Drawing.Point(9, 312);
             this.predict.Enabled = false;
-            this.predict.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.predict.Location = new System.Drawing.Point(9, 574);
+            this.predict.Margin = new System.Windows.Forms.Padding(2);
+
             this.predict.Name = "predict";
             this.predict.Size = new System.Drawing.Size(94, 42);
             this.predict.TabIndex = 2;
@@ -155,7 +221,7 @@
             // sagittalButton
             // 
             this.sagittalButton.Enabled = false;
-            this.sagittalButton.Location = new System.Drawing.Point(5, 266);
+            this.sagittalButton.Location = new System.Drawing.Point(7, 272);
             this.sagittalButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.sagittalButton.Name = "sagittalButton";
             this.sagittalButton.Size = new System.Drawing.Size(99, 26);
@@ -167,7 +233,7 @@
             // coronalButton
             // 
             this.coronalButton.Enabled = false;
-            this.coronalButton.Location = new System.Drawing.Point(5, 235);
+            this.coronalButton.Location = new System.Drawing.Point(7, 240);
             this.coronalButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.coronalButton.Name = "coronalButton";
             this.coronalButton.Size = new System.Drawing.Size(99, 26);
@@ -179,7 +245,7 @@
             // transverseButton
             // 
             this.transverseButton.Enabled = false;
-            this.transverseButton.Location = new System.Drawing.Point(5, 205);
+            this.transverseButton.Location = new System.Drawing.Point(7, 208);
             this.transverseButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.transverseButton.Name = "transverseButton";
             this.transverseButton.Size = new System.Drawing.Size(99, 26);
@@ -191,7 +257,7 @@
             // volumeButton
             // 
             this.volumeButton.Enabled = false;
-            this.volumeButton.Location = new System.Drawing.Point(5, 174);
+            this.volumeButton.Location = new System.Drawing.Point(7, 179);
             this.volumeButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.volumeButton.Name = "volumeButton";
             this.volumeButton.Size = new System.Drawing.Size(99, 26);
@@ -203,7 +269,7 @@
             // resetButton
             // 
             this.resetButton.Enabled = false;
-            this.resetButton.Location = new System.Drawing.Point(7, 107);
+            this.resetButton.Location = new System.Drawing.Point(7, 127);
             this.resetButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.resetButton.Name = "resetButton";
             this.resetButton.Size = new System.Drawing.Size(99, 46);
@@ -216,7 +282,7 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(7, 541);
+            this.label1.Location = new System.Drawing.Point(7, 770);
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(48, 13);
@@ -227,7 +293,7 @@
             // 
             this.gmaxLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.gmaxLabel.AutoSize = true;
-            this.gmaxLabel.Location = new System.Drawing.Point(7, 500);
+            this.gmaxLabel.Location = new System.Drawing.Point(7, 729);
             this.gmaxLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.gmaxLabel.Name = "gmaxLabel";
             this.gmaxLabel.Size = new System.Drawing.Size(51, 13);
@@ -238,7 +304,7 @@
             // 
             this.gminBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.gminBar.Enabled = false;
-            this.gminBar.Location = new System.Drawing.Point(-2, 555);
+            this.gminBar.Location = new System.Drawing.Point(-2, 784);
             this.gminBar.Maximum = 255;
             this.gminBar.Name = "gminBar";
             this.gminBar.Size = new System.Drawing.Size(110, 24);
@@ -249,10 +315,10 @@
             // 
             this.gmaxBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.gmaxBar.Enabled = false;
-            this.gmaxBar.Location = new System.Drawing.Point(-2, 514);
+            this.gmaxBar.Location = new System.Drawing.Point(-2, 743);
             this.gmaxBar.Maximum = 255;
             this.gmaxBar.Name = "gmaxBar";
-            this.gmaxBar.Size = new System.Drawing.Size(110, 24);
+            this.gmaxBar.Size = new System.Drawing.Size(111, 24);
             this.gmaxBar.TabIndex = 2;
             this.gmaxBar.Value = 255;
             this.gmaxBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.gmaxBar_Scroll);
@@ -283,25 +349,38 @@
             // panel2
             // 
             this.panel2.BackColor = System.Drawing.SystemColors.Control;
-            this.tableLayoutPanel1.SetColumnSpan(this.panel2, 3);
+            this.tableLayoutPanel1.SetColumnSpan(this.panel2, 4);
+            this.panel2.Controls.Add(this.gradeLabel);
             this.panel2.Controls.Add(this.sliceLabel);
             this.panel2.Controls.Add(this.maskLabel);
             this.panel2.Controls.Add(this.fileLabel);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Enabled = false;
-            this.panel2.Location = new System.Drawing.Point(2, 3);
+            this.panel2.Location = new System.Drawing.Point(115, 3);
             this.panel2.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(806, 51);
+            this.panel2.Size = new System.Drawing.Size(952, 51);
             this.panel2.TabIndex = 1;
+            // 
+            // gradeLabel
+            // 
+            this.gradeLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gradeLabel.AutoSize = true;
+            this.gradeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.gradeLabel.Location = new System.Drawing.Point(327, 23);
+            this.gradeLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.gradeLabel.Name = "gradeLabel";
+            this.gradeLabel.Size = new System.Drawing.Size(78, 20);
+            this.gradeLabel.TabIndex = 3;
+            this.gradeLabel.Text = "No Grade";
             // 
             // sliceLabel
             // 
-            this.sliceLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.sliceLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.sliceLabel.AutoSize = true;
             this.sliceLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.sliceLabel.Location = new System.Drawing.Point(449, 30);
+            this.sliceLabel.Location = new System.Drawing.Point(718, 23);
             this.sliceLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.sliceLabel.Name = "sliceLabel";
             this.sliceLabel.Size = new System.Drawing.Size(65, 20);
@@ -330,12 +409,11 @@
             // 
             // sliceBar
             // 
-            this.sliceBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
+            this.sliceBar.Dock = System.Windows.Forms.DockStyle.Left;
             this.sliceBar.Enabled = false;
-            this.sliceBar.Location = new System.Drawing.Point(765, 57);
+            this.sliceBar.Location = new System.Drawing.Point(979, 57);
             this.sliceBar.Name = "sliceBar";
-            this.sliceBar.Size = new System.Drawing.Size(45, 581);
+            this.sliceBar.Size = new System.Drawing.Size(45, 810);
             this.sliceBar.TabIndex = 2;
             this.sliceBar.Value = 50;
             this.sliceBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.sliceBar_Scroll);
@@ -345,34 +423,36 @@
             this.renderWindowControl.AddTestActors = false;
             this.renderWindowControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.renderWindowControl.Enabled = false;
-            this.renderWindowControl.Location = new System.Drawing.Point(117, 61);
-            this.renderWindowControl.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.renderWindowControl.Location = new System.Drawing.Point(230, 61);
+            this.renderWindowControl.Margin = new System.Windows.Forms.Padding(4);
             this.renderWindowControl.Name = "renderWindowControl";
-            this.renderWindowControl.Size = new System.Drawing.Size(644, 573);
+            this.renderWindowControl.Size = new System.Drawing.Size(745, 802);
             this.renderWindowControl.TabIndex = 3;
             this.renderWindowControl.TestText = null;
             this.renderWindowControl.Load += new System.EventHandler(this.renderWindowControl_Load);
             // 
+            // cropBar
+            // 
+            this.cropBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.cropBar.Enabled = false;
+            this.cropBar.Location = new System.Drawing.Point(1024, 57);
+            this.cropBar.Name = "cropBar";
+            this.cropBar.Size = new System.Drawing.Size(45, 810);
+            this.cropBar.TabIndex = 4;
+            this.cropBar.Value = 50;
+            this.cropBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.cropBar_Scroll);
+            // 
             // fileDialog
             // 
             this.fileDialog.FileName = "openFileDialog1";
-            // 
-            // cropButton
-            // 
-            this.cropButton.Location = new System.Drawing.Point(9, 359);
-            this.cropButton.Enabled = false;
-            this.cropButton.Name = "cropButton";
-            this.cropButton.Size = new System.Drawing.Size(94, 48);
-            this.cropButton.TabIndex = 12;
-            this.cropButton.Text = "Crop Sample";
-            this.cropButton.UseVisualStyleBackColor = true;
-            this.cropButton.Click += new System.EventHandler(this.cropButton_Click);
+
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(810, 638);
+            this.ClientSize = new System.Drawing.Size(1069, 867);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.Name = "MainForm";
@@ -413,6 +493,12 @@
         private System.Windows.Forms.Button predict;
         private System.Windows.Forms.Button segmentButton;
         private System.Windows.Forms.Button cropButton;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label gradeLabel;
+        private System.Windows.Forms.Button getVoiButton;
+        private System.Windows.Forms.VScrollBar cropBar;
+        private System.Windows.Forms.Button rotate_button;
+        private System.Windows.Forms.Button saveButton;
     }
 }
 
