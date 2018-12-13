@@ -23,6 +23,12 @@ namespace HistoGrading
         //Rendering flags
         int is_rendering = 0;
         int is_mask = 0;
+        int is_coronal = 0;
+        int is_sagittal = 0;
+
+        //Saving flags
+        int save_mask = 0;
+        int save_vois = 0;
 
         //Volume dimensions
         int[] dims = new int[] { 0, 0, 0, 0, 0, 0 };
@@ -32,7 +38,8 @@ namespace HistoGrading
         int ori = -1;
 
         //Gray values
-        int[] gray = new int[2] { 0, 255 };
+        int[] gray = new int[2] { 70, 110 };
+       
 
         //Rendering object
         Rendering.renderPipeLine volume = new Rendering.renderPipeLine();
@@ -40,15 +47,19 @@ namespace HistoGrading
         //Render window
         private vtkRenderWindow renWin;
 
-        //Interactor
-        vtkRenderWindowInteractor iactor;
-
         //Mouse interactor
         bool mouseDown1 = false;
         bool mouseDown2 = false;
 
         // Sample name
         string fname = null;
+
+        //Save directory
+        string savedir = "C:\\Users\\Tuomas Frondelius\\Desktop\\PTAResults";
+
+        // Grading variables
+        Model model = new Model();
+        int[,] features = new int[0,0];
 
         /// <summary>
         /// Form that includes all major components in the software.
@@ -71,17 +82,17 @@ namespace HistoGrading
             //Tell coronal rendering
             if (ori == 2)
             {
-                sliceLabel.Text = String.Format("Transverse, XY | {0} / {1}", sliceN[ori], dims[5]);
+                sliceLabel.Text = String.Format("Transverse, XY | {0} / {1}", sliceN[ori]-dims[4], dims[5]-dims[4]);
             }
             //Tell transverse rendering
             if (ori == 0)
             {
-                sliceLabel.Text = String.Format("Coronal, XZ | {0} / {1}", sliceN[ori], dims[3]);
+                sliceLabel.Text = String.Format("Coronal, XZ | {0} / {1}", sliceN[ori]-dims[0], dims[1]-dims[0]);
             }
             //Tell transverse rendering
             if (ori == 1)
             {
-                sliceLabel.Text = String.Format("Sagittal, YZ | {0} / {1}", sliceN[ori], dims[1]);
+                sliceLabel.Text = String.Format("Sagittal, YZ | {0} / {1}", sliceN[ori]-dims[2], dims[3]-dims[2]);
             }
         }
 
@@ -99,8 +110,7 @@ namespace HistoGrading
             {
                 //Update gray value range and render volume
                 gray[1] = gmaxBar.Value;
-                volume.updateCurrent(sliceN,ori,gray);
-                volume.setVolumeColor();
+                volume.updateCurrent(sliceN,ori,gray);                
                 //Update slice if rendering
                 if (ori > -1)
                 {
@@ -110,6 +120,10 @@ namespace HistoGrading
                     {
                         volume.renderImageMask();
                     }
+                }
+                else
+                {
+                    volume.setVolumeColor();
                 }
             }
         }
@@ -122,7 +136,6 @@ namespace HistoGrading
                 //Update gary value range and render volume
                 gray[0] = gminBar.Value;
                 volume.updateCurrent(sliceN, ori, gray);
-                volume.setVolumeColor();
                 //Update slice if rendering
                 if(ori>-1)
                 {
@@ -132,6 +145,10 @@ namespace HistoGrading
                     {
                         volume.renderImageMask();
                     }
+                }
+                else
+                {
+                    volume.setVolumeColor();
                 }
             }
         }
@@ -149,18 +166,16 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                TellSlice();
+                TellSlice();                
             }
         }
 
         //Render window updates
         private void renderWindowControl_Load(object sender, EventArgs e)
-        {
+        {            
             //Set renderwindow
-            renWin = renderWindowControl.RenderWindow;
-            //Initialize interactor
-            iactor = renWin.GetInteractor();
-            iactor.Initialize();
+            renWin = renderWindowControl.RenderWindow;                   
+
         }
 
         //Buttons
@@ -170,9 +185,22 @@ namespace HistoGrading
         {
             //Select a file and render volume
             if (fileDialog.ShowDialog() == DialogResult.OK)
-            {
+            {                
+                if(is_rendering == 1)
+                {
+                    //Remove renderer
+                    renWin.RemoveRenderer(renWin.GetRenderers().GetFirstRenderer());
+                    volume.Dispose();                    
+                    volume = null;
+                    GC.Collect();
+                }
+                
+                //Initialize new volume
+                volume = new Rendering.renderPipeLine();
                 //Update renderwindow
                 renderWindowControl_Load(this, null);
+
+                fname = "";
 
                 //Get path and files
                 string impath = fileDialog.FileName;
@@ -190,26 +218,36 @@ namespace HistoGrading
                 }
 
                 //Update GUI text to tell path to data folder
-                fileLabel.Text = folpath;
+                fileLabel.Text = fname;
+                gradeLabel.Text = "No Grade";
 
                 //Load data
                 volume.connectData(impath);
                 
                 //Get dimensions and set slices. Middle slice is set to current slice
                 dims = volume.getDims();
-                sliceN[0] = (dims[1] - dims[0]) / 2;
-                sliceN[1] = (dims[3] - dims[2]) / 2;
-                sliceN[2] = (dims[5] - dims[4]) / 2;
+                sliceN[0] = (dims[1] + dims[0]) / 2;
+                sliceN[1] = (dims[3] + dims[2]) / 2;
+                sliceN[2] = (dims[5] + dims[4]) / 2;
 
+                Console.WriteLine("Loaded fine");
                 //Connect slice to renderer
                 volume.connectWindow(renWin);
 
+                Console.WriteLine("Connected window fine");
                 //Render
                 volume.renderVolume();
+
+                Console.WriteLine("rendering..");
 
                 //Flags for GUI components
                 is_rendering = 1;
                 is_mask = 0;
+                is_coronal = 0;
+                is_sagittal = 0;
+                //Saving flags
+                save_mask = 0;
+                save_vois = 0;
 
                 //Orientation
                 ori = -1;
@@ -220,9 +258,10 @@ namespace HistoGrading
                 //Update GUI
                 maskButton.Text = "Load Mask";
                 maskLabel.Text = "No Mask Loaded";
+                coronalButton.Text = "Coronal, XZ";
+                sagittalButton.Text = "Sagittal, YZ";
                 TellSlice();
-
-                iactor.Enable();
+                                
 
                 // Enable buttons
                 sagittalButton.Enabled = true;
@@ -237,8 +276,14 @@ namespace HistoGrading
                 sliceBar.Enabled = true;
                 renderWindowControl.Enabled = true;
                 cropButton.Enabled = true;
-                segmentButton.Enabled = true;
-                predict.Enabled = true;
+                rotate_button.Enabled = true;
+                getVoiButton.Enabled = false;
+                segmentButton.Enabled = false;
+                predict.Enabled = false;
+                saveButton.Enabled = false;
+
+                GC.Collect();
+
 
             }
         }
@@ -267,7 +312,7 @@ namespace HistoGrading
                             //Update pipeline
                             volume.updateCurrent(sliceN, ori, gray);
                             // Set cartilage grids based on mask
-                            volume.SampleGrids();
+                            //volume.SampleGrids();
 
                         //Render
                         if (ori == -1)
@@ -282,7 +327,7 @@ namespace HistoGrading
 
                             //Update flags
                             is_mask = 1;
-                            maskButton.Text = "Remove Mask";
+                            maskButton.Text = "Remove Mask";                            
                         }
                     }
                     break;
@@ -305,6 +350,7 @@ namespace HistoGrading
                     maskLabel.Text = "No Mask Loaded";
             break;
             }
+            GC.Collect();
         }
 
         //Reset camera
@@ -315,9 +361,9 @@ namespace HistoGrading
                 volume.resetCamera();
 
                 //Reset slices
-                sliceN[0] = (dims[1] - dims[0]) / 2;
-                sliceN[1] = (dims[3] - dims[2]) / 2;
-                sliceN[2] = (dims[5] - dims[4]) / 2;
+                sliceN[0] = (dims[1] + dims[0]) / 2;
+                sliceN[1] = (dims[3] + dims[2]) / 2;
+                sliceN[2] = (dims[5] + dims[4]) / 2;
 
                 if (ori > -1)
                 {
@@ -326,9 +372,10 @@ namespace HistoGrading
                     if(is_mask == 1)
                     {
                         volume.renderImageMask();
-                    }
+                    }                    
                 }
                 TellSlice();
+                GC.Collect();
             }
         }
 
@@ -340,14 +387,22 @@ namespace HistoGrading
             volume.updateCurrent(sliceN, ori, gray);
             //Render volume
             volume.renderVolume();
-            volume.setVolumeColor();
 
             if (is_mask==1)
             {
                 volume.renderVolumeMask();
             }
+
             TellSlice();
-            iactor.Enable();
+
+            //Update GUI
+            coronalButton.Text = "Coronal, XZ";
+            sagittalButton.Text = "Sagittal, YZ";
+
+            is_sagittal = 0;
+            is_coronal = 0;
+
+            GC.Collect();
         }
 
         //Render coronal slice
@@ -358,8 +413,10 @@ namespace HistoGrading
                 //Set orientation
                 ori = 2;
                 //Update scroll bar
+                sliceBar.Minimum = dims[4];
                 sliceBar.Maximum = dims[5];
                 sliceBar.Value = sliceN[2];
+                sliceBar.Update();
                 //Update rendering pipeline and render
                 volume.updateCurrent(sliceN, ori, gray);
                 volume.renderImage();
@@ -368,21 +425,31 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                TellSlice();
-                iactor.Disable();
+                TellSlice();                
+
+                //Update GUI
+                coronalButton.Text = "Coronal, XZ";
+                sagittalButton.Text = "Sagittal, YZ";
+
+                is_sagittal = 0;
+                is_coronal = 0;
             }
+            GC.Collect();
         }
 
         //Render transverse slice, XZ plane
         private void coronalButton_Click(object sender, EventArgs e)
         {
-            if (is_rendering == 1)
+            if (is_rendering == 1 && is_coronal == 0)
             {                
                 //Set orientation
                 ori = 0;
                 //Update scroll bar
+                sliceBar.Minimum = dims[0];
                 sliceBar.Maximum = dims[1];
                 sliceBar.Value = sliceN[0];
+                sliceBar.Update();
+
                 //Update rendering pipeline and render
                 volume.updateCurrent(sliceN, ori, gray);
                 volume.renderImage();
@@ -391,22 +458,42 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                TellSlice();
-                iactor.Disable();
+                TellSlice();                
+
+                //Update GUI
+                coronalButton.Text = "Crop artefact";
+                sagittalButton.Text = "Sagittal, YZ";
+
+                is_sagittal = 0;
+                is_coronal = 1;
             }
+            else if (is_rendering == 1 && is_coronal == 1)
+            {
+                //Get Line ends and crop above the line
+                volume.remove_artefact();
+                volume.renderImage();
+                //Check mask
+                if (is_mask == 1)
+                {
+                    volume.renderImageMask();
+                }                
+            }
+            GC.Collect();
         }
 
         //Render transverse slice, YZ plane
         private void sagittalButton_Click(object sender, EventArgs e)
         {
             //Check if rendering
-            if(is_rendering==1)
+            if(is_rendering==1 && is_sagittal == 0)
             {
                 //Set orientation
                 ori = 1;
                 //Update scroll bar
+                sliceBar.Minimum = dims[2];
                 sliceBar.Maximum = dims[3];
                 sliceBar.Value = sliceN[1];
+                sliceBar.Update();
                 //Update rendering pipeline and render
                 volume.updateCurrent(sliceN, ori, gray);
                 volume.renderImage();
@@ -416,16 +503,194 @@ namespace HistoGrading
                     volume.renderImageMask();
                 }
                 TellSlice();
-                iactor.Disable();
+
+                //Update GUI
+                sagittalButton.Text = "Crop artefact";
+                coronalButton.Text = "Coronal, YZ";
+
+
+                is_sagittal = 1;
+                is_coronal = 0;
             }
+            else if (is_rendering == 1 && is_sagittal == 1)
+            {
+                //Get Line ends and crop above the line                
+                volume.remove_artefact();
+                volume.renderImage();
+                //Check mask
+                if (is_mask == 1)
+                {
+                    volume.renderImageMask();
+                }                
+            }
+            GC.Collect();
+        }
+
+        //Automatically reorient the sample
+        private void rotate_button_Click(object sender, EventArgs e)
+        {
+            volume.auto_rotate();
+            dims = volume.getDims();
+            sliceN[0] = (dims[1] + dims[0]) / 2;
+            sliceN[1] = (dims[3] + dims[2]) / 2;
+            sliceN[2] = (dims[5] + dims[4]) / 2;
+
+            volume.updateCurrent(sliceN, ori, gray);
+
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolume();
+                volume.setVolumeColor();
+                if (is_mask == 1)
+                {
+                    volume.renderVolumeMask();
+                }                
+                
+            }
+            if (ori > -1)
+            {                
+                volume.renderImage();
+                TellSlice();
+                if (is_mask == 1)
+                {
+                    volume.renderImageMask();
+                }                
+            }
+            
+            GC.Collect();
+        }
+
+        //Automatically segment the BC interface
+        private void segmentButton_Click(object sender, EventArgs e)
+        {
+            //VOI for segmentation
+
+            volume.segmentation();            
+
+            //Update rendering pipeline
+            is_mask = 1;
+            maskLabel.Text = "Automatic";
+
+            
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolumeMask();
+                volume.setVolumeColor();
+            }
+            if (ori > -1)
+            {
+                volume.renderImageMask();
+            }
+            
+            getVoiButton.Enabled = true;
+            saveButton.Enabled = true;
+
+            //Saving flags
+            save_mask = 1;
+            save_vois = 0;
+
+            GC.Collect();
+        }
+
+        //Automatically crop the center of the sample
+        private void cropButton_Click(object sender, EventArgs e)
+        {
+
+            //Connect mask to segmentation pipeline
+            volume.center_crop(448);            
+            //Update sample dimensions
+            dims = volume.getDims();
+            sliceN[0] = (dims[1] + dims[0]) / 2;
+            sliceN[1] = (dims[3] + dims[2]) / 2;
+            sliceN[2] = (dims[5] + dims[4]) / 2;
+            //Update pipeline
+            volume.updateCurrent(sliceN, ori, gray);
+            
+            
+            //Render
+            if (ori == -1)
+            {
+                volume.renderVolume();
+            }
+            if (ori > -1)
+            {
+                volume.renderImage();                
+            }
+                        
+            segmentButton.Enabled = true;
+            predict.Enabled = true;
+
+            GC.Collect();
+        }
+
+        //Remove preparation artefacts from the surface
+        private void getVoiButton_Click(object sender, EventArgs e)
+        {
+            volume.analysis_vois();
+
+            is_mask = 1;
+
+            //Render
+            if (ori == -1)
+            {
+                //volume.renderVolume();
+                volume.renderVolumeMask();
+                volume.setVolumeColor();
+            }
+            if (ori > -1)
+            {
+                //volume.renderImage();
+                volume.renderImageMask();
+            }
+
+            GC.Collect();
+            saveButton.Enabled = true;
+            //Saving flags
+            save_mask = 0;
+            save_vois = 1;
+            /*
+            cropBar.Enabled = true;
+
+            byte[] surface = new byte[(dims[1]-dims[0]) * (dims[3] - dims[2])];
+            Parallel.For(0, surface.Length, (int k) => 
+            {
+                surface[k] = 1;
+            });
+
+            */
         }
 
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
+            string[] models = new string[] { ".\\Default\\calcified_weights.dat", ".\\Default\\deep_weights.dat", ".\\Default\\surface_weights.dat" };
+            volume.grade_vois(models, fname);
+            /*
             string grade = Grading.PredictSurface(ref volume, fname, out int[,] surfaceCoordinates);
-            sliceLabel.Text = grade;
-            //string gradeBCI = Grading.PredictBCI(ref volume, fname, out int[,] deepCoordinates, out int[,] calcifiedCoordinates);
+            gradeLabel.Text = grade;
+            */
+        }
+
+        private void saveButton_Click(object sender, EventArgs e)
+        {
+            if(save_mask == 1)
+            {
+                //Save sample
+                volume.save_data(fname, savedir);
+                //Save segmentation mask
+                volume.save_masks(new string[] { fname + "_UNET" }, savedir);
+            }
+            if(save_vois == 1)
+            {
+                //Save analysis VOIs
+                string[] names = new string[] { fname + "_calcified", fname + "_deep", fname + "_surface" };
+                volume.save_masks(names, savedir);
+            }
+
+
+
         }
 
         //Scroll bars
@@ -461,110 +726,10 @@ namespace HistoGrading
             }
         }
 
-        private void segmentButton_Click(object sender, EventArgs e)
+        private void cropBar_Scroll(object sender, ScrollEventArgs e)
         {
-            //VOI for segmentation
-
-            //Get sample dimensions
-            int[] extent = volume.getDims();            
-
-            //480*416 VOI from the center
-            int[] voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], 20, 20+511 };
-            int[] batch_dims = new int[] { 512, 448, 1 };
-
-            //Segmentation
-            List<vtkImageData> outputs;
-            IO.segmentation_pipeline(out outputs, volume, batch_dims, voi_extent, new int[] { 0,1 }, 32);
-            vtkImageThreshold t = vtkImageThreshold.New();
-            if(outputs.Count() == 2)
-            {
-                //Sum operation
-                vtkImageMathematics math = vtkImageMathematics.New();
-                math.SetOperationToAdd();
-
-                //Weighting
-                vtkImageMathematics _tmp1 = vtkImageMathematics.New();
-                _tmp1.SetInput1(outputs.ElementAt(0));
-                _tmp1.SetConstantK(0.5);
-                _tmp1.SetOperationToMultiplyByK();
-                _tmp1.Update();
-
-                vtkImageMathematics _tmp2 = vtkImageMathematics.New();
-                _tmp2.SetInput1(outputs.ElementAt(1));
-                _tmp2.SetConstantK(0.5);
-                _tmp2.SetOperationToMultiplyByK();
-                _tmp2.Update();
-
-                math.SetInput1(_tmp1.GetOutput());
-                math.SetInput2(_tmp2.GetOutput());
-
-                ////768*768 VOI from the center
-                //int[] voi_extent = new int[] { 380, 420, 141, 908, 0, 767 };
-                //int[] batch_dims = new int[] { 768, 768, 1 };
-
-                //Threshold
-                t = vtkImageThreshold.New();
-                t.SetInputConnection(math.GetOutputPort());
-                t.ThresholdByUpper(0.7 * 255.0);
-                t.SetOutValue(0);
-                t.SetInValue(255.0);
-                t.Update();
-            }
-            else
-            {
-                //Threshold
-                t = vtkImageThreshold.New();
-                t.SetInput(outputs.ElementAt(0));
-                t.ThresholdByUpper(0.7 * 255.0);
-                t.SetOutValue(0);
-                t.SetInValue(255.0);
-                t.Update();
-            }
-
-            volume.connectMaskFromData(t.GetOutput());
-            //Update rendering pipeline
-            maskLabel.Text = "Automatic";
-
-            //Render
-            if (ori == -1)
-            {
-                volume.renderVolumeMask();
-                volume.setVolumeColor();
-            }
-            if (ori > -1)
-            {
-                volume.renderImageMask();
-            }
 
         }
 
-        private void cropButton_Click(object sender, EventArgs e)
-        {
-
-            //Connect mask to segmentation pipeline
-            volume.center_crop(448);
-            //Update sample dimensions
-            dims = volume.getDims();
-            sliceN[0] = (dims[1] - dims[0]) / 2;
-            sliceN[1] = (dims[3] - dims[2]) / 2;
-            sliceN[2] = (dims[5] - dims[4]) / 2;
-            //Update pipeline
-            volume.updateCurrent(sliceN, ori, gray);
-
-            //Render
-            if (ori == -1)
-            {
-                volume.renderVolume();
-                volume.setVolumeColor();
-            }
-            if (ori > -1)
-            {
-                volume.renderImage();
-            }
-
-            //Update flags
-            is_mask = 1;
-            maskButton.Text = "Remove Mask";            
-        }
     }
 }

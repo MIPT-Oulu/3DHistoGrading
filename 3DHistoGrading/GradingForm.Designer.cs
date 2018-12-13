@@ -120,6 +120,7 @@
             this.meanPicture.Location = new System.Drawing.Point(38, 177);
             this.meanPicture.Name = "meanPicture";
             this.meanPicture.Size = new System.Drawing.Size(200, 200);
+            this.meanPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.meanPicture.TabIndex = 12;
             this.meanPicture.TabStop = false;
             // 
@@ -128,6 +129,7 @@
             this.stdPicture.Location = new System.Drawing.Point(299, 177);
             this.stdPicture.Name = "stdPicture";
             this.stdPicture.Size = new System.Drawing.Size(200, 200);
+            this.stdPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.stdPicture.TabIndex = 13;
             this.stdPicture.TabStop = false;
             // 
@@ -136,6 +138,7 @@
             this.smallPicture.Location = new System.Drawing.Point(38, 525);
             this.smallPicture.Name = "smallPicture";
             this.smallPicture.Size = new System.Drawing.Size(200, 200);
+            this.smallPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.smallPicture.TabIndex = 14;
             this.smallPicture.TabStop = false;
             // 
@@ -144,6 +147,7 @@
             this.largePicture.Location = new System.Drawing.Point(299, 525);
             this.largePicture.Name = "largePicture";
             this.largePicture.Size = new System.Drawing.Size(200, 200);
+            this.largePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.largePicture.TabIndex = 15;
             this.largePicture.TabStop = false;
             // 
@@ -152,6 +156,7 @@
             this.radialPicture.Location = new System.Drawing.Point(559, 525);
             this.radialPicture.Name = "radialPicture";
             this.radialPicture.Size = new System.Drawing.Size(200, 200);
+            this.radialPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.radialPicture.TabIndex = 16;
             this.radialPicture.TabStop = false;
             // 
@@ -195,6 +200,7 @@
             this.meanstdPicture.Location = new System.Drawing.Point(559, 177);
             this.meanstdPicture.Name = "meanstdPicture";
             this.meanstdPicture.Size = new System.Drawing.Size(200, 200);
+            this.meanstdPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.meanstdPicture.TabIndex = 20;
             this.meanstdPicture.TabStop = false;
             // 

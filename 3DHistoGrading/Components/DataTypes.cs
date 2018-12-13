@@ -46,8 +46,9 @@ namespace HistoGrading.Components
             vtkdata.SetExtent(0, dims[2] - 1, 0, dims[1] - 1, 0, dims[0] - 1);
             //Scalar type
             vtkdata.SetScalarTypeToUnsignedChar();
+            vtkdata.SetSpacing(1.0, 1.0, 1.0);
             vtkdata.Update();
-
+            pinnedArray.Free();
             //Return vtk data
             if (orientation == null)
             {
@@ -61,6 +62,39 @@ namespace HistoGrading.Components
                 permuter.Update();
                 return permuter.GetOutput();
             }
+        }
+
+        /// <summary>
+        /// Converts 3D byte array to vtkImageData.
+        /// </summary>
+        /// <param name="data">Input array.</param>
+        /// <returns>Converted array.</returns>
+        public static vtkImageData byteToVTK1D(byte[] data, int[] dims)
+        {
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+            //Create VTK data for putput
+            vtkImageData vtkdata = vtkImageData.New();
+            //Character array for conversion
+            vtkUnsignedCharArray charArray = vtkUnsignedCharArray.New();
+            //Pin byte array
+            GCHandle pinnedArray = GCHandle.Alloc(data, GCHandleType.Pinned);
+            //Set character array input
+            charArray.SetArray(pinnedArray.AddrOfPinnedObject(), h*w*d, 1);
+            //Set vtkdata properties and connect array
+            //Data from char array
+            vtkdata.GetPointData().SetScalars(charArray);
+            //Number of scalars/pixel
+            vtkdata.SetNumberOfScalarComponents(1);
+            //Set data extent
+            vtkdata.SetExtent(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
+            //Scalar type
+            vtkdata.SetScalarTypeToUnsignedChar();
+            vtkdata.Update();
+                        
+            return vtkdata;
+            
         }
 
         /// <summary>
@@ -82,9 +116,9 @@ namespace HistoGrading.Components
             IntPtr ptr = pinnedArray.AddrOfPinnedObject();
             //VTK exporter
             vtkImageExport exporter = vtkImageExport.New();
-            //Connect input data to exporter
             exporter.SetInput(vtkdata);
             exporter.Update();
+            
             //Export data to byte array
             exporter.Export(ptr);
             //Free pinned array
@@ -204,7 +238,7 @@ namespace HistoGrading.Components
                     }
                 }
             });
-
+            bytedata = null;
             //return float data
             return floatdata;
         }
@@ -244,6 +278,13 @@ namespace HistoGrading.Components
             {
                 //List to array
                 float[] tmp = item.ToArray();
+                /*
+                Mat image = new Mat((extent[3] - extent[2] + 1), (extent[5] - extent[4] + 1), MatType.CV_32FC1, tmp);
+                using(Window win = new Window("Inference",WindowMode.AutoSize, image: image))
+                {
+                    Cv2.WaitKey();
+                }
+                */
                 //Iterate over the array in parallel
                 Parallel.For(extent[2], extent[3], (int h) =>
                 {

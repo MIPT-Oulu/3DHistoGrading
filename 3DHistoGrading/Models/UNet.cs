@@ -10,7 +10,7 @@ using HistoGrading.Components;
 
 namespace HistoGrading.Models
 {
-    class UNet
+    class UNet : IDisposable
     {
         //Network functions
 
@@ -374,6 +374,7 @@ namespace HistoGrading.Models
         private static Parameter weight_fromFloat(Parameter weight, float[] array, int[] view)
         {
             //Generate weight array with correct dimensions
+            Console.WriteLine("{0} | {1}", array.Length, view.Length);
             NDArrayView nDArray = new NDArrayView(view, array, DeviceDescriptor.GPUDevice(0));
             weight.SetValue(nDArray);
             return weight;
@@ -481,12 +482,12 @@ namespace HistoGrading.Models
             feature = Variable.InputVariable(input_size, DataType.Float);
             //Create the model
             create_model(use_bn);
+            //model.Save("Z:\\Tuomas\\UNetNew.model");
         }
 
         //Model creation
         private static void create_model(bool use_bn = false)
         {
-            Console.WriteLine("Generating UNet..");
             //Parameters
             int[] ks = new int[2] { 3, 3 };
 
@@ -496,73 +497,85 @@ namespace HistoGrading.Models
             Function pooled1;
             string[] namesd1 = new string[] { "down1_0_weight", "down1_0_bias", "down1_1_weight", "down1_1_bias", };
             encoder(feature, ks, 1, BW, out down1, out pooled1, wpath, namesd1, use_bn);
-
+            Console.WriteLine("Down1");
 
             Function down2;
             Function pooled2;
             string[] namesd2 = new string[] { "down2_0_weight", "down2_0_bias", "down2_1_weight", "down2_1_bias", };
             encoder(pooled1, ks, BW, 2 * BW, out down2, out pooled2, wpath, namesd2, use_bn);
+            Console.WriteLine("Down2");
 
             Function down3;
             Function pooled3;
             string[] namesd3 = new string[] { "down3_0_weight", "down3_0_bias", "down3_1_weight", "down3_1_bias", };
             encoder(pooled2, ks, 2 * BW, 4 * BW, out down3, out pooled3, wpath, namesd3, use_bn);
+            Console.WriteLine("Down3");
 
             Function down4;
             Function pooled4;
             string[] namesd4 = new string[] { "down4_0_weight", "down4_0_bias", "down4_1_weight", "down4_1_bias", };
             encoder(pooled3, ks, 4 * BW, 8 * BW, out down4, out pooled4, wpath, namesd4, use_bn);
+            Console.WriteLine("Down4");
 
             Function down5;
             Function pooled5;
             string[] namesd5 = new string[] { "down5_0_weight", "down5_0_bias", "down5_1_weight", "down5_1_bias", };
             encoder(pooled4, ks, 8 * BW, 16 * BW, out down5, out pooled5, wpath, namesd5, use_bn);
+            Console.WriteLine("Down5");
 
             Function down6;
             Function pooled6;
             string[] namesd6 = new string[] { "down6_0_weight", "down6_0_bias", "down6_1_weight", "down6_1_bias", };
             encoder(pooled5, ks, 16 * BW, 32 * BW, out down6, out pooled6, wpath, namesd6, use_bn);
+            Console.WriteLine("Down6");
 
             //Center block
             Function center1;
             string[] namesc = new string[] { "center_0_weight", "center_0_bias", "center_1_weight", "center_1_bias", };
             center(pooled6, ks, 32 * BW, 32 * BW, out center1, wpath, namesc, use_bn);
+            Console.WriteLine("Center");
 
             //Decoding path
 
             Function up6;
             string[] namesu6 = new string[] { "up6_0_weight", "up6_0_bias", "up6_1_weight", "up6_1_bias", };
             decoder(center1, down6, ks, 64 * BW, 16 * BW, out up6, wpath, namesu6, use_bn);
+            Console.WriteLine("up6");
 
             Function up5;
             string[] namesu5 = new string[] { "up5_0_weight", "up5_0_bias", "up5_1_weight", "up5_1_bias", };
             decoder(up6, down5, ks, 32 * BW, 8 * BW, out up5, wpath, namesu5, use_bn);
+            Console.WriteLine("up5");
 
             Function up4;
             string[] namesu4 = new string[] { "up4_0_weight", "up4_0_bias", "up4_1_weight", "up4_1_bias", };
             decoder(up5, down4, ks, 16 * BW, 4 * BW, out up4, wpath, namesu4, use_bn);
+            Console.WriteLine("up4");
 
             Function up3;
             string[] namesu3 = new string[] { "up3_0_weight", "up3_0_bias", "up3_1_weight", "up3_1_bias", };
             decoder(up4, down3, ks, 8 * BW, 2 * BW, out up3, wpath, namesu3, use_bn);
+            Console.WriteLine("up3");
 
             Function up2;
             string[] namesu2 = new string[] { "up2_0_weight", "up2_0_bias", "up2_1_weight", "up2_1_bias", };
             decoder(up3, down2, ks, 4 * BW, 1 * BW, out up2, wpath, namesu2, use_bn);
+            Console.WriteLine("up2");
 
             Function up1;
             string[] namesu1 = new string[] { "up1_0_weight", "up1_0_bias", "up1_1_weight", "up1_1_bias", };
             decoder(up2, down1, ks, 2 * BW, 1 * BW, out up1, wpath, namesu1, use_bn);
+            Console.WriteLine("up1");
 
             //Output layer
             Function unet;
             string[] namesm = new string[] { "mixer.weight", "mixer.bias" };
             mixer(up1, new int[] { 1, 1 }, BW, 1, out unet, wpath, namesm);
+            Console.WriteLine("Mixer");
 
             model = unet;
 
-            Console.WriteLine("Done!!");
-
+            //model.Save("UNET_384x448.model");
         }
 
         //Inference
@@ -581,7 +594,12 @@ namespace HistoGrading.Models
             //Get output
             IList<IList<float>> output = get_output(outputDataMap, input_size, n_samples);
 
+            inputdata.Dispose();
+            inputDataMap.Clear();
+            outputDataMap.Clear();
+
             return output;
+            
         }
 
         //Method for mapping float array to minibatch
@@ -625,5 +643,18 @@ namespace HistoGrading.Models
             return outlist;
         }
 
+        //Methods for disposing the object
+        public void Dispose()
+        {
+            model.Dispose();
+            feature.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            Disposed = true;
+        }
+        protected bool Disposed { get; private set; }
     }
 }

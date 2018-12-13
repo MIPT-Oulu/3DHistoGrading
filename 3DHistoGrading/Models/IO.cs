@@ -30,21 +30,21 @@ namespace HistoGrading.Models
                 if (axis == 0)
                 {
                     int start = extent[0] + k * step;
-                    int stop = Math.Min(extent[0] + (k + 1) * step - 1, extent[1]);
+                    int stop = Math.Min(start + step - 1, extent[1]);
                     _curext = new int[] { start, stop, extent[2], extent[3], extent[4], extent[5] };
-                    _ori = new int[] { 2, 1, 0 };
+                    _ori = new int[] { 1, 2, 0 };
                 }
                 if (axis == 1)
                 {
                     int start = extent[2] + k * step;
-                    int stop = Math.Min(extent[2] + (k + 1) * step - 1, extent[3]);
+                    int stop = Math.Min(start + step - 1, extent[3]);
                     _curext = new int[] { extent[0], extent[1], start, stop, extent[4], extent[5] };
-                    _ori = new int[] { 2, 0, 1 };
+                    _ori = new int[] { 0, 2, 1 };
                 }
                 if (axis == 2)
                 {
                     int start = extent[4] + k * step;
-                    int stop = Math.Min(extent[4] + (k + 1) * step - 1, extent[5]);
+                    int stop = Math.Min(start + step - 1, extent[5]);
                     _curext = new int[] { extent[0], extent[1], extent[2], extent[3], start, stop };
                     _ori = new int[] { 0, 1, 2 };
                 }
@@ -67,6 +67,7 @@ namespace HistoGrading.Models
                         output.Add(item);
                     }
                 }
+                input_array = null;
                 GC.Collect();
             }
 
@@ -79,15 +80,15 @@ namespace HistoGrading.Models
             int[] orientation = new int[3];
             if (axis == 0)
             {
-                orientation = new int[] { 2, 1, 0 };
-                extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4], extent[5] };
-                output_size = new int[] { output_size[0], output_size[1], output_size[2] };
+                orientation = new int[] { 2, 0, 1 };
+                extent = new int[] { extent[0], extent[1], extent[4], extent[5], extent[2], extent[3] };
+                output_size = new int[] { output_size[0], output_size[2], output_size[1] };
             }
             if (axis == 1)
             {
-                orientation = new int[] { 1, 2, 0 };
-                extent = new int[] { extent[2], extent[3], extent[0], extent[1], extent[4], extent[5] };
-                output_size = new int[] { output_size[1], output_size[0], output_size[2] };
+                orientation = new int[] { 0, 2, 1 };
+                extent = new int[] { extent[2], extent[3], extent[4], extent[5], extent[0], extent[1] };
+                output_size = new int[] { output_size[1], output_size[2], output_size[0] };
             }
             if (axis == 2)
             {
@@ -95,10 +96,13 @@ namespace HistoGrading.Models
                 extent = new int[] { extent[4], extent[5], extent[1], extent[2], extent[3], extent[4] };
                 output_size = new int[] { output_size[2], output_size[0], output_size[1] };
             }
+
             //Data to byte array
             byte[,,] bytedata = DataTypes.batchToByte(input, output_size, extent);
             vtkImageData output = DataTypes.byteToVTK(bytedata, orientation);
-
+            bytedata = null;
+            input = null;
+            GC.Collect();
             return output;
         }
 
@@ -110,20 +114,30 @@ namespace HistoGrading.Models
             int[] dims = volume.getDims();
 
             //Initialize unet
-            string wpath = "Z:\\Tuomas\\UNetE3bn.h5";
+            string wpath = "Z:\\Tuomas\\NewUnets\\UNet_fold_2_new.h5";
+            //string wpath = "Z:\\Tuomas\\UNetE3bn.h5";
 
             UNet model = new UNet();
             model.Initialize(24, batch_d, wpath, false);
-
-            List<byte[,,]> results = new List<byte[,,]>();
+                        
+            for(int k = 0; k< axes.Length; k++)
+            {
+                outputs.Add(vtkImageData.New());
+            }
 
             //Segment BCI from axis
-            foreach (int axis in axes)
+            for(int k = 0; k<axes.Length; k++)
             {
-                IList<IList<float>> result = segment_sample(volume, model, extent, axis, bs, (float)113.05652141, (float)39.87462853);
-                vtkImageData _tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axis);
-                outputs.Add(_tmp);                
-            }            
+                //Inference
+                IList<IList<float>> result = segment_sample(volume, model, extent, axes[k], bs, (float)108.58790588378906, (float)47.622276306152344);
+                //Copy result to vtkImagedata
+                vtkImageData _tmp = IO.inference_to_vtk(result, new int[] { dims[1] + 1, dims[3] + 1, dims[5] + 1 }, extent, axes[k]);
+                
+                outputs.ElementAt(k).DeepCopy(_tmp);
+                _tmp.Dispose();                
+                result = null;
+            }
+            model.Dispose();
         }
     }
 }
