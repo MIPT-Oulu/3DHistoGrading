@@ -7,10 +7,8 @@ Current build status and code coverage:
 [![Build status](https://ci.appveyor.com/api/projects/status/6lbb2719xekk5rrx?svg=true "Build status")](https://ci.appveyor.com/project/sarytky/3dhistograding)
 [![codecov](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/branch/master/graph/badge.svg "Code coverage")](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading)
 
-[![codecov](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/branch/master/graphs/icicle.svg "Code coverage graph. Top section represents entire project, middle section folders and bottom section individual files.")](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/tree/master/3DHistoGrading)
 
-
-User interface components are removed from coverage analysis.
+User interface components are removed from code coverage analysis.
 Unit testing is focused on software functionalities only.
 
 ## Prerequisites
