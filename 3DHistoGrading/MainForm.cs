@@ -312,7 +312,7 @@ namespace HistoGrading
                             //Update pipeline
                             volume.updateCurrent(sliceN, ori, gray);
                             // Set cartilage grids based on mask
-                            volume.SampleGrids();
+                            //volume.SampleGrids();
 
                         //Render
                         if (ori == -1)

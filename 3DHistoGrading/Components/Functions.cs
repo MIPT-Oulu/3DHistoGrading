@@ -1235,7 +1235,7 @@ namespace HistoGrading.Components
             //Get files
             files = Functions.getFiles(file);
             //Read image and get dimensions
-            Mat _tmp = new Mat(file, ImreadModes.GrayScale);
+            Mat _tmp = new Mat(file, ImreadModes.Grayscale);
             input_dims[0] = _tmp.Height;
             input_dims[1] = _tmp.Width;
             input_dims[2] = files.Count;
@@ -1309,7 +1309,7 @@ namespace HistoGrading.Components
         private void readImage(int idx)
         {
             //Read image from file idx. The image is read using OpenCV, and converted to byte array.            
-            Mat _tmp = new Mat(files[idx], ImreadModes.GrayScale);
+            Mat _tmp = new Mat(files[idx], ImreadModes.Grayscale);
             byte[] _vals = new byte[_tmp.Width * _tmp.Height];
             IntPtr pointer = _tmp.Data;
             Marshal.Copy(pointer, _vals, 0, _tmp.Width * _tmp.Height);
