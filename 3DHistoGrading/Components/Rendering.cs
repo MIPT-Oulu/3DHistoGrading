@@ -136,9 +136,9 @@ namespace HistoGrading.Components
                 //Opacity, background in microCT data is < 70
                 spwf.AddPoint(0, 0);
                 spwf.AddPoint(70, 0.0);
-                spwf.AddPoint(80, 0.6);
-                spwf.AddPoint(150, 0.8);
-                spwf.AddPoint(255, 0.85);
+                spwf.AddPoint(80, 0.3);
+                spwf.AddPoint(150, 0.4);
+                spwf.AddPoint(255, 0.5);
                 //Volume parameters
                 vol.GetProperty().SetColor(ctf);
                 vol.GetProperty().SetScalarOpacity(spwf);
@@ -151,6 +151,7 @@ namespace HistoGrading.Components
                 renderer.GetActiveCamera().SetPosition(0.5, 1, 0);
                 renderer.GetActiveCamera().SetFocalPoint(0, 0, 0);
                 renderer.GetActiveCamera().SetViewUp(0, 0, 1);
+                renderer.GetActiveCamera().SetEyeAngle(10);
                 renderer.ResetCamera();
             }
 
@@ -480,6 +481,15 @@ namespace HistoGrading.Components
             public void connectDataFromMemory(vtkImageData input)
             {
                 idata = input;
+            }
+
+            /// <summary>
+            /// Connect CT stack from memory
+            /// </summary>
+            /// <param name="input_data">Bone mask input to be connected.</param>
+            public void connectDataFromData(vtkImageData input_data)
+            {
+                idata = input_data;
             }
 
             /// <summary>
@@ -1121,6 +1131,7 @@ namespace HistoGrading.Components
             protected virtual void Dispose(bool disposing)
             {
                 Disposed = true;
+
             }
             protected bool Disposed { get; private set; }
         }
@@ -1135,7 +1146,7 @@ namespace HistoGrading.Components
             var renwin = vtkRenderWindow.New();
             var vol = new renderPipeLine();
             vol.connectWindow(renwin);
-            vol.connectDataFromMemory(inputData);
+            vol.connectDataFromData(inputData);
             vol.renderVolume();
         }
     }

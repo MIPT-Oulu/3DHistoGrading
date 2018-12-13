@@ -38,7 +38,8 @@ namespace HistoGrading
         int ori = -1;
 
         //Gray values
-        int[] gray = new int[2] { 0, 255 };
+        int[] gray = new int[2] { 70, 110 };
+       
 
         //Rendering object
         Rendering.renderPipeLine volume = new Rendering.renderPipeLine();
@@ -107,7 +108,7 @@ namespace HistoGrading
             //Check if rendering
             if (is_rendering == 1)
             {
-                //Update gary value range and render volume
+                //Update gray value range and render volume
                 gray[1] = gmaxBar.Value;
                 volume.updateCurrent(sliceN,ori,gray);                
                 //Update slice if rendering
@@ -174,6 +175,7 @@ namespace HistoGrading
         {            
             //Set renderwindow
             renWin = renderWindowControl.RenderWindow;                   
+
         }
 
         //Buttons
@@ -199,6 +201,7 @@ namespace HistoGrading
                 renderWindowControl_Load(this, null);
 
                 fname = "";
+
                 //Get path and files
                 string impath = fileDialog.FileName;
                 string folpath = Path.GetDirectoryName(@impath);
@@ -281,6 +284,7 @@ namespace HistoGrading
 
                 GC.Collect();
 
+
             }
         }
 
@@ -307,6 +311,8 @@ namespace HistoGrading
                             volume.connectMask(impath);
                             //Update pipeline
                             volume.updateCurrent(sliceN, ori, gray);
+                            // Set cartilage grids based on mask
+                            volume.SampleGrids();
 
                         //Render
                         if (ori == -1)
@@ -502,6 +508,7 @@ namespace HistoGrading
                 sagittalButton.Text = "Crop artefact";
                 coronalButton.Text = "Coronal, YZ";
 
+
                 is_sagittal = 1;
                 is_coronal = 0;
             }
@@ -560,6 +567,7 @@ namespace HistoGrading
             //VOI for segmentation
 
             volume.segmentation();            
+
             //Update rendering pipeline
             is_mask = 1;
             maskLabel.Text = "Automatic";

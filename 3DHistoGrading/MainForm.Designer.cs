@@ -177,6 +177,7 @@
             this.segmentButton.Enabled = false;
             this.segmentButton.Location = new System.Drawing.Point(10, 446);
             this.segmentButton.Margin = new System.Windows.Forms.Padding(2);
+
             this.segmentButton.Name = "segmentButton";
             this.segmentButton.Size = new System.Drawing.Size(94, 42);
             this.segmentButton.TabIndex = 11;
@@ -209,6 +210,7 @@
             this.predict.Enabled = false;
             this.predict.Location = new System.Drawing.Point(9, 574);
             this.predict.Margin = new System.Windows.Forms.Padding(2);
+
             this.predict.Name = "predict";
             this.predict.Size = new System.Drawing.Size(94, 42);
             this.predict.TabIndex = 2;
@@ -444,6 +446,7 @@
             // fileDialog
             // 
             this.fileDialog.FileName = "openFileDialog1";
+
             // 
             // MainForm
             // 

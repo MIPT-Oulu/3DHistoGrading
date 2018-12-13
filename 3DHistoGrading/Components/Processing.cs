@@ -60,25 +60,27 @@ namespace HistoGrading.Components
             // Get cropping dimensions
             int[] crop = volume.idata.GetExtent();
             crop[4] = (int)Math.Round(crop[5] / 2.0);
-
+            
             // Crop and flip the volume
             var cropped = volume.getVOI(crop);
             var flipper = vtkImageFlip.New();
             flipper.SetInput(cropped);
             flipper.SetFilteredAxes(2);
             flipper.Update();
-
+            
             // Render cropped volume
             //Rendering.RenderToNewWindow(flipper.GetOutput());
 
             // Convert vtkImageData to byte[,,]
             int[] dims = new int[] { (crop[1] - crop[0]) + 1, (crop[3] - crop[2]) + 1, (crop[5] - crop[4]) + 1 };
+
             byte[,,] byteVolume =
                 DataTypes.VectorToVolume(
                 DataTypes.vtkToByte(flipper.GetOutput()), dims);
 
             // Get sample center coordinates
-            int[] center = GetCenter(byteVolume, threshold);
+            //int[] center = GetCenter(byteVolume, threshold);
+            int[] center = new int[] { dims[0] / 2, dims[1] / 2 };
 
             // Get surface
             GetSurface(byteVolume, center, size, threshold, out surfacecoordinates, out surfacevoi);
