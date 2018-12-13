@@ -28,7 +28,10 @@ namespace HistoGrading.Components
             //VTKVolume
             private vtkVolume vol = vtkVolume.New();
             //Mapper
-            private vtkFixedPointVolumeRayCastMapper mapper = vtkFixedPointVolumeRayCastMapper.New();            
+            //private vtkFixedPointVolumeRayCastMapper mapper = vtkFixedPointVolumeRayCastMapper.New();
+            private vtkGPUVolumeRayCastMapper mapper = vtkGPUVolumeRayCastMapper.New();
+            //private vtkOpenGLGPUVolumeRayCastMapper mapper = vtkOpenGLGPUVolumeRayCastMapper.New();
+
             //private vtkSmartVolumeMapper mapper = vtkSmartVolumeMapper.New();
 
             //Colortransfer function for gray values
@@ -38,7 +41,8 @@ namespace HistoGrading.Components
 
             //Mask components, same as above
             private List<vtkVolume> maskvols = new List<vtkVolume>();
-            private List<vtkFixedPointVolumeRayCastMapper> maskmappers = new List<vtkFixedPointVolumeRayCastMapper>();
+            //private List<vtkFixedPointVolumeRayCastMapper> maskmappers = new List<vtkFixedPointVolumeRayCastMapper>();
+            List<vtkGPUVolumeRayCastMapper> maskmappers = new List<vtkGPUVolumeRayCastMapper>();
             private List<vtkColorTransferFunction> maskctfs = new List<vtkColorTransferFunction>();
             private List<vtkPiecewiseFunction> maskspwfs = new List<vtkPiecewiseFunction>();            
 
@@ -51,7 +55,11 @@ namespace HistoGrading.Components
                 //Initialize new volume components
                 vol = vtkVolume.New();
                 //mapper = vtkSmartVolumeMapper.New();
-                mapper = vtkFixedPointVolumeRayCastMapper.New();
+                //mapper = vtkFixedPointVolumeRayCastMapper.New();
+                mapper = vtkGPUVolumeRayCastMapper.New();                
+                //mapper = vtkOpenGLGPUVolumeRayCastMapper.New();
+                mapper.SetMaxMemoryInBytes((long)Math.Pow(2,31));
+                
                 ctf = vtkColorTransferFunction.New();
                 spwf = vtkPiecewiseFunction.New();
                 renderer = vtkRenderer.New();
@@ -62,7 +70,7 @@ namespace HistoGrading.Components
             public void InitializeMasks(int N)
             {
                 maskvols = new List<vtkVolume>();
-                maskmappers = new List<vtkFixedPointVolumeRayCastMapper>();
+                maskmappers = new List<vtkGPUVolumeRayCastMapper>();
                 maskctfs = new List<vtkColorTransferFunction>();
                 maskspwfs = new List<vtkPiecewiseFunction>();
                 for (int k = 0; k< N; k++)
@@ -70,7 +78,9 @@ namespace HistoGrading.Components
                     //Initialize mask
                     maskvols.Add(vtkVolume.New());
                     //maskmapper = vtkSmartVolumeMapper.New();
-                    maskmappers.Add(vtkFixedPointVolumeRayCastMapper.New());
+                    vtkGPUVolumeRayCastMapper tmpmapper = vtkGPUVolumeRayCastMapper.New();
+                    tmpmapper.SetMaxMemoryInBytes((long)Math.Pow(2, 31));
+                    maskmappers.Add(tmpmapper);
                     maskctfs.Add(vtkColorTransferFunction.New());
                     maskspwfs.Add(vtkPiecewiseFunction.New());
                 }                
@@ -410,6 +420,8 @@ namespace HistoGrading.Components
             vtkRenderWindow renWin;
             //Renderer
             vtkRenderer renderer = vtkRenderer.New();
+            //Interactor
+            Interactors interactor;
             //Volume/image data
             /// <summary>
             /// Original loaded image data as vtkImageData object.
@@ -580,12 +592,14 @@ namespace HistoGrading.Components
                 //Disposes existing pipeline and initializes new pipeline
                 if(has_volume == 1)
                 {
-                    volPipe.Dispose();                    
+                    volPipe.Dispose();
+                    interactor.Dispose();
                 }
                 if(has_image == 1)
                 {
                     imPipe.Dispose();
                     imPipe.Initialize();
+                    interactor.Dispose();
                 }
 
                 volPipe.Initialize();
@@ -597,6 +611,7 @@ namespace HistoGrading.Components
 
                 //Connect input data and renderer to rendering pipeline
                 volPipe.connectComponents(idata, renderer, gray[0], gray[1]);
+
                 //Connect renderer to render window
                 renWin.AddRenderer(renderer);
 
@@ -606,6 +621,10 @@ namespace HistoGrading.Components
 
                 //Render volume
                 renWin.Render();
+
+                //Update interactor
+                interactor = new Interactors(renWin);
+                interactor.set_default();
 
             }       
 
@@ -625,10 +644,12 @@ namespace HistoGrading.Components
                 if (has_volume == 1)
                 {
                     volPipe.Dispose();
+                    interactor.Dispose();
                 }
                 if (has_image == 1)
                 {
-                    imPipe.Dispose();                    
+                    imPipe.Dispose();
+                    interactor.Dispose();
                 }
 
                 imPipe.Initialize();
@@ -642,7 +663,7 @@ namespace HistoGrading.Components
                 //Connect components to rendering pipeline
                 imPipe.connectComponents(slice, renderer, gray[0], gray[1]);
                 //Connect renderer to render window
-                renWin.AddRenderer(renderer);
+                renWin.AddRenderer(renderer);                
 
                 //Update flags
                 has_image = 1;
@@ -650,6 +671,13 @@ namespace HistoGrading.Components
 
                 //Render image
                 renWin.Render();
+
+                //Update interactor
+                interactor = new Interactors(renWin);
+                if (curAx == 2) { interactor.set_2d_nodraw(); }
+                else { interactor.set_2d(); }
+                interactor.get_camera();
+                interactor.set_slice(sliceN[curAx]);
             }
 
             /// <summary>
@@ -937,6 +965,24 @@ namespace HistoGrading.Components
                 connectMaskFromData(new List<vtkImageData> { ccartilage, dcartilage, scartilage}, 0);
             }
 
+            public void remove_artefact(bool rendermask = false)
+            {
+
+                //Get line ends as world coordinates
+                double[] points = interactor.get_position();
+                //Create new imagedata for cropping
+                vtkImageData tmp = vtkImageData.New();
+                tmp.DeepCopy(idata);
+                idata.Dispose();
+                //Remove artefacts
+                tmp = Processing.remove_artefacts(tmp, points, curAx);
+                //Return to original image data variable
+                idata = vtkImageData.New();
+                idata.DeepCopy(tmp);
+                //Memory management
+                tmp.Dispose();
+            }
+
             public void save_data(string name, string path)
             {
                 //Functions.saveVTKPNG(idata, path, name);
@@ -949,6 +995,35 @@ namespace HistoGrading.Components
                 {
                     //Functions.saveVTKPNG(imasks.ElementAt(k), path, names[k]);
                     Functions.saveVTK(imasks.ElementAt(k), path, names[k]);
+                }
+            }
+
+            public void grade_vois(string[] models, string sample_name)
+            {
+                //Grade extracted vois, order is calcified, deep, surface
+                for(int k = 0; k<imasks.Count(); k++)
+                {
+                    if(k==0)
+                    {
+                        double[,] mu; double[,] sd;
+                        Processing.get_mean_sd(out mu, out sd, imasks.ElementAt(k), 50);
+                        Console.WriteLine("Calcified cartilage grade:");
+                        Grading.grade_voi(sample_name+"_calc", mu, sd, models.ElementAt(k));
+                    }
+                    else if(k==1)
+                    {
+                        double[,] mu; double[,] sd;
+                        Processing.get_mean_sd(out mu, out sd, imasks.ElementAt(k));
+                        Console.WriteLine("Deep cartilage grade:");
+                        Grading.grade_voi(sample_name + "_deep", mu, sd, models.ElementAt(k));
+                    }
+                    else if (k == 2)
+                    {
+                        double[,] mu; double[,] sd;
+                        Processing.get_mean_sd(out mu, out sd, Functions.rotate_surface_voi(imasks.ElementAt(k)), 25);
+                        Console.WriteLine("Surface grade:");
+                        Grading.grade_voi(sample_name + "_surf", mu, sd, models.ElementAt(k));
+                    }
                 }
             }
 
@@ -970,6 +1045,75 @@ namespace HistoGrading.Components
                 }
                 imasks = null;
                 idata = null;
+                GC.Collect();
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+            protected virtual void Dispose(bool disposing)
+            {
+                Disposed = true;
+            }
+            protected bool Disposed { get; private set; }
+        }
+
+        public class vtkLine : IDisposable
+        {
+            private static vtkLineSource line;
+            private static vtkPolyDataMapper linemapper;
+            private static vtkRenderWindow renWin;            
+            private static vtkActor actor;
+
+            private static int slice;
+
+            public vtkLine(vtkRenderWindow window, int N)
+            {
+                renWin = window;                
+                slice = N;
+            }
+
+            public void draw(double[] points)
+            {
+                //Create new line
+                line = vtkLineSource.New();
+                line.SetPoint1(points[0], points[1], 0);
+                line.SetPoint2(points[2], points[3], 0);
+                line.Update();
+
+                //Render the line
+                linemapper = vtkPolyDataMapper.New();
+                linemapper.SetInputConnection(line.GetOutputPort());
+                actor = vtkActor.New();
+                actor.SetMapper(linemapper);
+                actor.SetPosition(0, 0, slice + 1);
+                actor.GetProperty().SetColor(1, 0, 0);
+                actor.GetProperty().SetLineWidth(5);
+                renWin.GetRenderers().GetFirstRenderer().AddActor(actor);
+                renWin.Render();
+            }
+
+            public void update(double[] points)
+            {
+                //Create new line                
+                line.SetPoint1(points[0], points[1], 0);
+                line.SetPoint2(points[2], points[3], 0);
+                line.Modified();
+
+                //Render the line                
+                linemapper.SetInputConnection(line.GetOutputPort());
+                linemapper.Modified();
+                actor.SetMapper(linemapper);
+                actor.Modified();
+
+                renWin.Render();
+            }
+
+
+            //Disposing methods
+            public void Dispose()
+            {                
+                actor.Dispose();
+                line.Dispose();
+                linemapper.Dispose();
                 GC.Collect();
                 Dispose(true);
                 GC.SuppressFinalize(this);

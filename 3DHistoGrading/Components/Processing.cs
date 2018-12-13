@@ -300,6 +300,57 @@ namespace HistoGrading.Components
             slice.SetOutputExtent(outExtent[0], outExtent[1], outExtent[2], outExtent[3], outExtent[4], outExtent[5]);
         }
 
+        //Remove artefacts
+        public static vtkImageData remove_artefacts(vtkImageData volume, double[] points, int axis)
+        {
+            //Get input volume dimensions            
+            int[] dims = volume.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+            Console.WriteLine("Got dims: {0},{1},{2}",h,w,d);
+            //Convert volume to byte array
+            byte[] bytedata = DataTypes.vtkToByte(volume);
+            Console.WriteLine("Got bytedata");
+            //Compute slope (k) and zero crossing (b) from given point for a line y=kx+b
+            //Compute the slope of the line from points
+            double slope = (points[3] - points[1]) / (points[2] - points[0]);
+            //Compute zero crossing
+            double b = points[3] - slope * points[2] - dims[4];
+            Console.WriteLine("Got line equation");
+            //Iterate over the data
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    //Compute extent for zeroing
+                    int zstart = 0;
+                    int zstop = d;
+                    if(axis == 0)
+                    {
+                        zstart = (int)((double)(x+dims[2]) * slope + b);
+                        zstart = Math.Max(zstart, 0);
+                    }
+                    if (axis == 1)
+                    {
+                        zstart = (int)((double)(y+dims[0]) * slope + b);
+                        zstart = Math.Max(zstart, 0);
+                    }
+                    //Iterate over z-axis
+                    for(int z = zstart; z<zstop; z++)
+                    {
+                        int pos = z * (h * w) + x * h + y;
+                        bytedata[pos] = 0;
+                    }
+                });
+            });
+            Console.WriteLine("Zeroed");
+            //Convert byte data back to vtkdata
+            vtkImageData output = DataTypes.byteToVTK1D(bytedata,dims);
+
+            return output;
+        }
+
         /// <summary>
         /// Rotates 3D vtk volume around x and y axes.
         /// </summary>
@@ -960,6 +1011,84 @@ namespace HistoGrading.Components
 
             return ori;
         }
-        
+
+        public static void get_mean_sd(out double[,] mean, out double[,] sd, vtkImageData VOI, int voi_depth = 0)
+        {
+            //Get input extent
+            int[] dims = VOI.GetExtent();
+
+            //Compute dimensions
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Get byte data from vtkImageData
+            byte[] bytedata = DataTypes.vtkToByte(VOI);
+
+            double[,] mu = new double[h, w];
+            int[,] Ns = new int[h, w];
+
+            //Set void depth
+            if(voi_depth == 0) { voi_depth = d; }
+
+            //Iterate over data and compute mean image
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    double sum = 0.0;
+                    int N = 0;
+                    for(int z = d-1; z >= 0; z-=1)
+                    {
+                        //Compute position
+                        int pos = z * (h * w) + x * h + y;
+                        //Get byte value
+                        byte val = bytedata[pos];
+                        //Add to sum
+                        sum += (double)val;
+                        //If value is nonzero, increase count
+                        if(val > 0) { N += 1; }
+                        //If count is equal to VOI depth, break
+                        if (N == voi_depth) { break; }                        
+                    }
+                    mu[y, x] = sum/(double)N;
+                    Ns[y, x] = N;
+                });
+            });
+
+            double[,] sigma = new double[h, w];
+
+            //Iterate over data and compute sd image
+            Parallel.For(0, h, (int y) =>
+            {
+                Parallel.For(0, w, (int x) =>
+                {
+                    double sum = 0.0;
+                    int N = 0;
+                    for (int z = d - 1; z >= 0; z -= 1)
+                    {
+                        //Compute position
+                        int pos = z * (h * w) + x * h + y;
+                        //Get byte value
+                        byte val = bytedata[pos];
+                        //If value is non-zero, subtract from value and square
+                        if(val > 0)
+                        {
+                            double tmp = (double)val - mu[y, x];
+                            sum += tmp * tmp;
+                            N += 1;
+                        }
+                        //If count is equal to VOI depth, break
+                        if (N == voi_depth) { break; }
+                    }
+                    sigma[y, x] = sum / ((double)Ns[y,x]-1);
+                });
+            });
+
+            //Return mu and sd
+            mean = mu;
+            sd = sigma;
+
+        }
     }
 }

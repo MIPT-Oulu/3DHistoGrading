@@ -23,6 +23,8 @@ namespace HistoGrading
         //Rendering flags
         int is_rendering = 0;
         int is_mask = 0;
+        int is_coronal = 0;
+        int is_sagittal = 0;
 
         //Saving flags
         int save_mask = 0;
@@ -43,9 +45,6 @@ namespace HistoGrading
         
         //Render window
         private vtkRenderWindow renWin;
-
-        //Interactor
-        vtkRenderWindowInteractor iactor;
 
         //Mouse interactor
         bool mouseDown1 = false;
@@ -166,7 +165,7 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                TellSlice();
+                TellSlice();                
             }
         }
 
@@ -174,10 +173,7 @@ namespace HistoGrading
         private void renderWindowControl_Load(object sender, EventArgs e)
         {            
             //Set renderwindow
-            renWin = renderWindowControl.RenderWindow;
-            //Initialize interactor
-            iactor = renWin.GetInteractor();
-            iactor.Initialize();
+            renWin = renderWindowControl.RenderWindow;                   
         }
 
         //Buttons
@@ -192,7 +188,7 @@ namespace HistoGrading
                 {
                     //Remove renderer
                     renWin.RemoveRenderer(renWin.GetRenderers().GetFirstRenderer());
-                    volume.Dispose();
+                    volume.Dispose();                    
                     volume = null;
                     GC.Collect();
                 }
@@ -244,6 +240,8 @@ namespace HistoGrading
                 //Flags for GUI components
                 is_rendering = 1;
                 is_mask = 0;
+                is_coronal = 0;
+                is_sagittal = 0;
                 //Saving flags
                 save_mask = 0;
                 save_vois = 0;
@@ -257,9 +255,10 @@ namespace HistoGrading
                 //Update GUI
                 maskButton.Text = "Load Mask";
                 maskLabel.Text = "No Mask Loaded";
+                coronalButton.Text = "Coronal, XZ";
+                sagittalButton.Text = "Sagittal, YZ";
                 TellSlice();
-
-                iactor.Enable();
+                                
 
                 // Enable buttons
                 sagittalButton.Enabled = true;
@@ -367,7 +366,7 @@ namespace HistoGrading
                     if(is_mask == 1)
                     {
                         volume.renderImageMask();
-                    }
+                    }                    
                 }
                 TellSlice();
                 GC.Collect();
@@ -389,7 +388,13 @@ namespace HistoGrading
             }
 
             TellSlice();
-            iactor.Enable();
+
+            //Update GUI
+            coronalButton.Text = "Coronal, XZ";
+            sagittalButton.Text = "Sagittal, YZ";
+
+            is_sagittal = 0;
+            is_coronal = 0;
 
             GC.Collect();
         }
@@ -414,8 +419,14 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                TellSlice();
-                iactor.Disable();
+                TellSlice();                
+
+                //Update GUI
+                coronalButton.Text = "Coronal, XZ";
+                sagittalButton.Text = "Sagittal, YZ";
+
+                is_sagittal = 0;
+                is_coronal = 0;
             }
             GC.Collect();
         }
@@ -423,7 +434,7 @@ namespace HistoGrading
         //Render transverse slice, XZ plane
         private void coronalButton_Click(object sender, EventArgs e)
         {
-            if (is_rendering == 1)
+            if (is_rendering == 1 && is_coronal == 0)
             {                
                 //Set orientation
                 ori = 0;
@@ -441,8 +452,25 @@ namespace HistoGrading
                 {
                     volume.renderImageMask();
                 }
-                TellSlice();
-                iactor.Disable();
+                TellSlice();                
+
+                //Update GUI
+                coronalButton.Text = "Crop artefact";
+                sagittalButton.Text = "Sagittal, YZ";
+
+                is_sagittal = 0;
+                is_coronal = 1;
+            }
+            else if (is_rendering == 1 && is_coronal == 1)
+            {
+                //Get Line ends and crop above the line
+                volume.remove_artefact();
+                volume.renderImage();
+                //Check mask
+                if (is_mask == 1)
+                {
+                    volume.renderImageMask();
+                }                
             }
             GC.Collect();
         }
@@ -451,7 +479,7 @@ namespace HistoGrading
         private void sagittalButton_Click(object sender, EventArgs e)
         {
             //Check if rendering
-            if(is_rendering==1)
+            if(is_rendering==1 && is_sagittal == 0)
             {
                 //Set orientation
                 ori = 1;
@@ -469,7 +497,24 @@ namespace HistoGrading
                     volume.renderImageMask();
                 }
                 TellSlice();
-                iactor.Disable();
+
+                //Update GUI
+                sagittalButton.Text = "Crop artefact";
+                coronalButton.Text = "Coronal, YZ";
+
+                is_sagittal = 1;
+                is_coronal = 0;
+            }
+            else if (is_rendering == 1 && is_sagittal == 1)
+            {
+                //Get Line ends and crop above the line                
+                volume.remove_artefact();
+                volume.renderImage();
+                //Check mask
+                if (is_mask == 1)
+                {
+                    volume.renderImageMask();
+                }                
             }
             GC.Collect();
         }
@@ -503,8 +548,9 @@ namespace HistoGrading
                 if (is_mask == 1)
                 {
                     volume.renderImageMask();
-                }
+                }                
             }
+            
             GC.Collect();
         }
 
@@ -562,7 +608,7 @@ namespace HistoGrading
             }
             if (ori > -1)
             {
-                volume.renderImage();
+                volume.renderImage();                
             }
                         
             segmentButton.Enabled = true;
@@ -590,6 +636,7 @@ namespace HistoGrading
                 //volume.renderImage();
                 volume.renderImageMask();
             }
+
             GC.Collect();
             saveButton.Enabled = true;
             //Saving flags
@@ -610,8 +657,12 @@ namespace HistoGrading
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
+            string[] models = new string[] { ".\\Default\\calcified_weights.dat", ".\\Default\\deep_weights.dat", ".\\Default\\surface_weights.dat" };
+            volume.grade_vois(models, fname);
+            /*
             string grade = Grading.PredictSurface(ref volume, fname, out int[,] surfaceCoordinates);
             gradeLabel.Text = grade;
+            */
         }
 
         private void saveButton_Click(object sender, EventArgs e)

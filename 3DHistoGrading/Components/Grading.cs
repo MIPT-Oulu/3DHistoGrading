@@ -277,6 +277,23 @@ namespace HistoGrading.Components
                 }
             }
         }
+
+        public static void grade_voi(string sample, double[,] mean, double[,] sd, string model_path)
+        {
+            //Load model
+            // Load default model
+            Console.WriteLine(model_path);
+            string path = LoadModel(out Model mod, model_path);
+
+            //Get LBP features
+            Parameters param = new Parameters();
+            int[,] features = LBP(mean.Add(sd), param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR);
+
+            //Get grade
+            // Calculate PCA and regression
+            FeaturesToGrade(features, mod, path, sample, out string grade);
+            Console.WriteLine(grade);
+        }
     }
 
     /// <summary>

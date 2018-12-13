@@ -119,6 +119,7 @@
     <Compile Include="Components\Functions.cs" />
     <Compile Include="Components\Grading.cs" />
     <Compile Include="Components\HDF5Loader.cs" />
+    <Compile Include="Components\Interactors.cs" />
     <Compile Include="Components\Processing.cs" />
     <Compile Include="Components\Rendering.cs" />
     <Compile Include="GradingForm.cs">

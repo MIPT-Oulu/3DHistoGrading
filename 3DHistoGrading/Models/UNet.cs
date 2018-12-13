@@ -221,20 +221,20 @@ namespace HistoGrading.Models
             {
                 name1[0] = names[0];
                 name1[1] = names[1];
-                //name2[0] = names[2];
-                //name2[1] = names[3];
+                name2[0] = names[2];
+                name2[1] = names[3];
             }
             else
             {
                 name1 = null;
-                //name2 = null;
+                name2 = null;
             }
 
             //Convolution blocks
             var block1 = ConvBlock(features, ks, in_channels, out_channels, null, null, wpath, name1, true, true, bn);
-            //var block2 = ConvBlock(block1.Output, ks, out_channels, out_channels, null, null, wpath, name2, true, true, bn);
+            var block2 = ConvBlock(block1.Output, ks, out_channels, out_channels, null, null, wpath, name2, true, true, bn);
 
-            center = block1.Output;
+            center = block2.Output;
         }
 
         //Mixer
@@ -531,7 +531,7 @@ namespace HistoGrading.Models
 
             //Center block
             Function center1;
-            string[] namesc = new string[] { "center_0_weight", "center_0_bias" };//, "center_1_weight", "center_1_bias", };
+            string[] namesc = new string[] { "center_0_weight", "center_0_bias", "center_1_weight", "center_1_bias", };
             center(pooled6, ks, 32 * BW, 32 * BW, out center1, wpath, namesc, use_bn);
             Console.WriteLine("Center");
 

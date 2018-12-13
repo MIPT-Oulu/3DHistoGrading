@@ -114,7 +114,7 @@ namespace HistoGrading.Models
             int[] dims = volume.getDims();
 
             //Initialize unet
-            string wpath = "Z:\\Tuomas\\NewUnets\\UNet_fold_2.h5";
+            string wpath = "Z:\\Tuomas\\NewUnets\\UNet_fold_2_new.h5";
             //string wpath = "Z:\\Tuomas\\UNetE3bn.h5";
 
             UNet model = new UNet();

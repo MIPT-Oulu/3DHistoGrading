@@ -80,33 +80,45 @@ namespace HistoGrading.Components
         /// <returns></returns>
         public static vtkImageData volumeSlicer(vtkImageData volume, int[] sliceN, int axis)
         {
-            //Initialize VOI extractor and permuter.
-            //Permuter will correct the orientation of the output image
-            vtkExtractVOI slicer = vtkExtractVOI.New();
-            vtkImagePermute permuter = vtkImagePermute.New();
-            //Connect data to slicer
-            slicer.SetInput(volume);
-            slicer.Update();
-
             //Get data dimensions
-            int[] dims = slicer.GetOutput().GetExtent();
+            int[] dims = volume.GetExtent();
+
+            //Create output image data
+            vtkImageData output = vtkImageData.New();
 
             //Get slice
 
             //Coronal plane
             if (axis == 0)
             {
+                //Initialize VOI extractor and permuter.
+                //Permuter will correct the orientation of the output image
+                vtkExtractVOI slicer = vtkExtractVOI.New();
+                vtkImagePermute permuter = vtkImagePermute.New();
+                //Connect data to slicer
+                slicer.SetInput(volume);                
                 //Set VOI
                 slicer.SetVOI(sliceN[0], sliceN[0], dims[2], dims[3], dims[4], dims[5]);
                 slicer.Update();
-                //Permute image (not necessary here)
+                //Permute image
                 permuter.SetInputConnection(slicer.GetOutputPort());
                 permuter.SetFilteredAxes(1, 2, 0);
                 permuter.Update();
+                //Copy permuter output to output image data
+                output.DeepCopy(permuter.GetOutput());
+                //Dispose unnecessary components
+                permuter.Dispose();
+                slicer.Dispose();
             }
             //Sagittal plane
             if (axis == 1)
             {
+                //Initialize VOI extractor and permuter.
+                //Permuter will correct the orientation of the output image
+                vtkExtractVOI slicer = vtkExtractVOI.New();
+                vtkImagePermute permuter = vtkImagePermute.New();
+                //Connect data to slicer
+                slicer.SetInput(volume);
                 //Set VOI
                 slicer.SetVOI(dims[0], dims[1], sliceN[1], sliceN[1], dims[4], dims[5]);
                 slicer.Update();
@@ -114,24 +126,28 @@ namespace HistoGrading.Components
                 permuter.SetInputConnection(slicer.GetOutputPort());
                 permuter.SetFilteredAxes(0, 2, 1);
                 permuter.Update();
+                //Copy permuter output to output image data
+                output.DeepCopy(permuter.GetOutput());
+                //Dispose unnecessary components
+                permuter.Dispose();
+                slicer.Dispose();
             }
             //Transverse plane, XY
             if (axis == 2)
             {
+                //Initialize VOI extractor.                
+                vtkExtractVOI slicer = vtkExtractVOI.New();                
+                //Connect data to slicer
+                slicer.SetInput(volume);
                 //Set VOI
                 slicer.SetVOI(dims[0], dims[1], dims[2], dims[3], sliceN[2], sliceN[2]);
                 slicer.Update();
-                //Permute image
-                permuter.SetInputConnection(slicer.GetOutputPort());
-                permuter.SetFilteredAxes(0, 1, 2);
-                permuter.Update();
+                //Copy slicer output to output image data
+                output.DeepCopy(slicer.GetOutput());
+                //Dispose unnecessary components                
+                slicer.Dispose();                
             }
-            //slicer.Update();
-
-            vtkImageData output = vtkImageData.New();
-            output.DeepCopy(permuter.GetOutput());
-            permuter.Dispose();
-            slicer.Dispose();
+            
             //Return copy of the slice
             return output;
         }
@@ -1127,6 +1143,57 @@ namespace HistoGrading.Components
             double score = (2 * intersection_sum) / (m1_sum + m2_sum + e);
 
             return score;
+        }
+
+        public static vtkImageData rotate_surface_voi(vtkImageData input)
+        {
+            //Get dims
+            int[] dims = input.GetExtent();
+            int h = dims[1] - dims[0] + 1;
+            int w = dims[3] - dims[2] + 1;
+            int d = dims[5] - dims[4] + 1;
+
+            //Get input surface
+            int[,] surface = get_surface(input);
+            
+            //Get surface orientation and minimum and maximum indices
+
+            List<Point2f> pointsx = new List<Point2f>();
+            List<Point2f> pointsy = new List<Point2f>();
+
+            int zmin = 65000;
+            int zmax = 0;
+
+            for (int y = 24; y < surface.GetLength(0) - 24; y += 4)
+            {
+                for (int x = 24; x < surface.GetLength(1) - 24; x += 4)
+                {
+                    pointsx.Add(new Point2f((float)x, (float)surface[y, x]));
+                    pointsy.Add(new Point2f((float)y, (float)surface[y, x]));
+                    if (surface[y, x] > zmax) { zmax = surface[y, x]; }
+                    if (surface[y, x] < zmin) { zmin = surface[y, x]; }
+                }
+            }
+
+            //Line fit
+            Line2D linex = Cv2.FitLine(pointsx, DistanceTypes.L2, 0, 0.01, 0.01);
+            Line2D liney = Cv2.FitLine(pointsy, DistanceTypes.L2, 0, 0.01, 0.01);
+
+            //Get angles as degrees
+            double thetax = Math.Atan(linex.Vy / (linex.Vx + 1e-9)) * 180.0 / Math.PI;
+            double thetay = Math.Atan(liney.Vy / (liney.Vx + 1e-9)) * 180.0 / Math.PI;
+            double[] angles = new double[] { thetax, thetay };
+            int[] axes = new int[] { 0, 1 };
+
+            //Rotate surface
+            vtkImageData tmpvtk = vtkImageData.New();
+            tmpvtk.DeepCopy(input);
+            for (int k = 0; k < angles.Length; k++)
+            {
+                tmpvtk = Processing.rotate_sample(tmpvtk, angles[k], axes[k], 0);
+            }
+
+            return tmpvtk;
         }
     }
 

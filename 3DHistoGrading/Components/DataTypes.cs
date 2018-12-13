@@ -46,6 +46,7 @@ namespace HistoGrading.Components
             vtkdata.SetExtent(0, dims[2] - 1, 0, dims[1] - 1, 0, dims[0] - 1);
             //Scalar type
             vtkdata.SetScalarTypeToUnsignedChar();
+            vtkdata.SetSpacing(1.0, 1.0, 1.0);
             vtkdata.Update();
             pinnedArray.Free();
             //Return vtk data
