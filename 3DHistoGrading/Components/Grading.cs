@@ -375,7 +375,7 @@ namespace HistoGrading.Components
             string path = LoadModel(out Model mod, out Parameters param, model_path, param_path);
 
             // Show images to user
-            grading.UpdateModel(); grading.Show();
+            grading.UpdateModel(zone); grading.Show();
             grading.UpdateMean(
                 DataTypes.DoubleToBitmap(mean),
                 DataTypes.DoubleToBitmap(sd),

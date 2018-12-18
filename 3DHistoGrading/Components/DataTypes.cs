@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Windows.Forms;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
@@ -435,33 +436,49 @@ namespace HistoGrading.Components
         {
             var header = false;
             float[,] array = new float[0, 0];
-            foreach (string line in File.ReadLines(filename))
+
+            // Check that file is not opened
+            var result = DialogResult.OK;
+            while (result == DialogResult.OK)
             {
-                string[] commaseparated;
                 try
                 {
-                    commaseparated = line.Split(',');
-                }
-                catch (FormatException)
-                {
-                    commaseparated = line.Split(';');
-                }
+                    foreach (string line in File.ReadLines(filename))
+                    {
+                        string[] commaseparated;
+                        try
+                        {
+                            commaseparated = line.Split(',');
+                        }
+                        catch (FormatException)
+                        {
+                            commaseparated = line.Split(';');
+                        }
 
-                float[] values;
-                values = new float[commaseparated.Length];
-                for (int j = 0; j < commaseparated.Length; j++)
-                {
-                    try
-                    {
-                        values[j] = float.Parse(commaseparated[j], System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
+                        float[] values;
+                        values = new float[commaseparated.Length];
+                        for (int j = 0; j < commaseparated.Length; j++)
+                        {
+                            try
+                            {
+                                values[j] = float.Parse(commaseparated[j], System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
+                            }
+                            catch (FormatException)
+                            {
+                                header = true;
+                                continue;
+                            }
+                        }
+                        array = Matrix.Concatenate(array, values);
                     }
-                    catch (FormatException)
-                    {
-                        header = true;
-                        continue;
-                    }
+                    break;
                 }
-                array = Matrix.Concatenate(array, values);
+                catch (Exception)
+                {
+                    result = MessageBox.Show(
+                        "Results file is opened. Please close the file before continuing."
+                        , "Error!", MessageBoxButtons.OKCancel);
+                }
             }
 
             // Return CSV

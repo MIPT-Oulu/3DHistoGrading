@@ -41,7 +41,7 @@
             this.smallPicture = new System.Windows.Forms.PictureBox();
             this.largePicture = new System.Windows.Forms.PictureBox();
             this.radialPicture = new System.Windows.Forms.PictureBox();
-            this.label7 = new System.Windows.Forms.Label();
+            this.gradeLabel = new System.Windows.Forms.Label();
             this.parameterLabel = new System.Windows.Forms.Label();
             this.parameterTip = new System.Windows.Forms.ToolTip(this.components);
             this.meanstdLabel = new System.Windows.Forms.Label();
@@ -160,24 +160,24 @@
             this.radialPicture.TabIndex = 16;
             this.radialPicture.TabStop = false;
             // 
-            // label7
+            // gradeLabel
             // 
-            this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(32, 49);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(110, 31);
-            this.label7.TabIndex = 17;
-            this.label7.Text = "Grading";
+            this.gradeLabel.AutoSize = true;
+            this.gradeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.gradeLabel.Location = new System.Drawing.Point(32, 49);
+            this.gradeLabel.Name = "gradeLabel";
+            this.gradeLabel.Size = new System.Drawing.Size(110, 31);
+            this.gradeLabel.TabIndex = 17;
+            this.gradeLabel.Text = "Grading";
             // 
             // parameterLabel
             // 
             this.parameterLabel.AutoSize = true;
             this.parameterLabel.Location = new System.Drawing.Point(35, 115);
             this.parameterLabel.Name = "parameterLabel";
-            this.parameterLabel.Size = new System.Drawing.Size(60, 13);
+            this.parameterLabel.Size = new System.Drawing.Size(154, 13);
             this.parameterLabel.TabIndex = 18;
-            this.parameterLabel.Text = "Parameters";
+            this.parameterLabel.Text = "Parameters (hover mouse over)";
             this.parameterTip.SetToolTip(this.parameterLabel, "Parameters:");
             // 
             // parameterTip
@@ -212,7 +212,7 @@
             this.Controls.Add(this.meanstdPicture);
             this.Controls.Add(this.meanstdLabel);
             this.Controls.Add(this.parameterLabel);
-            this.Controls.Add(this.label7);
+            this.Controls.Add(this.gradeLabel);
             this.Controls.Add(this.radialPicture);
             this.Controls.Add(this.largePicture);
             this.Controls.Add(this.smallPicture);
@@ -251,7 +251,7 @@
         private System.Windows.Forms.PictureBox smallPicture;
         private System.Windows.Forms.PictureBox largePicture;
         private System.Windows.Forms.PictureBox radialPicture;
-        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label gradeLabel;
         private System.Windows.Forms.Label parameterLabel;
         private System.Windows.Forms.ToolTip parameterTip;
         private System.Windows.Forms.Label meanstdLabel;
