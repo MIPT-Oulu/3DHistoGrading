@@ -912,7 +912,7 @@ namespace HistoGrading.Components
                 //Empty list for output
                 List<vtkImageData> outputs;
 
-                IO.segmentation_pipeline(out outputs, this, batch_dims, voi_extent, new int[] { 0,1 }, 24);
+                IO.segmentation_pipeline(out outputs, this, batch_dims, voi_extent, new int[] { 0,1 }, 28);
 
                 vtkImageThreshold t = vtkImageThreshold.New();
                 if (outputs.Count() == 2)

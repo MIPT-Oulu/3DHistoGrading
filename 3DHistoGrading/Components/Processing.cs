@@ -1077,7 +1077,7 @@ namespace HistoGrading.Components
                         //If count is equal to VOI depth, break
                         if (N == voi_depth) { break; }                        
                     }
-                    mu[y- crop_size, x - crop_size] = sum/(double)N;
+                    mu[y- crop_size, x - crop_size] = sum/((double)N+1e-9);
                     muim[y- crop_size, x - crop_size] = (byte)mu[y - crop_size, x - crop_size];
                     Ns[y- crop_size, x - crop_size] = N;
                 }
@@ -1109,7 +1109,7 @@ namespace HistoGrading.Components
                         //If count is equal to VOI depth, break
                         if (N == voi_depth) { break; }
                     }
-                    sigma[y - crop_size, x - crop_size] = Math.Sqrt(sum / ((double)Ns[y - crop_size, x - crop_size] - 1.0));
+                    sigma[y - crop_size, x - crop_size] = Math.Sqrt(sum / ((double)Ns[y - crop_size, x - crop_size] - 1.0 + 1e-9));
                     if (N == 0) { sigma[y - crop_size, x - crop_size] = 0.0; }
                     sdim[y - crop_size, x - crop_size] = (byte)sigma[y - crop_size, x - crop_size];
                 }
