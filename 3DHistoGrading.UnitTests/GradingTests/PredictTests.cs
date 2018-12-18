@@ -39,7 +39,7 @@ namespace _3DHistoGrading.UnitTests
             testImg.New("Quarters", new int[] { 40, 40 });
             Parameters param = new Parameters();
 
-            int[,] features = Grading.LBP(testImg.Image.ToDouble(), param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR);
+            int[,] features = Grading.LBP(testImg.Image.ToDouble(), param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR, "");
 
             int[,] refArray = new int[1, 32] // Here, actually columns are written out
                 {{ 162, 162, 0, 0, 0, 14, 4, 14, 0, 0, 0, 292, 0, 10, 18, 94, 56, 94, 18, 10, 0, 24, 5, 36, 9, 12, 16, 12, 9, 37, 5, 183} }

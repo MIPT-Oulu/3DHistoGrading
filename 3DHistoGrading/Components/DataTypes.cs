@@ -309,12 +309,76 @@ namespace HistoGrading.Components
         /// <returns>Bitmap</returns>
         public static Bitmap DoubleToBitmap(double[,] array)
         {
+            /*
             // Scale
             array = LBPLibrary.Functions.Normalize(array).Multiply(255);
             // To byte
             byte[,] bytearray = array.Round().ToByte(); // Round and convert to byte
             // To Bitmap
             return new Bitmap(LBPLibrary.Functions.ByteMatrixToBitmap(bytearray));
+             */          
+            double min = 1e9; double max = -1e9;
+            for (int kx = 0; kx < array.GetLength(1); kx++)
+            {
+                for (int ky = 0; ky < array.GetLength(0); ky++)
+                {
+                    double val = array[ky, kx];
+                    if (val > max) { max = val; }
+                    if (val < min) { min = val; }
+                }
+            }
+
+            byte[,] valim = new byte[array.GetLength(0), array.GetLength(1)];
+            for (int kx = 0; kx < array.GetLength(1); kx++)
+            {
+                for (int ky = 0; ky < array.GetLength(0); ky++)
+                {
+                    double val = array[ky, kx];
+                    byte bval = (byte)(255.0 * (val - min) / (max - min));
+                    valim[ky, kx] = bval;
+                }
+            }
+                       
+            return new Bitmap(LBPLibrary.Functions.ByteMatrixToBitmap(valim));
+        }
+
+        public static void showDouble(double[,] array)
+        {
+            /*
+            // Scale
+            array = LBPLibrary.Functions.Normalize(array).Multiply(255);
+            // To byte
+            byte[,] bytearray = array.Round().ToByte(); // Round and convert to byte
+            // To Bitmap
+            return new Bitmap(LBPLibrary.Functions.ByteMatrixToBitmap(bytearray));
+             */
+            double min = 1e9; double max = -1e9;
+            for (int kx = 0; kx < array.GetLength(1); kx++)
+            {
+                for (int ky = 0; ky < array.GetLength(0); ky++)
+                {
+                    double val = array[ky, kx];
+                    if (val > max) { max = val; }
+                    if (val < min) { min = val; }
+                }
+            }
+
+            byte[,] valim = new byte[array.GetLength(0), array.GetLength(1)];
+            for (int kx = 0; kx < array.GetLength(1); kx++)
+            {
+                for (int ky = 0; ky < array.GetLength(0); ky++)
+                {
+                    double val = array[ky, kx];
+                    byte bval = (byte)(255.0 * (val - min) / (max - min));
+                    valim[ky, kx] = bval;
+                }
+            }
+
+            Mat image = new Mat(array.GetLength(0), array.GetLength(1), MatType.CV_8UC1, valim);
+            using (Window win = new Window("Double Image", WindowMode.AutoSize, image: image))
+            {
+                Cv2.WaitKey();
+            }
         }
 
         /// <summary>
@@ -360,6 +424,61 @@ namespace HistoGrading.Components
             });
 
             return array;
+        }
+
+        /// <summary>
+        /// Read array from .csv file 
+        /// </summary>
+        /// <param name="filename">Path to the .csv file</param> 
+        /// <returns>Array readed from .csv file</returns>
+        public static float[,] ReadCSV(string filename)
+        {
+            var header = false;
+            float[,] array = new float[0, 0];
+            foreach (string line in File.ReadLines(filename))
+            {
+                string[] commaseparated;
+                try
+                {
+                    commaseparated = line.Split(',');
+                }
+                catch (FormatException)
+                {
+                    commaseparated = line.Split(';');
+                }
+
+                float[] values;
+                values = new float[commaseparated.Length];
+                for (int j = 0; j < commaseparated.Length; j++)
+                {
+                    try
+                    {
+                        values[j] = float.Parse(commaseparated[j], System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
+                    }
+                    catch (FormatException)
+                    {
+                        header = true;
+                        continue;
+                    }
+                }
+                array = Matrix.Concatenate(array, values);
+            }
+
+            // Return CSV
+            if (header) // Skip header
+            {
+                var croparray = new float[array.GetLength(0), array.GetLength(1) - 1];
+                for (int i = 0; i < array.GetLength(0); i++)
+                {
+                    for (int j = 1; j < array.GetLength(1); j++)
+                    {
+                        croparray[i, j - 1] = array[i, j];
+                    }
+                }
+                return croparray.Transpose();
+            }
+            else
+                return array.Transpose();
         }
 
     }

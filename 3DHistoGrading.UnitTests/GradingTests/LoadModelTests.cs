@@ -19,7 +19,7 @@ namespace _3DHistoGrading.UnitTests
             Model model = new Model();
             string filename = "";
             int[,] features = new int[0, 0];
-            string path = Grading.LoadModel(out model, filename);
+            string path = Grading.LoadModel(out model, out Parameters param, filename, filename);
             //Exception ex = Assert.Throws<Exception>(
             //    delegate { string path = Grading.LoadModel(ref model); });
 

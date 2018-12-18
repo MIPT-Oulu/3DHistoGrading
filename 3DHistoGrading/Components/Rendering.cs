@@ -1008,8 +1008,10 @@ namespace HistoGrading.Components
                 }
             }
 
-            public void grade_vois(string[] models, string sample_name)
+            public string grade_vois(string[] models, string[] parameters, string sample_name)
             {
+                string cc_grade = "", deep_grade = "", surf_grade = "";
+
                 //Grade extracted vois, order is calcified, deep, surface
                 for(int k = 0; k<imasks.Count(); k++)
                 {
@@ -1017,24 +1019,29 @@ namespace HistoGrading.Components
                     {
                         double[,] mu; double[,] sd;
                         Processing.get_mean_sd(out mu, out sd, imasks.ElementAt(k), 50);
+                        //Processing.MeanAndStd(imasks.ElementAt(k), out double[,] mu, out double[,] sd);
                         Console.WriteLine("Calcified cartilage grade:");
-                        Grading.grade_voi(sample_name+"_calc", mu, sd, models.ElementAt(k));
+                        cc_grade = "  calcified " + Grading.grade_voi("calc",sample_name+"_calc", mu, sd, models.ElementAt(k), parameters.ElementAt(k));
                     }
                     else if(k==1)
                     {
                         double[,] mu; double[,] sd;
                         Processing.get_mean_sd(out mu, out sd, imasks.ElementAt(k));
+                        //Processing.MeanAndStd(imasks.ElementAt(k), out double[,] mu, out double[,] sd);
                         Console.WriteLine("Deep cartilage grade:");
-                        Grading.grade_voi(sample_name + "_deep", mu, sd, models.ElementAt(k));
+                        deep_grade = "  deep " + Grading.grade_voi("deep",sample_name + "_deep", mu, sd, models.ElementAt(k), parameters.ElementAt(k));
                     }
                     else if (k == 2)
                     {
                         double[,] mu; double[,] sd;
-                        Processing.get_mean_sd(out mu, out sd, Functions.rotate_surface_voi(imasks.ElementAt(k)), 25);
+                        Processing.get_mean_sd(out mu, out sd, imasks.ElementAt(k), 25);
+                        //Processing.MeanAndStd(imasks.ElementAt(k), out double[,] mu, out double[,] sd);
                         Console.WriteLine("Surface grade:");
-                        Grading.grade_voi(sample_name + "_surf", mu, sd, models.ElementAt(k));
+                        surf_grade = "  surface " + Grading.grade_voi("surf",sample_name + "_surf", mu, sd, models.ElementAt(k), parameters.ElementAt(k));
                     }
                 }
+
+                return "OA grades: " + surf_grade + deep_grade + cc_grade;
             }
 
             //Disposing methods

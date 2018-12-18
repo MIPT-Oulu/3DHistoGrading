@@ -237,40 +237,7 @@ namespace HistoGrading.Components
             surfaceVOI = VOI;
         }
 
-        /// <summary>
-        /// Calculates mean and standard deviation images from volume-of-interest
-        /// along third axis (z).
-        /// </summary>
-        /// <param name="surfaceVOI">Input volume.</param>
-        /// <param name="meanImage">Mean 2D image.</param>
-        /// <param name="stdImage">Standard deviation 2D image.</param>
-        public static void MeanAndStd(byte[,,] surfaceVOI, out double[,] meanImage, out double[,] stdImage)
-        {
-            int[] dims = new int[] { surfaceVOI.GetLength(0), surfaceVOI.GetLength(1), surfaceVOI.GetLength(2) };
-            double[,] mean = new double[dims[0], dims[1]];
-            double[,] std = new double[dims[0], dims[1]];
-
-            Parallel.For(0, dims[0], i =>
-            {
-                Parallel.For(0, dims[1], j =>
-                {
-                    double[] temp = new double[dims[2]]; // has to be initialized in the loop
-                    for (int k = 0; k < dims[2]; k++)
-                    {
-                        temp[k] = surfaceVOI[i, j, k];
-                    }
-                    mean[i, j] = temp.Average();
-                    std[i, j] =
-                        Math.Sqrt(temp
-                        .Subtract(temp.Average())
-                        .Pow(2)
-                        .Sum()
-                        / (temp.Length - 1));
-                });
-            });
-            meanImage = mean;
-            stdImage = std;
-        }
+        
 
         /// <summary>
         /// Rotates volume along given axis.
@@ -707,6 +674,62 @@ namespace HistoGrading.Components
             return DataTypes.byteToVTK1D(output,dims);
         }
 
+        /// <summary>
+        /// Calculates mean and standard deviation images from volume-of-interest
+        /// along third axis (z).
+        /// </summary>
+        /// <param name="input">Input volume as vtkImageData.</param>
+        /// <param name="meanImage">Mean 2D image.</param>
+        /// <param name="stdImage">Standard deviation 2D image.</param>
+        public static void MeanAndStd(vtkImageData input, out double[,] meanImage, out double[,] stdImage)
+        {
+            //Get data extent
+            int[] ext = input.GetExtent();
+            int[] dims = new int[] { ext[3] - ext[2] + 1, ext[1] - ext[0] + 1, ext[5] - ext[4] + 1 };
+            Console.WriteLine("Input shape: {0}, {1}, {2}".Format(dims[0], dims[1], dims[2]));
+            // Convert to byte volume
+            byte[] bytedata = DataTypes.vtkToByte(input);
+            byte[,,] bytevolume = DataTypes.VectorToVolume(bytedata, dims);
+
+            //int[] dims = new int[] { bytedata.GetLength(0), bytedata.GetLength(1), bytedata.GetLength(2) };
+            double[,] mean = new double[dims[0], dims[1]];
+            double[,] std = new double[dims[0], dims[1]];
+
+            Parallel.For(0, dims[0], i =>
+            {
+                Parallel.For(0, dims[1], j =>
+                {
+                    //double[] temp = new double[dims[2]]; // has to be initialized in the loop
+                    double[] temp = new double[0]; // has to be initialized in the loop
+                    for (int k = 0; k < dims[2]; k++)
+                    {
+                        //temp[k] = bytevolume[i, j, k];
+                        if (bytevolume[i, j, k] > 0)
+                            temp.Concatenate(bytevolume[i, j, k]);
+                        
+                    }
+                    if (temp.Length > 0)
+                    {
+                        mean[i, j] = temp.Average();
+                        std[i, j] =
+                            Math.Sqrt(temp
+                            .Subtract(temp.Average())
+                            .Pow(2)
+                            .Sum()
+                            / (temp.Length - 1));
+                    }
+                    else
+                    {
+                        mean[i, j] = 0;
+                        std[i, j] = 0;
+                    }
+                    
+                });
+            });
+            meanImage = mean;
+            stdImage = std;
+        }
+
         public static void get_voi_mu_std(out vtkImageData output, out double[,] mu, out double[,] std, vtkImageData input, int depth, double threshold = 70.0)
         {
             //Get data extent
@@ -1014,7 +1037,7 @@ namespace HistoGrading.Components
             return ori;
         }
 
-        public static void get_mean_sd(out double[,] mean, out double[,] sd, vtkImageData VOI, int voi_depth = 0)
+        public static void get_mean_sd(out double[,] mean, out double[,] sd, vtkImageData VOI, int voi_depth = 0, int crop_size = 24)
         {
             //Get input extent
             int[] dims = VOI.GetExtent();
@@ -1027,16 +1050,17 @@ namespace HistoGrading.Components
             //Get byte data from vtkImageData
             byte[] bytedata = DataTypes.vtkToByte(VOI);
 
-            double[,] mu = new double[h, w];
-            int[,] Ns = new int[h, w];
+            double[,] mu = new double[h - crop_size * 2, w - crop_size * 2];
+            byte[,] muim = new byte[h - crop_size * 2, w - crop_size * 2];
+            int[,] Ns = new int[h - crop_size * 2, w - crop_size * 2];
 
             //Set void depth
             if(voi_depth == 0) { voi_depth = d; }
 
             //Iterate over data and compute mean image
-            Parallel.For(0, h, (int y) =>
+            for (int y = crop_size; y < h - crop_size; y++)
             {
-                Parallel.For(0, w, (int x) =>
+                for (int x = crop_size; x < w - crop_size; x++)
                 {
                     double sum = 0.0;
                     int N = 0;
@@ -1053,17 +1077,19 @@ namespace HistoGrading.Components
                         //If count is equal to VOI depth, break
                         if (N == voi_depth) { break; }                        
                     }
-                    mu[y, x] = sum/(double)N;
-                    Ns[y, x] = N;
-                });
-            });
+                    mu[y- crop_size, x - crop_size] = sum/(double)N;
+                    muim[y- crop_size, x - crop_size] = (byte)mu[y - crop_size, x - crop_size];
+                    Ns[y- crop_size, x - crop_size] = N;
+                }
+            }
 
-            double[,] sigma = new double[h, w];
+            double[,] sigma = new double[h - crop_size * 2, w - crop_size * 2];
+            byte[,] sdim = new byte[h - crop_size * 2, w - crop_size * 2];
 
             //Iterate over data and compute sd image
-            Parallel.For(0, h, (int y) =>
+            for(int y = crop_size; y< h - crop_size; y++)
             {
-                Parallel.For(0, w, (int x) =>
+                for (int x = crop_size; x < w - crop_size; x++)
                 {
                     double sum = 0.0;
                     int N = 0;
@@ -1076,21 +1102,35 @@ namespace HistoGrading.Components
                         //If value is non-zero, subtract from value and square
                         if(val > 0)
                         {
-                            double tmp = (double)val - mu[y, x];
+                            double tmp = (double)val - mu[y - crop_size, x - crop_size];
                             sum += tmp * tmp;
                             N += 1;
                         }
                         //If count is equal to VOI depth, break
                         if (N == voi_depth) { break; }
                     }
-                    sigma[y, x] = sum / ((double)Ns[y,x]-1);
-                });
-            });
+                    sigma[y - crop_size, x - crop_size] = Math.Sqrt(sum / ((double)Ns[y - crop_size, x - crop_size] - 1.0));
+                    if (N == 0) { sigma[y - crop_size, x - crop_size] = 0.0; }
+                    sdim[y - crop_size, x - crop_size] = (byte)sigma[y - crop_size, x - crop_size];
+                }
+            }
 
             //Return mu and sd
             mean = mu;
             sd = sigma;
 
+            //Mat meanmat = new Mat(h - crop_size * 2, w - crop_size * 2, MatType.CV_8UC1, muim);
+            //Mat sdmat = new Mat(h - crop_size * 2, w - crop_size * 2, MatType.CV_8UC1, sdim);
+
+            //using (Window win = new Window("Mean", WindowMode.AutoSize, meanmat))
+            //{
+            //    Cv2.WaitKey();
+            //}
+
+            //using (Window win = new Window("SD", WindowMode.AutoSize, sdmat))
+            //{
+            //    Cv2.WaitKey();
+            //}
         }
     }
 }

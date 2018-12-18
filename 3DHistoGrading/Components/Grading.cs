@@ -26,18 +26,39 @@ namespace HistoGrading.Components
         /// Loads default model weights.
         /// Default model file is on project folder named "weights.dat"
         /// </summary>
-        /// <param name="mod">Model containing all variables</param>
-        /// <param name="filename">Name of model file on "Default" folder.</param>
-        /// <returns>Model path</returns>
-        public static string LoadModel(out Model mod, string filename)
+        /// <param name="mod">Model containing grading variables</param>
+        /// <param name="param">Excel containing LBP parameters</param>
+        /// <param name="model_path">Path to model</param>
+        /// <param name="param_path">Path to parameters</param>
+        /// <returns>Grading model and LBP parameters</returns>
+        public static string LoadModel(out Model mod, out Parameters param, string model_path, string param_path)
         {            
-            // Path to model (weights.dat)
+            // Path to files
             string path =
                     new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
                     .Parent.Parent.Parent.Parent.FullName; // Move to correct location and add file name
 
+            // Load parameters from .csv
+            var paramList = DataTypes.ReadCSV(path + param_path).ToInt32();
+            var paramFlat = new int[paramList.Length];
+            for (int i = 0; i < paramList.Length; i++)
+            {
+                paramFlat[i] = paramList[0, i];
+            }
+
+            // Set parameters
+            param = new Parameters()
+            {
+                W_stand = new int[] { paramFlat[0], paramFlat[1] , paramFlat[2] , paramFlat[3] },
+                Neighbours = paramFlat[4],
+                LargeRadius = paramFlat[5],
+                Radius = paramFlat[6],
+                W_c = paramFlat[7],
+                W_r = new int[] { paramFlat[8], paramFlat[9] }
+            };
+
             // Read weights from .dat file
-            var reader = new BinaryWriterApp(path + filename);
+            var reader = new BinaryWriterApp(path + model_path);
             try
             {
                 reader.ReadWeights();
@@ -47,7 +68,7 @@ namespace HistoGrading.Components
                 throw new Exception("Could not find weights.dat! Check that default model is on correct folder.");
             }
 
-            // Output model variables
+            // Set model variables
             mod = new Model();
             mod.nComp = reader.ncomp;
             mod.eigenVectors = reader.eigenVectors;
@@ -58,6 +79,7 @@ namespace HistoGrading.Components
             return path;
         }
 
+        /*
         /// <summary>
         /// Calculates OA grade prediction from cartilage surface.
         /// </summary>
@@ -83,7 +105,9 @@ namespace HistoGrading.Components
                 out VOIcoordinates, out byte[,,] surface);
 
             // Mean and std images
-            Processing.MeanAndStd(surface, out double[,] meanImage, out double[,] stdImage);
+            //Processing.MeanAndStd(surface, out double[,] meanImage, out double[,] stdImage);
+            vtkImageData surf = new vtkImageData();
+            Processing.MeanAndStd(surf, out double[,] meanImage, out double[,] stdImage);
             // Show images to user
             grading.UpdateMean(
                 DataTypes.DoubleToBitmap(meanImage),
@@ -114,7 +138,9 @@ namespace HistoGrading.Components
 
             return "OA grade (surface): " + grade;
         }
-
+        */
+        
+        /*    
         /// <summary>
         /// Calculates OA grade prediction from bone-cartilage interface.
         /// Above interface deep cartilage volume is extracted, calcified cartilage below interface.
@@ -145,8 +171,11 @@ namespace HistoGrading.Components
                 out calcifiedCoordinates, out byte[,,] calcifiedSurface);
 
             // Mean and std images
-            Processing.MeanAndStd(deepSurface, out double[,] meanImage, out double[,] stdImage);
-            Processing.MeanAndStd(calcifiedSurface, out double[,] meanccImage, out double[,] stdccImage);
+            vtkImageData surf = new vtkImageData();
+            //Processing.MeanAndStd(deepSurface, out double[,] meanImage, out double[,] stdImage);
+            Processing.MeanAndStd(surf, out double[,] meanImage, out double[,] stdImage);
+            //Processing.MeanAndStd(calcifiedSurface, out double[,] meanccImage, out double[,] stdccImage);
+            Processing.MeanAndStd(surf, out double[,] meanccImage, out double[,] stdccImage);
             // Show images to user
             grading.UpdateMean(
                 DataTypes.DoubleToBitmap(meanImage),
@@ -176,7 +205,7 @@ namespace HistoGrading.Components
 
             return "OA grade (surface): " + grade;
         }
-
+        */
         /// <summary>
         /// Compares predicted grades to reference grades.
         /// </summary>
@@ -205,11 +234,56 @@ namespace HistoGrading.Components
         /// Currently software inputs sum of mean and standard images of surface VOI.
         /// </summary>
         /// <returns>Feature array.</returns>
-        public static int[,] LBP(double[,] inputImage, Parameters param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR)
+        public static int[,] LBP(double[,] inputImage, Parameters param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR, string zone)
         {
             // Grayscale standardization
             var standrd = new LocalStandardization(param.W_stand[0], param.W_stand[1], param.W_stand[2], param.W_stand[3]);
             standrd.Standardize(ref inputImage, param.Method); // standardize given image
+
+            // Replace NaN values
+            bool nans = false;
+            var mean = LBPLibrary.Functions.Mean(inputImage);
+            Parallel.For(0, inputImage.GetLength(0), i =>
+            {
+                Parallel.For(0, inputImage.GetLength(1), j =>
+                {
+                    if (double.IsNaN(inputImage[i, j]))
+                    {
+                        inputImage[i, j] = mean;
+                        nans = true;
+                    }
+                });
+            });
+            if (nans)
+                Console.WriteLine("Input includes NaN values!");
+
+            ////Visualize input image
+            //double min = 1e9; double max = -1e9;
+            //for (int kx = 0; kx < inputImage.GetLength(1); kx++)
+            //{
+            //    for (int ky = 0; ky < inputImage.GetLength(0); ky++)
+            //    {
+            //        double val = inputImage[ky, kx];
+            //        if (val > max) { max = val; }
+            //        if (val < min) { min = val; }
+            //    }
+            //}
+
+            //byte[,] valim = new byte[inputImage.GetLength(0), inputImage.GetLength(1)];
+            //for (int kx = 0; kx < inputImage.GetLength(1); kx++)
+            //{
+            //    for (int ky = 0; ky < inputImage.GetLength(0); ky++)
+            //    {
+            //        double val = inputImage[ky, kx];
+            //        valim[ky, kx] = (byte)(255.0 * (val - min) / (max - min));
+            //    }
+            //}
+            //Console.WriteLine("inputImage min | max: {0} | {1}", min, max);
+            //Mat valmat = new Mat(inputImage.GetLength(0), inputImage.GetLength(1), MatType.CV_8UC1, valim);
+            //using (Window win = new Window("inputimage", WindowMode.AutoSize, image: valmat))
+            //{
+            //    Cv2.WaitKey();
+            //}
 
             // LBP calculation
             LBPApplication.PipelineMRELBP(inputImage, param,
@@ -232,14 +306,26 @@ namespace HistoGrading.Components
         /// <param name="grade"></param>
         public static void FeaturesToGrade(int[,] features, Model mod, string path, string samplename, out string grade)
         {
-            // PCA
+            // Centering
             double[,] dataAdjust = Processing.SubtractMean(features.ToDouble(), mod.mean);
-            double[,] PCA = dataAdjust.Dot(mod.eigenVectors.ToDouble());
+            
+            // Whitening and PCA matrix
+            int w = mod.eigenVectors.GetLength(0);
+            double[,] transform = new double[w, mod.nComp];
+            for (int i = 0; i < w; i++)
+            {
+                for (int j = 0; j < mod.nComp; j++)
+                {
+                    transform[i, j] = mod.eigenVectors[i, j] / mod.singularValues[j];
+                }
+            }
+            double[,] PCA = dataAdjust.Dot(transform);
 
             // Regression
             double[] grades = PCA.Dot(mod.weights).Add(1.5);
-            
+
             // Convert estimated grade to string
+            /*
             if (grades[0] < 1)
                 grade = grades[0].ToString("0.##", CultureInfo.InvariantCulture);
             else if (grades[0] < 0)
@@ -248,6 +334,8 @@ namespace HistoGrading.Components
                 grade = "3.00";
             else
                 grade = grades[0].ToString("####.##", CultureInfo.InvariantCulture);
+            */
+            grade = grades[0].ToString("###0.##", CultureInfo.InvariantCulture);
         }
 
         /// <summary>
@@ -278,21 +366,42 @@ namespace HistoGrading.Components
             }
         }
 
-        public static void grade_voi(string sample, double[,] mean, double[,] sd, string model_path)
+        public static string grade_voi(string zone, string sample, double[,] mean, double[,] sd, string model_path, string param_path)
         {
-            //Load model
-            // Load default model
-            Console.WriteLine(model_path);
-            string path = LoadModel(out Model mod, model_path);
+            // Initialize Grading form
+            var grading = new GradingForm(); grading.Show();
+
+            // Load grading model
+            string path = LoadModel(out Model mod, out Parameters param, model_path, param_path);
+
+            // Show images to user
+            grading.UpdateModel(); grading.Show();
+            grading.UpdateMean(
+                DataTypes.DoubleToBitmap(mean),
+                DataTypes.DoubleToBitmap(sd),
+                DataTypes.DoubleToBitmap(Elementwise.Add(mean, sd)));
+            grading.Show();
+
+            var meansd = Elementwise.Add(mean, sd);
 
             //Get LBP features
-            Parameters param = new Parameters();
-            int[,] features = LBP(mean.Add(sd), param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR);
+            grading.UpdateParameters(param);
+            int[,] features = LBP(meansd, param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR,zone);
 
+            grading.UpdateLBP(
+                DataTypes.DoubleToBitmap(LBPIL),
+                DataTypes.DoubleToBitmap(LBPIS),
+                DataTypes.DoubleToBitmap(LBPIR));
+            grading.Show();
+            
             //Get grade
             // Calculate PCA and regression
             FeaturesToGrade(features, mod, path, sample, out string grade);
             Console.WriteLine(grade);
+            grading.UpdateGrade(grade); grading.Show();
+            SaveResult(grade, path, sample);
+
+            return grade;
         }
     }
 

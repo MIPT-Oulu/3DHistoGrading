@@ -26,6 +26,7 @@ namespace HistoGrading
         int is_coronal = 0;
         int is_sagittal = 0;
 
+       
         //Saving flags
         int save_mask = 0;
         int save_vois = 0;
@@ -38,7 +39,7 @@ namespace HistoGrading
         int ori = -1;
 
         //Gray values
-        int[] gray = new int[2] { 70, 110 };
+        int[] gray = new int[2] { 0, 255 };
        
 
         //Rendering object
@@ -665,12 +666,13 @@ namespace HistoGrading
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
-            string[] models = new string[] { ".\\Default\\calcified_weights.dat", ".\\Default\\deep_weights.dat", ".\\Default\\surface_weights.dat" };
-            volume.grade_vois(models, fname);
+            string[] models = new string[] { ".\\Default\\calc_weights.dat", ".\\Default\\deep_weights.dat", ".\\Default\\surf_weights.dat" };
+            string[] parameters = new string[] { ".\\Default\\calc_parameters.csv", ".\\Default\\deep_parameters.csv", ".\\Default\\surf_parameters.csv" };
+            string grade = volume.grade_vois(models, parameters, fname);
             /*
             string grade = Grading.PredictSurface(ref volume, fname, out int[,] surfaceCoordinates);
-            gradeLabel.Text = grade;
             */
+            gradeLabel.Text = grade;
         }
 
         private void saveButton_Click(object sender, EventArgs e)
