@@ -27,10 +27,11 @@ namespace HistoGrading
         /// <summary>
         /// Update that model is loaded.
         /// </summary>
-        public void UpdateModel()
+        public void UpdateModel(string zonetext)
         {
             progressBar1.Value = 10;
             progressLabel.Text = "Progress: Default grading model loaded.";
+            gradeLabel.Text = zonetext;
             Refresh();
         }
 
@@ -40,7 +41,7 @@ namespace HistoGrading
         public void UpdateSurface()
         {
             progressBar1.Value = 40;
-            progressLabel.Text = "Progress: Cartilage surface and volume extracted.";
+            progressLabel.Text = "Progress: Sample volume extracted.";
             Refresh();
         }
 

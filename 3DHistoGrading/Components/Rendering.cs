@@ -29,7 +29,8 @@ namespace HistoGrading.Components
             private vtkVolume vol = vtkVolume.New();
             //Mapper
             //private vtkFixedPointVolumeRayCastMapper mapper = vtkFixedPointVolumeRayCastMapper.New();
-            private vtkGPUVolumeRayCastMapper mapper = vtkGPUVolumeRayCastMapper.New();
+            //private vtkGPUVolumeRayCastMapper mapper = vtkGPUVolumeRayCastMapper.New();
+            private vtkSmartVolumeMapper mapper = vtkSmartVolumeMapper.New();
             //private vtkOpenGLGPUVolumeRayCastMapper mapper = vtkOpenGLGPUVolumeRayCastMapper.New();
 
             //private vtkSmartVolumeMapper mapper = vtkSmartVolumeMapper.New();
@@ -42,7 +43,7 @@ namespace HistoGrading.Components
             //Mask components, same as above
             private List<vtkVolume> maskvols = new List<vtkVolume>();
             //private List<vtkFixedPointVolumeRayCastMapper> maskmappers = new List<vtkFixedPointVolumeRayCastMapper>();
-            List<vtkGPUVolumeRayCastMapper> maskmappers = new List<vtkGPUVolumeRayCastMapper>();
+            List<vtkSmartVolumeMapper> maskmappers = new List<vtkSmartVolumeMapper>();
             private List<vtkColorTransferFunction> maskctfs = new List<vtkColorTransferFunction>();
             private List<vtkPiecewiseFunction> maskspwfs = new List<vtkPiecewiseFunction>();            
 
@@ -56,9 +57,9 @@ namespace HistoGrading.Components
                 vol = vtkVolume.New();
                 //mapper = vtkSmartVolumeMapper.New();
                 //mapper = vtkFixedPointVolumeRayCastMapper.New();
-                mapper = vtkGPUVolumeRayCastMapper.New();                
+                mapper = vtkSmartVolumeMapper.New();                
                 //mapper = vtkOpenGLGPUVolumeRayCastMapper.New();
-                mapper.SetMaxMemoryInBytes((long)Math.Pow(2,31));
+                //mapper.SetMaxMemoryInBytes((long)Math.Pow(2,31));
                 
                 ctf = vtkColorTransferFunction.New();
                 spwf = vtkPiecewiseFunction.New();
@@ -70,7 +71,7 @@ namespace HistoGrading.Components
             public void InitializeMasks(int N)
             {
                 maskvols = new List<vtkVolume>();
-                maskmappers = new List<vtkGPUVolumeRayCastMapper>();
+                maskmappers = new List<vtkSmartVolumeMapper>();
                 maskctfs = new List<vtkColorTransferFunction>();
                 maskspwfs = new List<vtkPiecewiseFunction>();
                 for (int k = 0; k< N; k++)
@@ -78,7 +79,7 @@ namespace HistoGrading.Components
                     //Initialize mask
                     maskvols.Add(vtkVolume.New());
                     //maskmapper = vtkSmartVolumeMapper.New();
-                    vtkGPUVolumeRayCastMapper tmpmapper = vtkGPUVolumeRayCastMapper.New();
+                    vtkSmartVolumeMapper tmpmapper = vtkSmartVolumeMapper.New();
                     tmpmapper.SetMaxMemoryInBytes((long)Math.Pow(2, 31));
                     maskmappers.Add(tmpmapper);
                     maskctfs.Add(vtkColorTransferFunction.New());
@@ -1021,7 +1022,7 @@ namespace HistoGrading.Components
                         Processing.get_mean_sd(out mu, out sd, imasks.ElementAt(k), 50);
                         //Processing.MeanAndStd(imasks.ElementAt(k), out double[,] mu, out double[,] sd);
                         Console.WriteLine("Calcified cartilage grade:");
-                        cc_grade = "  calcified " + Grading.grade_voi("calc",sample_name+"_calc", mu, sd, models.ElementAt(k), parameters.ElementAt(k));
+                        cc_grade = "  calcified " + Grading.grade_voi("Calcified zone",sample_name+"_calc", mu, sd, models.ElementAt(k), parameters.ElementAt(k));
                     }
                     else if(k==1)
                     {
@@ -1029,7 +1030,7 @@ namespace HistoGrading.Components
                         Processing.get_mean_sd(out mu, out sd, imasks.ElementAt(k));
                         //Processing.MeanAndStd(imasks.ElementAt(k), out double[,] mu, out double[,] sd);
                         Console.WriteLine("Deep cartilage grade:");
-                        deep_grade = "  deep " + Grading.grade_voi("deep",sample_name + "_deep", mu, sd, models.ElementAt(k), parameters.ElementAt(k));
+                        deep_grade = "  deep " + Grading.grade_voi("Deep zone",sample_name + "_deep", mu, sd, models.ElementAt(k), parameters.ElementAt(k));
                     }
                     else if (k == 2)
                     {
@@ -1037,7 +1038,7 @@ namespace HistoGrading.Components
                         Processing.get_mean_sd(out mu, out sd, imasks.ElementAt(k), 25);
                         //Processing.MeanAndStd(imasks.ElementAt(k), out double[,] mu, out double[,] sd);
                         Console.WriteLine("Surface grade:");
-                        surf_grade = "  surface " + Grading.grade_voi("surf",sample_name + "_surf", mu, sd, models.ElementAt(k), parameters.ElementAt(k));
+                        surf_grade = "  surface " + Grading.grade_voi("Surface zone",sample_name + "_surf", mu, sd, models.ElementAt(k), parameters.ElementAt(k));
                     }
                 }
 
