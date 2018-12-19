@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Globalization;
 
 using Kitware.VTK;
 
@@ -858,15 +859,18 @@ namespace HistoGrading.Components
                 return voi;
             }
 
-            public void auto_rotate()
+            public string auto_rotate()
             {
                 vtkImageData tmp = vtkImageData.New();
                 tmp.DeepCopy(idata);                
-                tmp = Functions.auto_rotate(tmp, 3);
+                tmp = Functions.auto_rotate(tmp, out double[] angles, 3);
                 idata = vtkImageData.New();
                 idata.DeepCopy(tmp);
                 tmp.Dispose();
                 GC.Collect();
+
+                var angletext = "Rotation angles: " + angles[0].ToString("#0.##", CultureInfo.InvariantCulture) + " | " + angles[1].ToString("#0.##", CultureInfo.InvariantCulture);
+                return angletext;
             }
 
             public void center_crop(int size = 400)

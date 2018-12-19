@@ -54,6 +54,9 @@ namespace HistoGrading
         // Sample name
         string fname = null;
 
+        // Tooltip
+        string tip = "Start by loading a PTA sample";
+
         //Save directory
         string savedir = "C:\\Users\\Tuomas Frondelius\\Desktop\\PTAResults";
 
@@ -67,6 +70,7 @@ namespace HistoGrading
         public MainForm()
         {
             InitializeComponent();
+            gradeLabel.Text = tip;
         }
 
         /// <summary>
@@ -78,21 +82,25 @@ namespace HistoGrading
             if(ori == -1)
             {
                 sliceLabel.Text = "Rendering volume";
+                gradeLabel.Text = tip;
             }
-            //Tell coronal rendering
+            //Tell transverse rendering
             if (ori == 2)
             {
-                sliceLabel.Text = String.Format("Transverse, XY | {0} / {1}", sliceN[ori]-dims[4], dims[5]-dims[4]);
+                sliceLabel.Text = string.Format("Transverse, XY | {0} / {1}", sliceN[ori]-dims[4], dims[5]-dims[4]);
+                gradeLabel.Text = tip;
             }
-            //Tell transverse rendering
+            //Tell coronal rendering
             if (ori == 0)
             {
-                sliceLabel.Text = String.Format("Coronal, XZ | {0} / {1}", sliceN[ori]-dims[0], dims[1]-dims[0]);
+                sliceLabel.Text = string.Format("Coronal, XZ | {0} / {1}", sliceN[ori]-dims[0], dims[1]-dims[0]);
+                gradeLabel.Text = "Drag right mouse button to crop artefacts";
             }
-            //Tell transverse rendering
+            //Tell sagittal rendering
             if (ori == 1)
             {
-                sliceLabel.Text = String.Format("Sagittal, YZ | {0} / {1}", sliceN[ori]-dims[2], dims[3]-dims[2]);
+                sliceLabel.Text = string.Format("Sagittal, YZ | {0} / {1}", sliceN[ori]-dims[2], dims[3]-dims[2]);
+                gradeLabel.Text = "Drag right mouse button to crop artefacts";
             }
         }
 
@@ -217,10 +225,6 @@ namespace HistoGrading
                     }
                 }
 
-                //Update GUI text to tell path to data folder
-                fileLabel.Text = fname;
-                gradeLabel.Text = "No Grade";
-
                 //Load data
                 volume.connectData(impath);
                 
@@ -284,7 +288,10 @@ namespace HistoGrading
 
                 GC.Collect();
 
-
+                //Update GUI text to tell path to data folder
+                fileLabel.Text = fname;
+                tip = "Sample loaded and tools enabled";
+                gradeLabel.Text = tip;
             }
         }
 
@@ -529,7 +536,7 @@ namespace HistoGrading
         //Automatically reorient the sample
         private void rotate_button_Click(object sender, EventArgs e)
         {
-            volume.auto_rotate();
+            string angles = volume.auto_rotate();
             dims = volume.getDims();
             sliceN[0] = (dims[1] + dims[0]) / 2;
             sliceN[1] = (dims[3] + dims[2]) / 2;
@@ -557,8 +564,11 @@ namespace HistoGrading
                     volume.renderImageMask();
                 }                
             }
-            
             GC.Collect();
+
+            // Update tip
+            tip = angles;
+            gradeLabel.Text = tip;
         }
 
         //Automatically segment the BC interface
@@ -599,7 +609,8 @@ namespace HistoGrading
         {
 
             //Connect mask to segmentation pipeline
-            volume.center_crop(448);            
+            int size = 448;
+            volume.center_crop(size);            
             //Update sample dimensions
             dims = volume.getDims();
             sliceN[0] = (dims[1] + dims[0]) / 2;
@@ -621,7 +632,8 @@ namespace HistoGrading
                         
             segmentButton.Enabled = true;
             predict.Enabled = true;
-
+            tip = "Cropped to " + size.ToString() + " | " + size.ToString() + " size";
+            gradeLabel.Text = tip;
             GC.Collect();
         }
 

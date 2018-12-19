@@ -1062,7 +1062,7 @@ namespace HistoGrading.Components
 
         }
 
-        public static vtkImageData auto_rotate(vtkImageData vtkdata, double ori_thresh = 5)
+        public static vtkImageData auto_rotate(vtkImageData vtkdata, out double[] angles, double ori_thresh = 5)
         {
             //Get sample dimensions
             int[] dims = vtkdata.GetExtent();
@@ -1094,10 +1094,10 @@ namespace HistoGrading.Components
             double s = 0.1;
             vtkImageData scaled = Processing.rescale_sample(vtkdata, s);
             //math.Dispose();
-
+            
 
             //Get sample orientation
-            double[] angles = Processing.grad_descent(scaled);
+            angles = Processing.grad_descent(scaled);
             angles = new double[] { angles[0], angles[1] };
             int[] axes = new int[] { 0, 1 };
 
