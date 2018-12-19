@@ -370,6 +370,7 @@ namespace HistoGrading.Components
         {
             // Initialize Grading form
             var grading = new GradingForm(); grading.Show();
+            grading.Text = zone;
 
             // Load grading model
             string path = LoadModel(out Model mod, out Parameters param, model_path, param_path);

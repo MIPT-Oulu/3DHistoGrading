@@ -46,18 +46,21 @@
             this.parameterTip = new System.Windows.Forms.ToolTip(this.components);
             this.meanstdLabel = new System.Windows.Forms.Label();
             this.meanstdPicture = new System.Windows.Forms.PictureBox();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             ((System.ComponentModel.ISupportInitialize)(this.meanPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.stdPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.smallPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.largePicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radialPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.meanstdPicture)).BeginInit();
+            this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
             // 
+            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(115, 161);
+            this.label1.Location = new System.Drawing.Point(121, 179);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(65, 13);
             this.label1.TabIndex = 1;
@@ -65,17 +68,20 @@
             // 
             // label2
             // 
+            this.label2.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(336, 161);
+            this.label2.Location = new System.Drawing.Point(359, 179);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(127, 13);
             this.label2.TabIndex = 2;
             this.label2.Text = "Standard deviation image";
+            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // label3
             // 
+            this.label3.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(376, 499);
+            this.label3.Location = new System.Drawing.Point(394, 499);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(57, 13);
             this.label3.TabIndex = 7;
@@ -83,8 +89,9 @@
             // 
             // label4
             // 
+            this.label4.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(115, 499);
+            this.label4.Location = new System.Drawing.Point(126, 499);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(55, 13);
             this.label4.TabIndex = 8;
@@ -92,8 +99,9 @@
             // 
             // label5
             // 
+            this.label5.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(636, 499);
+            this.label5.Location = new System.Drawing.Point(661, 499);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(60, 13);
             this.label5.TabIndex = 9;
@@ -101,81 +109,98 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(459, 80);
+            this.progressBar1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.progressBar1.Location = new System.Drawing.Point(560, 23);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(300, 23);
+            this.progressBar1.Size = new System.Drawing.Size(263, 43);
             this.progressBar1.TabIndex = 10;
             // 
             // progressLabel
             // 
             this.progressLabel.AutoSize = true;
-            this.progressLabel.Location = new System.Drawing.Point(456, 64);
+            this.progressLabel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.progressLabel.Location = new System.Drawing.Point(560, 7);
             this.progressLabel.Name = "progressLabel";
-            this.progressLabel.Size = new System.Drawing.Size(54, 13);
+            this.progressLabel.Size = new System.Drawing.Size(263, 13);
             this.progressLabel.TabIndex = 11;
             this.progressLabel.Text = "Progress: ";
             // 
             // meanPicture
             // 
-            this.meanPicture.Location = new System.Drawing.Point(38, 177);
+            this.meanPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.meanPicture.Location = new System.Drawing.Point(23, 195);
             this.meanPicture.Name = "meanPicture";
-            this.meanPicture.Size = new System.Drawing.Size(200, 200);
+            this.meanPicture.Size = new System.Drawing.Size(262, 240);
             this.meanPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.meanPicture.TabIndex = 12;
             this.meanPicture.TabStop = false;
             // 
             // stdPicture
             // 
-            this.stdPicture.Location = new System.Drawing.Point(299, 177);
+            this.stdPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.stdPicture.Location = new System.Drawing.Point(291, 195);
             this.stdPicture.Name = "stdPicture";
-            this.stdPicture.Size = new System.Drawing.Size(200, 200);
-            this.stdPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.stdPicture.Size = new System.Drawing.Size(263, 240);
             this.stdPicture.TabIndex = 13;
             this.stdPicture.TabStop = false;
             // 
             // smallPicture
             // 
-            this.smallPicture.Location = new System.Drawing.Point(38, 525);
+            this.smallPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.smallPicture.Location = new System.Drawing.Point(23, 515);
             this.smallPicture.Name = "smallPicture";
-            this.smallPicture.Size = new System.Drawing.Size(200, 200);
-            this.smallPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.smallPicture.Size = new System.Drawing.Size(262, 240);
             this.smallPicture.TabIndex = 14;
             this.smallPicture.TabStop = false;
             // 
             // largePicture
             // 
-            this.largePicture.Location = new System.Drawing.Point(299, 525);
+            this.largePicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.largePicture.Location = new System.Drawing.Point(291, 515);
             this.largePicture.Name = "largePicture";
-            this.largePicture.Size = new System.Drawing.Size(200, 200);
-            this.largePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.largePicture.Size = new System.Drawing.Size(263, 240);
             this.largePicture.TabIndex = 15;
             this.largePicture.TabStop = false;
             // 
             // radialPicture
             // 
-            this.radialPicture.Location = new System.Drawing.Point(559, 525);
+            this.radialPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.radialPicture.Location = new System.Drawing.Point(560, 515);
             this.radialPicture.Name = "radialPicture";
-            this.radialPicture.Size = new System.Drawing.Size(200, 200);
-            this.radialPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.radialPicture.Size = new System.Drawing.Size(263, 240);
             this.radialPicture.TabIndex = 16;
             this.radialPicture.TabStop = false;
             // 
             // gradeLabel
             // 
+            this.gradeLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.gradeLabel.AutoSize = true;
-            this.gradeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gradeLabel.Location = new System.Drawing.Point(32, 49);
+            this.gradeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 32.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.gradeLabel.Location = new System.Drawing.Point(291, 43);
             this.gradeLabel.Name = "gradeLabel";
-            this.gradeLabel.Size = new System.Drawing.Size(110, 31);
+            this.gradeLabel.Size = new System.Drawing.Size(241, 51);
             this.gradeLabel.TabIndex = 17;
-            this.gradeLabel.Text = "Grading";
+            this.gradeLabel.Text = "Zone grade";
             // 
             // parameterLabel
             // 
+            this.parameterLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.parameterLabel.AutoSize = true;
-            this.parameterLabel.Location = new System.Drawing.Point(35, 115);
+            this.parameterLabel.Location = new System.Drawing.Point(23, 20);
             this.parameterLabel.Name = "parameterLabel";
-            this.parameterLabel.Size = new System.Drawing.Size(154, 13);
+            this.parameterLabel.Size = new System.Drawing.Size(262, 98);
             this.parameterLabel.TabIndex = 18;
             this.parameterLabel.Text = "Parameters (hover mouse over)";
             this.parameterTip.SetToolTip(this.parameterLabel, "Parameters:");
@@ -188,8 +213,9 @@
             // 
             // meanstdLabel
             // 
+            this.meanstdLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.meanstdLabel.AutoSize = true;
-            this.meanstdLabel.Location = new System.Drawing.Point(634, 161);
+            this.meanstdLabel.Location = new System.Drawing.Point(660, 179);
             this.meanstdLabel.Name = "meanstdLabel";
             this.meanstdLabel.Size = new System.Drawing.Size(62, 13);
             this.meanstdLabel.TabIndex = 19;
@@ -197,34 +223,59 @@
             // 
             // meanstdPicture
             // 
-            this.meanstdPicture.Location = new System.Drawing.Point(559, 177);
+            this.meanstdPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.meanstdPicture.Location = new System.Drawing.Point(560, 195);
             this.meanstdPicture.Name = "meanstdPicture";
-            this.meanstdPicture.Size = new System.Drawing.Size(200, 200);
-            this.meanstdPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.meanstdPicture.Size = new System.Drawing.Size(263, 240);
             this.meanstdPicture.TabIndex = 20;
             this.meanstdPicture.TabStop = false;
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 5;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.Controls.Add(this.meanstdLabel, 3, 2);
+            this.tableLayoutPanel1.Controls.Add(this.meanstdPicture, 3, 3);
+            this.tableLayoutPanel1.Controls.Add(this.label2, 2, 2);
+            this.tableLayoutPanel1.Controls.Add(this.label1, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.label4, 1, 4);
+            this.tableLayoutPanel1.Controls.Add(this.meanPicture, 1, 3);
+            this.tableLayoutPanel1.Controls.Add(this.smallPicture, 1, 5);
+            this.tableLayoutPanel1.Controls.Add(this.largePicture, 2, 5);
+            this.tableLayoutPanel1.Controls.Add(this.radialPicture, 3, 5);
+            this.tableLayoutPanel1.Controls.Add(this.stdPicture, 2, 3);
+            this.tableLayoutPanel1.Controls.Add(this.progressLabel, 3, 0);
+            this.tableLayoutPanel1.Controls.Add(this.progressBar1, 3, 1);
+            this.tableLayoutPanel1.Controls.Add(this.label5, 3, 4);
+            this.tableLayoutPanel1.Controls.Add(this.label3, 2, 4);
+            this.tableLayoutPanel1.Controls.Add(this.gradeLabel, 2, 1);
+            this.tableLayoutPanel1.Controls.Add(this.parameterLabel, 1, 1);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 7;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 13.33003F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10.00003F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.3349F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10.00014F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.3349F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(847, 780);
+            this.tableLayoutPanel1.TabIndex = 21;
             // 
             // GradingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 737);
-            this.Controls.Add(this.meanstdPicture);
-            this.Controls.Add(this.meanstdLabel);
-            this.Controls.Add(this.parameterLabel);
-            this.Controls.Add(this.gradeLabel);
-            this.Controls.Add(this.radialPicture);
-            this.Controls.Add(this.largePicture);
-            this.Controls.Add(this.smallPicture);
-            this.Controls.Add(this.stdPicture);
-            this.Controls.Add(this.meanPicture);
-            this.Controls.Add(this.progressLabel);
-            this.Controls.Add(this.progressBar1);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
+            this.ClientSize = new System.Drawing.Size(847, 780);
+            this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "GradingForm";
             this.Text = "GradingForm";
             ((System.ComponentModel.ISupportInitialize)(this.meanPicture)).EndInit();
@@ -233,8 +284,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.largePicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.radialPicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.meanstdPicture)).EndInit();
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -256,5 +308,6 @@
         private System.Windows.Forms.ToolTip parameterTip;
         private System.Windows.Forms.Label meanstdLabel;
         private System.Windows.Forms.PictureBox meanstdPicture;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
     }
 }

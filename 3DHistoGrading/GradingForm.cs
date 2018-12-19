@@ -116,5 +116,10 @@ namespace HistoGrading
             progressLabel.Text = "Done: Grade estimated (" + grade + ").";
             Refresh();
         }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
