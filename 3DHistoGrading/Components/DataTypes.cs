@@ -473,7 +473,7 @@ namespace HistoGrading.Components
                     }
                     break;
                 }
-                catch (Exception)
+                catch (IOException)
                 {
                     result = MessageBox.Show(
                         "Results file is opened. Please close the file before continuing."

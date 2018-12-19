@@ -37,6 +37,25 @@ namespace HistoGrading.Components
             string path =
                     new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
                     .Parent.Parent.Parent.Parent.FullName; // Move to correct location and add file name
+            
+            // Read weights from .dat file
+            var reader = new BinaryWriterApp(path + model_path);
+            try
+            {
+                reader.ReadWeights();
+            }
+            catch (Exception)
+            {
+                throw new Exception("Could not find weights.dat! Check that default model is on correct folder.");
+            }
+
+            // Set model variables
+            mod = new Model();
+            mod.nComp = reader.ncomp;
+            mod.eigenVectors = reader.eigenVectors;
+            mod.singularValues = reader.singularValues;
+            mod.weights = reader.weights;
+            mod.mean = reader.mean;
 
             // Load parameters from .csv
             var paramList = DataTypes.ReadCSV(path + param_path).ToInt32();
@@ -56,25 +75,6 @@ namespace HistoGrading.Components
                 W_c = paramFlat[7],
                 W_r = new int[] { paramFlat[8], paramFlat[9] }
             };
-
-            // Read weights from .dat file
-            var reader = new BinaryWriterApp(path + model_path);
-            try
-            {
-                reader.ReadWeights();
-            }
-            catch (Exception)
-            {
-                throw new Exception("Could not find weights.dat! Check that default model is on correct folder.");
-            }
-
-            // Set model variables
-            mod = new Model();
-            mod.nComp = reader.ncomp;
-            mod.eigenVectors = reader.eigenVectors;
-            mod.singularValues = reader.singularValues;
-            mod.weights = reader.weights;
-            mod.mean = reader.mean;
 
             return path;
         }
@@ -325,17 +325,12 @@ namespace HistoGrading.Components
             double[] grades = PCA.Dot(mod.weights).Add(1.5);
 
             // Convert estimated grade to string
-            /*
-            if (grades[0] < 1)
-                grade = grades[0].ToString("0.##", CultureInfo.InvariantCulture);
-            else if (grades[0] < 0)
+            if (grades[0] < 0)
                 grade = "0.00";
             else if (grades[0] > 3)
                 grade = "3.00";
             else
-                grade = grades[0].ToString("####.##", CultureInfo.InvariantCulture);
-            */
-            grade = grades[0].ToString("###0.##", CultureInfo.InvariantCulture);
+                grade = grades[0].ToString("###0.##", CultureInfo.InvariantCulture);
         }
 
         /// <summary>

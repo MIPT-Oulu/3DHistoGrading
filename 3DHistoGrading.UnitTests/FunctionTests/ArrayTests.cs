@@ -129,28 +129,28 @@ namespace _3DHistoGrading.UnitTests.FunctionTests
             Assert.Equal(refArray, floatVector);
         }
 
-        [Fact]
-        public void BatchToByte_SampleList_EqualsReference()
-        {
-            IList<IList<float>> list = null;
+        //[Fact]
+        //public void BatchToByte_SampleList_EqualsReference()
+        //{
+        //    IList<IList<float>> list = null;
             
-            list.Add(new List<float> { 1, 2, 3, 4, 5, 6 });
-            list.Add(new List<float> { 2, 3, 4, 5, 6, 7});
+        //    list.Add(new List<float> { 1, 2, 3, 4, 5, 6 });
+        //    list.Add(new List<float> { 2, 3, 4, 5, 6, 7});
 
-            byte[,,] array = DataTypes.batchToByte(list);
+        //    byte[,,] array = DataTypes.batchToByte(list);
 
             
-            byte[,,] refArray = new byte[3, 3, 3] // Here, actually columns are written out
-                { {{ 0, 1, 2},
-                { 1, 2, 3},
-                { 2, 3, 4,} } ,
-                {{ 3, 4, 5},
-                { 4, 5, 6},
-                { 5, 6, 7,} } ,
-                {{ 6, 7, 8},
-                { 7, 8, 9},
-                { 8, 9, 10,} }};
-            Assert.Equal(refArray, array);
-        }
+        //    byte[,,] refArray = new byte[3, 3, 3] // Here, actually columns are written out
+        //        { {{ 0, 1, 2},
+        //        { 1, 2, 3},
+        //        { 2, 3, 4,} } ,
+        //        {{ 3, 4, 5},
+        //        { 4, 5, 6},
+        //        { 5, 6, 7,} } ,
+        //        {{ 6, 7, 8},
+        //        { 7, 8, 9},
+        //        { 8, 9, 10,} }};
+        //    Assert.Equal(refArray, array);
+        //}
     }
 }

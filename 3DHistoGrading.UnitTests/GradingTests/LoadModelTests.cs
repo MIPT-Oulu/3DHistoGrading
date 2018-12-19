@@ -17,13 +17,11 @@ namespace _3DHistoGrading.UnitTests
         {
             // Grading variables
             Model model = new Model();
-            string filename = "";
-            int[,] features = new int[0, 0];
-            string path = Grading.LoadModel(out model, out Parameters param, filename, filename);
-            //Exception ex = Assert.Throws<Exception>(
-            //    delegate { string path = Grading.LoadModel(ref model); });
+            string filename = @"\3D-Histo-Grading\Default\calc_parameters.csv";
 
-            //Assert.Equal("Could not find weights.dat! Check that default model is on correct folder.", ex.Message);
+            Exception ex = Assert.Throws<Exception>(
+                delegate { string path = Grading.LoadModel(out model, out Parameters param, filename, filename); });
+            Assert.Equal("Could not find weights.dat! Check that default model is on correct folder.", ex.Message);
         }
 
         [Fact]

@@ -59,7 +59,7 @@ namespace HistoGrading.Components
                 //mapper = vtkFixedPointVolumeRayCastMapper.New();
                 mapper = vtkSmartVolumeMapper.New();                
                 //mapper = vtkOpenGLGPUVolumeRayCastMapper.New();
-                //mapper.SetMaxMemoryInBytes((long)Math.Pow(2,31));
+                mapper.SetMaxMemoryInBytes((long)Math.Pow(2,31));
                 
                 ctf = vtkColorTransferFunction.New();
                 spwf = vtkPiecewiseFunction.New();
@@ -146,7 +146,9 @@ namespace HistoGrading.Components
                 vol.SetMapper(mapper);
                 vol.Update();
                 //Renderer back ground
+                renderer.GradientBackgroundOn();
                 renderer.SetBackground(0.0, 0.0, 0.0);
+                renderer.SetBackground2(1.0, 1.0, 1.0);
                 renderer.AddVolume(vol);                
                 //Set Camera
                 renderer.GetActiveCamera().SetPosition(0.5, 1, 0);

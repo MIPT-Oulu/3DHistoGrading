@@ -32,6 +32,7 @@ namespace HistoGrading
             progressBar1.Value = 10;
             progressLabel.Text = "Progress: Default grading model loaded.";
             gradeLabel.Text = zonetext;
+            UseWaitCursor = true;
             Refresh();
         }
 
@@ -114,6 +115,7 @@ namespace HistoGrading
         {
             progressBar1.Value = 100;
             progressLabel.Text = "Done: Grade estimated (" + grade + ").";
+            UseWaitCursor = false;
             Refresh();
         }
 
