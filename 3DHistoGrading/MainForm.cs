@@ -25,7 +25,6 @@ namespace HistoGrading
         int is_mask = 0;
         int is_coronal = 0;
         int is_sagittal = 0;
-
        
         //Saving flags
         int save_mask = 0;

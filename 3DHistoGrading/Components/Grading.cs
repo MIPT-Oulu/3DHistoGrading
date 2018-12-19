@@ -249,7 +249,7 @@ namespace HistoGrading.Components
                 {
                     if (double.IsNaN(inputImage[i, j]))
                     {
-                        inputImage[i, j] = mean;
+                        inputImage[i, j] = 0;
                         nans = true;
                     }
                 });
