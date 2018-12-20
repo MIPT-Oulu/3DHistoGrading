@@ -236,27 +236,6 @@ namespace HistoGrading.Components
         /// <returns>Feature array.</returns>
         public static int[,] LBP(double[,] inputImage, Parameters param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR, string zone)
         {
-            // Grayscale standardization
-            var standrd = new LocalStandardization(param.W_stand[0], param.W_stand[1], param.W_stand[2], param.W_stand[3]);
-            standrd.Standardize(ref inputImage, param.Method); // standardize given image
-
-            // Replace NaN values
-            bool nans = false;
-            var mean = LBPLibrary.Functions.Mean(inputImage);
-            Parallel.For(0, inputImage.GetLength(0), i =>
-            {
-                Parallel.For(0, inputImage.GetLength(1), j =>
-                {
-                    if (double.IsNaN(inputImage[i, j]))
-                    {
-                        inputImage[i, j] = 0;
-                        nans = true;
-                    }
-                });
-            });
-            if (nans)
-                Console.WriteLine("Input includes NaN values!");
-
             ////Visualize input image
             //double min = 1e9; double max = -1e9;
             //for (int kx = 0; kx < inputImage.GetLength(1); kx++)
@@ -370,15 +349,37 @@ namespace HistoGrading.Components
             // Load grading model
             string path = LoadModel(out Model mod, out Parameters param, model_path, param_path);
 
+            // Sum mean and std images
+            var meansd = Elementwise.Add(mean, sd);
+
+            // Grayscale standardization
+            var standrd = new LocalStandardization(param.W_stand[0], param.W_stand[1], param.W_stand[2], param.W_stand[3]);
+            standrd.Standardize(ref meansd, param.Method); // standardize given image
+
+            // Replace NaN values from standardized image
+            bool nans = false;
+            var mu = LBPLibrary.Functions.Mean(meansd);
+            Parallel.For(0, meansd.GetLength(0), i =>
+            {
+                Parallel.For(0, meansd.GetLength(1), j =>
+                {
+                    if (double.IsNaN(meansd[i, j]))
+                    {
+                        meansd[i, j] = 0;
+                        nans = true;
+                    }
+                });
+            });
+            if (nans)
+                Console.WriteLine("Input includes NaN values!");
+
             // Show images to user
             grading.UpdateModel(zone); grading.Show();
             grading.UpdateMean(
                 DataTypes.DoubleToBitmap(mean),
                 DataTypes.DoubleToBitmap(sd),
-                DataTypes.DoubleToBitmap(Elementwise.Add(mean, sd)));
+                DataTypes.DoubleToBitmap(meansd));
             grading.Show();
-
-            var meansd = Elementwise.Add(mean, sd);
 
             //Get LBP features
             grading.UpdateParameters(param);

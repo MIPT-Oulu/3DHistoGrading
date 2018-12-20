@@ -358,6 +358,10 @@ namespace HistoGrading
             break;
             }
             GC.Collect();
+
+            // Update tooltip
+            tip = "Loaded mask. If calcified zone mask was used, deep and surface zones can be extracted.";
+            gradeLabel.Text = tip;
         }
 
         //Reset camera
@@ -412,7 +416,7 @@ namespace HistoGrading
             GC.Collect();
         }
 
-        //Render coronal slice
+        //Render transverse slice, XY plane
         private void transverseButton_Click(object sender, EventArgs e)
         {
             if (is_rendering == 1)
@@ -444,7 +448,7 @@ namespace HistoGrading
             GC.Collect();
         }
 
-        //Render transverse slice, XZ plane
+        //Render coronal slice, XZ plane
         private void coronalButton_Click(object sender, EventArgs e)
         {
             if (is_rendering == 1 && is_coronal == 0)
@@ -474,7 +478,7 @@ namespace HistoGrading
                 is_sagittal = 0;
                 is_coronal = 1;
             }
-            else if (is_rendering == 1 && is_coronal == 1)
+            else if (is_rendering == 1 && is_coronal == 1) // Artefact cropping
             {
                 //Get Line ends and crop above the line
                 volume.remove_artefact();
@@ -483,12 +487,16 @@ namespace HistoGrading
                 if (is_mask == 1)
                 {
                     volume.renderImageMask();
-                }                
+                }
+
+                // Update tooltip
+                tip = "Cropped surface artefacts";
+                gradeLabel.Text = tip;
             }
             GC.Collect();
         }
 
-        //Render transverse slice, YZ plane
+        //Render sagittal slice, YZ plane
         private void sagittalButton_Click(object sender, EventArgs e)
         {
             //Check if rendering
@@ -519,7 +527,7 @@ namespace HistoGrading
                 is_sagittal = 1;
                 is_coronal = 0;
             }
-            else if (is_rendering == 1 && is_sagittal == 1)
+            else if (is_rendering == 1 && is_sagittal == 1) // Artefact cropping
             {
                 //Get Line ends and crop above the line                
                 volume.remove_artefact();
@@ -528,7 +536,11 @@ namespace HistoGrading
                 if (is_mask == 1)
                 {
                     volume.renderImageMask();
-                }                
+                }
+
+                // Update tooltip
+                tip = "Cropped surface artefacts";
+                gradeLabel.Text = tip;
             }
             GC.Collect();
         }
@@ -602,6 +614,10 @@ namespace HistoGrading
             save_vois = 0;
 
             GC.Collect();
+
+            // Update tooltip
+            tip = "Calcified zone interface segmented. Deep and surface zones can be extracted.";
+            gradeLabel.Text = tip;
         }
 
         //Automatically crop the center of the sample
@@ -662,6 +678,7 @@ namespace HistoGrading
             //Saving flags
             save_mask = 0;
             save_vois = 1;
+
             /*
             cropBar.Enabled = true;
 
@@ -672,6 +689,10 @@ namespace HistoGrading
             });
 
             */
+
+            // Update tooltip
+            tip = "Surface, calcified and deep zones extracted. Automatic grading can be conducted.";
+            gradeLabel.Text = tip;
         }
 
         // Predict OA grade

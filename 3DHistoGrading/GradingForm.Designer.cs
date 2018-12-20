@@ -70,18 +70,18 @@
             // 
             this.label2.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(350, 185);
+            this.label2.Location = new System.Drawing.Point(365, 185);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(127, 13);
+            this.label2.Size = new System.Drawing.Size(96, 13);
             this.label2.TabIndex = 2;
-            this.label2.Text = "Standard deviation image";
+            this.label2.Text = "Standard deviation";
             this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // label3
             // 
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(385, 516);
+            this.label3.Location = new System.Drawing.Point(384, 516);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(57, 13);
             this.label3.TabIndex = 7;
@@ -101,7 +101,7 @@
             // 
             this.label5.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(646, 516);
+            this.label5.Location = new System.Drawing.Point(645, 516);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(60, 13);
             this.label5.TabIndex = 9;
@@ -144,7 +144,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.stdPicture.Location = new System.Drawing.Point(285, 201);
             this.stdPicture.Name = "stdPicture";
-            this.stdPicture.Size = new System.Drawing.Size(257, 249);
+            this.stdPicture.Size = new System.Drawing.Size(256, 249);
             this.stdPicture.TabIndex = 13;
             this.stdPicture.TabStop = false;
             // 
@@ -166,7 +166,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.largePicture.Location = new System.Drawing.Point(285, 532);
             this.largePicture.Name = "largePicture";
-            this.largePicture.Size = new System.Drawing.Size(257, 249);
+            this.largePicture.Size = new System.Drawing.Size(256, 249);
             this.largePicture.TabIndex = 15;
             this.largePicture.TabStop = false;
             // 
@@ -175,9 +175,9 @@
             this.radialPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.radialPicture.Location = new System.Drawing.Point(548, 532);
+            this.radialPicture.Location = new System.Drawing.Point(547, 532);
             this.radialPicture.Name = "radialPicture";
-            this.radialPicture.Size = new System.Drawing.Size(257, 249);
+            this.radialPicture.Size = new System.Drawing.Size(256, 249);
             this.radialPicture.TabIndex = 16;
             this.radialPicture.TabStop = false;
             // 
@@ -195,7 +195,7 @@
             // parameterLabel
             // 
             this.parameterLabel.AutoSize = true;
-            this.parameterLabel.Location = new System.Drawing.Point(548, 20);
+            this.parameterLabel.Location = new System.Drawing.Point(547, 20);
             this.parameterLabel.Name = "parameterLabel";
             this.parameterLabel.Size = new System.Drawing.Size(154, 13);
             this.parameterLabel.TabIndex = 18;
@@ -212,20 +212,20 @@
             // 
             this.meanstdLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.meanstdLabel.AutoSize = true;
-            this.meanstdLabel.Location = new System.Drawing.Point(645, 185);
+            this.meanstdLabel.Location = new System.Drawing.Point(589, 185);
             this.meanstdLabel.Name = "meanstdLabel";
-            this.meanstdLabel.Size = new System.Drawing.Size(62, 13);
+            this.meanstdLabel.Size = new System.Drawing.Size(172, 13);
             this.meanstdLabel.TabIndex = 19;
-            this.meanstdLabel.Text = "Mean + Std";
+            this.meanstdLabel.Text = "Normalized Mean + Std (LBP input)";
             // 
             // meanstdPicture
             // 
             this.meanstdPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.meanstdPicture.Location = new System.Drawing.Point(548, 201);
+            this.meanstdPicture.Location = new System.Drawing.Point(547, 201);
             this.meanstdPicture.Name = "meanstdPicture";
-            this.meanstdPicture.Size = new System.Drawing.Size(257, 249);
+            this.meanstdPicture.Size = new System.Drawing.Size(256, 249);
             this.meanstdPicture.TabIndex = 20;
             this.meanstdPicture.TabStop = false;
             // 
@@ -236,7 +236,7 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 21F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 22F));
             this.tableLayoutPanel1.Controls.Add(this.meanstdLabel, 3, 2);
             this.tableLayoutPanel1.Controls.Add(this.meanstdPicture, 3, 3);
             this.tableLayoutPanel1.Controls.Add(this.label2, 2, 2);
