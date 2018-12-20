@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
             this.saveButton = new System.Windows.Forms.Button();
@@ -50,15 +51,14 @@
             this.gmaxBar = new System.Windows.Forms.HScrollBar();
             this.maskButton = new System.Windows.Forms.Button();
             this.fileButton = new System.Windows.Forms.Button();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.gradeLabel = new System.Windows.Forms.Label();
-            this.sliceLabel = new System.Windows.Forms.Label();
-            this.maskLabel = new System.Windows.Forms.Label();
-            this.fileLabel = new System.Windows.Forms.Label();
             this.sliceBar = new System.Windows.Forms.VScrollBar();
             this.renderWindowControl = new Kitware.VTK.RenderWindowControl();
-            this.cropBar = new System.Windows.Forms.VScrollBar();
             this.fileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.fileLabel = new System.Windows.Forms.Label();
+            this.maskLabel = new System.Windows.Forms.Label();
+            this.sliceLabel = new System.Windows.Forms.Label();
+            this.gradeLabel = new System.Windows.Forms.Label();
+            this.panel2 = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -66,17 +66,15 @@
             // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.ColumnCount = 5;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 113F));
+            this.tableLayoutPanel1.ColumnCount = 3;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 113F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 45F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 45F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.Controls.Add(this.panel1, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.panel2, 1, 0);
-            this.tableLayoutPanel1.Controls.Add(this.sliceBar, 3, 1);
-            this.tableLayoutPanel1.Controls.Add(this.renderWindowControl, 2, 1);
-            this.tableLayoutPanel1.Controls.Add(this.cropBar, 4, 1);
+            this.tableLayoutPanel1.Controls.Add(this.panel2, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.sliceBar, 2, 1);
+            this.tableLayoutPanel1.Controls.Add(this.renderWindowControl, 1, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
@@ -118,7 +116,9 @@
             // 
             // saveButton
             // 
+            this.saveButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.saveButton.Enabled = false;
+            this.saveButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.saveButton.Location = new System.Drawing.Point(10, 658);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(93, 49);
@@ -129,7 +129,9 @@
             // 
             // rotate_button
             // 
+            this.rotate_button.Cursor = System.Windows.Forms.Cursors.Hand;
             this.rotate_button.Enabled = false;
+            this.rotate_button.ForeColor = System.Drawing.SystemColors.ControlText;
             this.rotate_button.Location = new System.Drawing.Point(10, 347);
             this.rotate_button.Name = "rotate_button";
             this.rotate_button.Size = new System.Drawing.Size(93, 40);
@@ -140,7 +142,9 @@
             // 
             // getVoiButton
             // 
+            this.getVoiButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.getVoiButton.Enabled = false;
+            this.getVoiButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.getVoiButton.Location = new System.Drawing.Point(9, 492);
             this.getVoiButton.Margin = new System.Windows.Forms.Padding(2);
             this.getVoiButton.Name = "getVoiButton";
@@ -149,7 +153,6 @@
             this.getVoiButton.Text = "Get VOIs";
             this.getVoiButton.UseVisualStyleBackColor = true;
             this.getVoiButton.Click += new System.EventHandler(this.getVoiButton_Click);
-            //this.getVoiButton.Click += new System.EventHandler(this.cleanSurfButton_Click);
             // 
             // label3
             // 
@@ -163,7 +166,9 @@
             // 
             // cropButton
             // 
+            this.cropButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.cropButton.Enabled = false;
+            this.cropButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.cropButton.Location = new System.Drawing.Point(9, 393);
             this.cropButton.Name = "cropButton";
             this.cropButton.Size = new System.Drawing.Size(94, 48);
@@ -174,10 +179,11 @@
             // 
             // segmentButton
             // 
+            this.segmentButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.segmentButton.Enabled = false;
+            this.segmentButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.segmentButton.Location = new System.Drawing.Point(10, 446);
             this.segmentButton.Margin = new System.Windows.Forms.Padding(2);
-
             this.segmentButton.Name = "segmentButton";
             this.segmentButton.Size = new System.Drawing.Size(94, 42);
             this.segmentButton.TabIndex = 11;
@@ -207,10 +213,11 @@
             // 
             // predict
             // 
+            this.predict.Cursor = System.Windows.Forms.Cursors.Hand;
             this.predict.Enabled = false;
+            this.predict.ForeColor = System.Drawing.SystemColors.ControlText;
             this.predict.Location = new System.Drawing.Point(9, 574);
             this.predict.Margin = new System.Windows.Forms.Padding(2);
-
             this.predict.Name = "predict";
             this.predict.Size = new System.Drawing.Size(94, 42);
             this.predict.TabIndex = 2;
@@ -220,7 +227,9 @@
             // 
             // sagittalButton
             // 
+            this.sagittalButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.sagittalButton.Enabled = false;
+            this.sagittalButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sagittalButton.Location = new System.Drawing.Point(7, 272);
             this.sagittalButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.sagittalButton.Name = "sagittalButton";
@@ -232,7 +241,9 @@
             // 
             // coronalButton
             // 
+            this.coronalButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.coronalButton.Enabled = false;
+            this.coronalButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.coronalButton.Location = new System.Drawing.Point(7, 240);
             this.coronalButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.coronalButton.Name = "coronalButton";
@@ -244,7 +255,9 @@
             // 
             // transverseButton
             // 
+            this.transverseButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.transverseButton.Enabled = false;
+            this.transverseButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.transverseButton.Location = new System.Drawing.Point(7, 208);
             this.transverseButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.transverseButton.Name = "transverseButton";
@@ -256,7 +269,9 @@
             // 
             // volumeButton
             // 
+            this.volumeButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.volumeButton.Enabled = false;
+            this.volumeButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.volumeButton.Location = new System.Drawing.Point(7, 179);
             this.volumeButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.volumeButton.Name = "volumeButton";
@@ -268,7 +283,9 @@
             // 
             // resetButton
             // 
+            this.resetButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.resetButton.Enabled = false;
+            this.resetButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.resetButton.Location = new System.Drawing.Point(7, 127);
             this.resetButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.resetButton.Name = "resetButton";
@@ -303,6 +320,7 @@
             // gminBar
             // 
             this.gminBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.gminBar.Cursor = System.Windows.Forms.Cursors.Hand;
             this.gminBar.Enabled = false;
             this.gminBar.Location = new System.Drawing.Point(-2, 784);
             this.gminBar.Maximum = 255;
@@ -314,6 +332,7 @@
             // gmaxBar
             // 
             this.gmaxBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.gmaxBar.Cursor = System.Windows.Forms.Cursors.Hand;
             this.gmaxBar.Enabled = false;
             this.gmaxBar.Location = new System.Drawing.Point(-2, 743);
             this.gmaxBar.Maximum = 255;
@@ -325,7 +344,9 @@
             // 
             // maskButton
             // 
+            this.maskButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.maskButton.Enabled = false;
+            this.maskButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.maskButton.Location = new System.Drawing.Point(7, 55);
             this.maskButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.maskButton.Name = "maskButton";
@@ -337,6 +358,8 @@
             // 
             // fileButton
             // 
+            this.fileButton.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.fileButton.ForeColor = System.Drawing.SystemColors.ControlText;
             this.fileButton.Location = new System.Drawing.Point(7, 4);
             this.fileButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.fileButton.Name = "fileButton";
@@ -346,56 +369,35 @@
             this.fileButton.UseVisualStyleBackColor = true;
             this.fileButton.Click += new System.EventHandler(this.fileButton_Click);
             // 
-            // panel2
+            // sliceBar
             // 
-            this.panel2.BackColor = System.Drawing.SystemColors.Control;
-            this.tableLayoutPanel1.SetColumnSpan(this.panel2, 4);
-            this.panel2.Controls.Add(this.gradeLabel);
-            this.panel2.Controls.Add(this.sliceLabel);
-            this.panel2.Controls.Add(this.maskLabel);
-            this.panel2.Controls.Add(this.fileLabel);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Enabled = false;
-            this.panel2.Location = new System.Drawing.Point(115, 3);
-            this.panel2.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(952, 51);
-            this.panel2.TabIndex = 1;
+            this.sliceBar.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.sliceBar.Dock = System.Windows.Forms.DockStyle.Left;
+            this.sliceBar.Enabled = false;
+            this.sliceBar.Location = new System.Drawing.Point(1024, 57);
+            this.sliceBar.Name = "sliceBar";
+            this.sliceBar.Size = new System.Drawing.Size(45, 810);
+            this.sliceBar.TabIndex = 2;
+            this.sliceBar.Value = 50;
+            this.sliceBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.sliceBar_Scroll);
             // 
-            // gradeLabel
+            // renderWindowControl
             // 
-            this.gradeLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.gradeLabel.AutoSize = true;
-            this.gradeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gradeLabel.Location = new System.Drawing.Point(327, 23);
-            this.gradeLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.gradeLabel.Name = "gradeLabel";
-            this.gradeLabel.Size = new System.Drawing.Size(78, 20);
-            this.gradeLabel.TabIndex = 3;
-            this.gradeLabel.Text = "No Grade";
+            this.renderWindowControl.AddTestActors = false;
+            this.renderWindowControl.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.renderWindowControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.renderWindowControl.Enabled = false;
+            this.renderWindowControl.Location = new System.Drawing.Point(117, 61);
+            this.renderWindowControl.Margin = new System.Windows.Forms.Padding(4);
+            this.renderWindowControl.Name = "renderWindowControl";
+            this.renderWindowControl.Size = new System.Drawing.Size(903, 802);
+            this.renderWindowControl.TabIndex = 3;
+            this.renderWindowControl.TestText = null;
+            this.renderWindowControl.Load += new System.EventHandler(this.renderWindowControl_Load);
             // 
-            // sliceLabel
+            // fileDialog
             // 
-            this.sliceLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.sliceLabel.AutoSize = true;
-            this.sliceLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.sliceLabel.Location = new System.Drawing.Point(718, 23);
-            this.sliceLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.sliceLabel.Name = "sliceLabel";
-            this.sliceLabel.Size = new System.Drawing.Size(65, 20);
-            this.sliceLabel.TabIndex = 2;
-            this.sliceLabel.Text = "No data";
-            // 
-            // maskLabel
-            // 
-            this.maskLabel.AutoSize = true;
-            this.maskLabel.Location = new System.Drawing.Point(7, 30);
-            this.maskLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.maskLabel.Name = "maskLabel";
-            this.maskLabel.Size = new System.Drawing.Size(89, 13);
-            this.maskLabel.TabIndex = 1;
-            this.maskLabel.Text = "No Mask Loaded";
+            this.fileDialog.FileName = "openFileDialog1";
             // 
             // fileLabel
             // 
@@ -407,53 +409,66 @@
             this.fileLabel.TabIndex = 0;
             this.fileLabel.Text = "No Data Loaded";
             // 
-            // sliceBar
+            // maskLabel
             // 
-            this.sliceBar.Dock = System.Windows.Forms.DockStyle.Left;
-            this.sliceBar.Enabled = false;
-            this.sliceBar.Location = new System.Drawing.Point(979, 57);
-            this.sliceBar.Name = "sliceBar";
-            this.sliceBar.Size = new System.Drawing.Size(45, 810);
-            this.sliceBar.TabIndex = 2;
-            this.sliceBar.Value = 50;
-            this.sliceBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.sliceBar_Scroll);
+            this.maskLabel.AutoSize = true;
+            this.maskLabel.Location = new System.Drawing.Point(7, 30);
+            this.maskLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.maskLabel.Name = "maskLabel";
+            this.maskLabel.Size = new System.Drawing.Size(89, 13);
+            this.maskLabel.TabIndex = 1;
+            this.maskLabel.Text = "No Mask Loaded";
             // 
-            // renderWindowControl
+            // sliceLabel
             // 
-            this.renderWindowControl.AddTestActors = false;
-            this.renderWindowControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.renderWindowControl.Enabled = false;
-            this.renderWindowControl.Location = new System.Drawing.Point(230, 61);
-            this.renderWindowControl.Margin = new System.Windows.Forms.Padding(4);
-            this.renderWindowControl.Name = "renderWindowControl";
-            this.renderWindowControl.Size = new System.Drawing.Size(745, 802);
-            this.renderWindowControl.TabIndex = 3;
-            this.renderWindowControl.TestText = null;
-            this.renderWindowControl.Load += new System.EventHandler(this.renderWindowControl_Load);
+            this.sliceLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.sliceLabel.AutoSize = true;
+            this.sliceLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.sliceLabel.Location = new System.Drawing.Point(831, 23);
+            this.sliceLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.sliceLabel.Name = "sliceLabel";
+            this.sliceLabel.Size = new System.Drawing.Size(65, 20);
+            this.sliceLabel.TabIndex = 2;
+            this.sliceLabel.Text = "No data";
             // 
-            // cropBar
+            // gradeLabel
             // 
-            this.cropBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.cropBar.Enabled = false;
-            this.cropBar.Location = new System.Drawing.Point(1024, 57);
-            this.cropBar.Name = "cropBar";
-            this.cropBar.Size = new System.Drawing.Size(45, 810);
-            this.cropBar.TabIndex = 4;
-            this.cropBar.Value = 50;
-            this.cropBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.cropBar_Scroll);
+            this.gradeLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gradeLabel.AutoSize = true;
+            this.gradeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.gradeLabel.Location = new System.Drawing.Point(158, 25);
+            this.gradeLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.gradeLabel.Name = "gradeLabel";
+            this.gradeLabel.Size = new System.Drawing.Size(78, 20);
+            this.gradeLabel.TabIndex = 3;
+            this.gradeLabel.Text = "No Grade";
             // 
-            // fileDialog
+            // panel2
             // 
-            this.fileDialog.FileName = "openFileDialog1";
-
+            this.panel2.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.tableLayoutPanel1.SetColumnSpan(this.panel2, 3);
+            this.panel2.Controls.Add(this.gradeLabel);
+            this.panel2.Controls.Add(this.sliceLabel);
+            this.panel2.Controls.Add(this.maskLabel);
+            this.panel2.Controls.Add(this.fileLabel);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Enabled = false;
+            this.panel2.Location = new System.Drawing.Point(2, 3);
+            this.panel2.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(1065, 51);
+            this.panel2.TabIndex = 1;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.ClientSize = new System.Drawing.Size(1069, 867);
             this.Controls.Add(this.tableLayoutPanel1);
+            this.ForeColor = System.Drawing.SystemColors.InactiveCaption;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.Name = "MainForm";
             this.Text = "CTVisualization";
@@ -471,9 +486,6 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Button fileButton;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Label maskLabel;
-        private System.Windows.Forms.Label fileLabel;
         private System.Windows.Forms.Button maskButton;
         private System.Windows.Forms.VScrollBar sliceBar;
         private System.Windows.Forms.HScrollBar gminBar;
@@ -488,17 +500,19 @@
         private System.Windows.Forms.Button volumeButton;
         private System.Windows.Forms.Label viewLabel;
         private System.Windows.Forms.OpenFileDialog fileDialog;
-        private System.Windows.Forms.Label sliceLabel;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button predict;
         private System.Windows.Forms.Button segmentButton;
         private System.Windows.Forms.Button cropButton;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label gradeLabel;
         private System.Windows.Forms.Button getVoiButton;
-        private System.Windows.Forms.VScrollBar cropBar;
         private System.Windows.Forms.Button rotate_button;
         private System.Windows.Forms.Button saveButton;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Label gradeLabel;
+        private System.Windows.Forms.Label sliceLabel;
+        private System.Windows.Forms.Label maskLabel;
+        private System.Windows.Forms.Label fileLabel;
     }
 }
 

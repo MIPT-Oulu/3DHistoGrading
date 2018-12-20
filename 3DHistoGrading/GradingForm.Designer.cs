@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GradingForm));
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -60,9 +61,10 @@
             // 
             this.label1.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(118, 185);
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(109, 182);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(65, 13);
+            this.label1.Size = new System.Drawing.Size(83, 16);
             this.label1.TabIndex = 1;
             this.label1.Text = "Mean image";
             // 
@@ -70,9 +72,10 @@
             // 
             this.label2.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(365, 185);
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(352, 182);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(96, 13);
+            this.label2.Size = new System.Drawing.Size(121, 16);
             this.label2.TabIndex = 2;
             this.label2.Text = "Standard deviation";
             this.label2.Click += new System.EventHandler(this.label2_Click);
@@ -81,9 +84,10 @@
             // 
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(384, 516);
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(377, 513);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(57, 13);
+            this.label3.Size = new System.Drawing.Size(71, 16);
             this.label3.TabIndex = 7;
             this.label3.Text = "Large LBP";
             // 
@@ -91,9 +95,10 @@
             // 
             this.label4.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(123, 516);
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Location = new System.Drawing.Point(116, 513);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(55, 13);
+            this.label4.Size = new System.Drawing.Size(70, 16);
             this.label4.TabIndex = 8;
             this.label4.Text = "Small LBP";
             // 
@@ -101,15 +106,18 @@
             // 
             this.label5.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(645, 516);
+            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.Location = new System.Drawing.Point(637, 513);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(60, 13);
+            this.label5.Size = new System.Drawing.Size(76, 16);
             this.label5.TabIndex = 9;
             this.label5.Text = "Radial LBP";
             // 
             // progressBar1
             // 
+            this.progressBar1.BackColor = System.Drawing.SystemColors.GrayText;
             this.progressBar1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.progressBar1.ForeColor = System.Drawing.SystemColors.ButtonShadow;
             this.progressBar1.Location = new System.Drawing.Point(23, 23);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(256, 34);
@@ -119,9 +127,10 @@
             // 
             this.progressLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.progressLabel.AutoSize = true;
-            this.progressLabel.Location = new System.Drawing.Point(23, 3);
+            this.progressLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.progressLabel.Location = new System.Drawing.Point(23, 2);
             this.progressLabel.Name = "progressLabel";
-            this.progressLabel.Size = new System.Drawing.Size(54, 13);
+            this.progressLabel.Size = new System.Drawing.Size(69, 16);
             this.progressLabel.TabIndex = 11;
             this.progressLabel.Text = "Progress: ";
             // 
@@ -195,9 +204,10 @@
             // parameterLabel
             // 
             this.parameterLabel.AutoSize = true;
+            this.parameterLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.parameterLabel.Location = new System.Drawing.Point(547, 20);
             this.parameterLabel.Name = "parameterLabel";
-            this.parameterLabel.Size = new System.Drawing.Size(154, 13);
+            this.parameterLabel.Size = new System.Drawing.Size(197, 16);
             this.parameterLabel.TabIndex = 18;
             this.parameterLabel.Text = "Parameters (hover mouse over)";
             this.parameterTip.SetToolTip(this.parameterLabel, "Parameters:");
@@ -212,9 +222,10 @@
             // 
             this.meanstdLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.meanstdLabel.AutoSize = true;
-            this.meanstdLabel.Location = new System.Drawing.Point(589, 185);
+            this.meanstdLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.meanstdLabel.Location = new System.Drawing.Point(568, 182);
             this.meanstdLabel.Name = "meanstdLabel";
-            this.meanstdLabel.Size = new System.Drawing.Size(172, 13);
+            this.meanstdLabel.Size = new System.Drawing.Size(214, 16);
             this.meanstdLabel.TabIndex = 19;
             this.meanstdLabel.Text = "Normalized Mean + Std (LBP input)";
             // 
@@ -271,13 +282,15 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.ClientSize = new System.Drawing.Size(830, 807);
             this.Controls.Add(this.tableLayoutPanel1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
+            this.ForeColor = System.Drawing.SystemColors.InactiveCaption;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximumSize = new System.Drawing.Size(1080, 1080);
             this.MinimumSize = new System.Drawing.Size(100, 100);
             this.Name = "GradingForm";
-            this.ShowIcon = false;
             this.Text = "Grading";
             ((System.ComponentModel.ISupportInitialize)(this.meanPicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.stdPicture)).EndInit();

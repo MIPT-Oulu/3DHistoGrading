@@ -514,19 +514,34 @@ namespace HistoGrading.Components
             return center;
         }
 
-        public static vtkImageData center_crop(vtkImageData stack, int side = 400)
+        public static vtkImageData center_crop(vtkImageData stack, int side = 400, bool get_center = true)
         {
             //Get input dimensions
             int[] dims = stack.GetExtent();
 
             //Find the center of the sample
 
-            int[] center = find_center(stack,70, new int[] { 0, (dims[5] - dims[4] + 1)/3 });//GetCenter(bytedata,80);
-            //Compute new volume sides
-            int y2 = Math.Min(center[0] + (side / 2), dims[1]);
-            int y1 = Math.Max(y2 - side + 1, dims[0]);
-            int x2 = Math.Min(center[1] + (side / 2), dims[3]);
-            int x1 = Math.Max(x2 - side + 1, dims[2]);
+            int x1; int x2; int y1; int y2;
+
+            if(get_center = true)
+            {
+                int[] center = find_center(stack, 70, new int[] { 0, (dims[5] - dims[4] + 1) / 3 });//GetCenter(bytedata,80);
+                //Compute new volume sides
+                y2 = Math.Min(center[0] + (side / 2), dims[1]);
+                y1 = Math.Max(y2 - side + 1, dims[0]);
+                x2 = Math.Min(center[1] + (side / 2), dims[3]);
+                x1 = Math.Max(x2 - side + 1, dims[2]);
+            }
+            else
+            {
+                int diff = (dims[1] - dims[0] + 1) - side;
+                y2 = Math.Min(dims[1] - diff, dims[1]);
+                y1 = Math.Max(y2 - side + 1, dims[0]);
+                x2 = Math.Min(dims[3] - diff, dims[3]);
+                x1 = Math.Max(x2 - side + 1, dims[2]);
+            }
+            
+            
 
             //Create VOI extractor
             vtkExtractVOI cropper = vtkExtractVOI.New();
@@ -1037,7 +1052,7 @@ namespace HistoGrading.Components
             return ori;
         }
 
-        public static void get_mean_sd(out double[,] mean, out double[,] sd, vtkImageData VOI, int voi_depth = 0, int crop_size = 24)
+        public static void get_mean_sd(out double[,] mean, out double[,] sd, vtkImageData VOI, int voi_depth = 0, int crop_size = 0)
         {
             //Get input extent
             int[] dims = VOI.GetExtent();

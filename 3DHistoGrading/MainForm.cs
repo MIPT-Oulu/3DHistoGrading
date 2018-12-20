@@ -663,13 +663,13 @@ namespace HistoGrading
             //Render
             if (ori == -1)
             {
-                //volume.renderVolume();
+                volume.renderVolume();
                 volume.renderVolumeMask();
                 volume.setVolumeColor();
             }
             if (ori > -1)
             {
-                //volume.renderImage();
+                volume.renderImage();
                 volume.renderImageMask();
             }
 

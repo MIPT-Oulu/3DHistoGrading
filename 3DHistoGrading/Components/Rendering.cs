@@ -447,6 +447,7 @@ namespace HistoGrading.Components
             //flags for components
             int has_volume = 0;
             int has_image = 0;
+            int has_mask = 0;
 
             //Methods for communicating with GUI
 
@@ -523,6 +524,8 @@ namespace HistoGrading.Components
                 imasks.Add(math.GetOutput());
                 //Generate colors                
                 maskcolors.Add(new double[] { 0.9, 0.0, 0.0 });
+
+                has_mask = 1;
             }
 
             /// <summary>
@@ -575,6 +578,8 @@ namespace HistoGrading.Components
                     cur[c % 3] = 0.8;
                     maskcolors.Add(cur);                    
                 }
+
+                has_mask = 1;
             }
 
             /// <summary>
@@ -771,9 +776,10 @@ namespace HistoGrading.Components
                 {
                     imasks.ElementAt(k).Dispose();
                 }
-                imasks = new List<vtkImageData>();                
+                imasks = new List<vtkImageData>();
+                has_mask = 0;
             }
-
+            
             /// <summary>
             /// Get data dimensions
             /// </summary>
@@ -873,15 +879,30 @@ namespace HistoGrading.Components
                 return angletext;
             }
 
-            public void center_crop(int size = 400)
+            public void center_crop(int size = 400,bool get_center = false)
             {
                 vtkImageData tmp = vtkImageData.New();
                 tmp.DeepCopy(idata);
                 idata.Dispose();
-                tmp = Processing.center_crop(tmp,size);                
+                tmp = Processing.center_crop(tmp,size,get_center);                
                 idata = vtkImageData.New();
                 idata.DeepCopy(tmp);
                 tmp.Dispose();
+
+                if(has_mask == 1)
+                {
+                    List<vtkImageData> tmplist = new List<vtkImageData>();
+                    for(int k = 0; k<imasks.Count(); k++)
+                    {
+                        vtkImageData tmpmask = vtkImageData.New();
+                        tmpmask.DeepCopy(imasks.ElementAt(k));
+                        imasks.ElementAt(k).Dispose();
+                        tmpmask = Processing.center_crop(tmpmask, size, get_center);
+                        tmplist.Add(tmpmask);
+                    }
+                    imasks = new List<vtkImageData>();
+                    imasks = tmplist;
+                }
             }
 
             public void segmentation()
@@ -974,6 +995,7 @@ namespace HistoGrading.Components
 
             public void analysis_vois()
             {
+                center_crop(400, true);
                 vtkImageData ccartilage; vtkImageData dcartilage; vtkImageData scartilage;
                 Functions.get_analysis_vois(out dcartilage, out ccartilage, out scartilage, idata, imasks.ElementAt(0));
 
