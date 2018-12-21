@@ -191,6 +191,8 @@ namespace HistoGrading
         //Load CT data
         private void fileButton_Click(object sender, EventArgs e)
         {
+            label4.Text = "Calculating: ";
+            mainProgress.Value = 10;
             //Select a file and render volume
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {                
@@ -224,10 +226,12 @@ namespace HistoGrading
                         fname += "_";
                     }
                 }
+                mainProgress.Value = 20;
 
                 //Load data
                 volume.connectData(impath);
-                
+                mainProgress.Value = 70;
+
                 //Get dimensions and set slices. Middle slice is set to current slice
                 dims = volume.getDims();
                 sliceN[0] = (dims[1] + dims[0]) / 2;
@@ -292,6 +296,8 @@ namespace HistoGrading
                 fileLabel.Text = fname;
                 tip = "Sample loaded and tools enabled";
                 gradeLabel.Text = tip;
+                mainProgress.Value = 100;
+                label4.Text = "Done";
             }
         }
 
