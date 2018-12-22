@@ -86,7 +86,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1604, 1334);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1604, 1500);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // panel1
@@ -211,7 +211,7 @@
             this.viewLabel.Name = "viewLabel";
             this.viewLabel.Size = new System.Drawing.Size(43, 20);
             this.viewLabel.TabIndex = 10;
-            this.viewLabel.Text = "View";
+            this.viewLabel.Text = "Viewing";
             // 
             // predict
             // 
@@ -359,6 +359,7 @@
             // 
             this.fileButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.fileButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.fileButton.BackColor = System.Drawing.SystemColors.ControlLight;
             this.fileButton.Location = new System.Drawing.Point(10, 6);
             this.fileButton.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.fileButton.Name = "fileButton";
@@ -425,7 +426,7 @@
             this.renderWindowControl.Location = new System.Drawing.Point(176, 46);
             this.renderWindowControl.Margin = new System.Windows.Forms.Padding(6);
             this.renderWindowControl.Name = "renderWindowControl";
-            this.renderWindowControl.Size = new System.Drawing.Size(1382, 1252);
+            this.renderWindowControl.Size = new System.Drawing.Size(1382, 1500);
             this.renderWindowControl.TabIndex = 3;
             this.renderWindowControl.TestText = null;
             this.renderWindowControl.Load += new System.EventHandler(this.renderWindowControl_Load);
@@ -490,7 +491,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.ClientSize = new System.Drawing.Size(1604, 1334);
+            this.ClientSize = new System.Drawing.Size(1604, 1500);
             this.Controls.Add(this.tableLayoutPanel1);
             this.ForeColor = System.Drawing.SystemColors.InactiveCaption;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

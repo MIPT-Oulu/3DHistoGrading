@@ -15,6 +15,8 @@ using Accord.Math;
 
 namespace HistoGrading.Components
 {
+    delegate void TestDelegate(ref double val);
+
     /// <summary>
     /// Contains functions for data type conversions.
     /// </summary>
@@ -354,13 +356,20 @@ namespace HistoGrading.Components
             return new Bitmap(LBPLibrary.Functions.ByteMatrixToBitmap(bytearray));
              */
             double min = 1e9; double max = -1e9;
+
+            TestDelegate t = (ref double val) => {
+                if (val > max) { max = val; }
+                if (val < min) { min = val; }
+            };
+
             for (int kx = 0; kx < array.GetLength(1); kx++)
             {
                 for (int ky = 0; ky < array.GetLength(0); ky++)
                 {
                     double val = array[ky, kx];
-                    if (val > max) { max = val; }
-                    if (val < min) { min = val; }
+                    t(ref val);
+                    //if (val > max) { max = val; }
+                    //if (val < min) { min = val; }
                 }
             }
 

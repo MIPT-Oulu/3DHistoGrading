@@ -191,7 +191,7 @@ namespace HistoGrading
         //Load CT data
         private void fileButton_Click(object sender, EventArgs e)
         {
-            label4.Text = "Calculating: ";
+            label4.Text = "Loading: ";
             mainProgress.Value = 10;
             //Select a file and render volume
             if (fileDialog.ShowDialog() == DialogResult.OK)
@@ -226,7 +226,7 @@ namespace HistoGrading
                         fname += "_";
                     }
                 }
-                mainProgress.Value = 20;
+                mainProgress.Value = 50;
 
                 //Load data
                 volume.connectData(impath);
@@ -304,6 +304,8 @@ namespace HistoGrading
         //Load bone mask
         private void maskButton_Click(object sender, EventArgs e)
         {
+            label4.Text = "Loading: ";
+            mainProgress.Value = 10;
             //Dwitch between loading and removing the bone mask
             switch (is_mask)
             {
@@ -326,9 +328,10 @@ namespace HistoGrading
                             volume.updateCurrent(sliceN, ori, gray);
                             // Set cartilage grids based on mask
                             //volume.SampleGrids();
+                            mainProgress.Value = 50;
 
-                        //Render
-                        if (ori == -1)
+                            //Render
+                            if (ori == -1)
                             {
                                 volume.renderVolumeMask();
                                 volume.setVolumeColor();
@@ -368,6 +371,8 @@ namespace HistoGrading
             // Update tooltip
             tip = "Loaded mask. If calcified zone mask was used, deep and surface zones can be extracted.";
             gradeLabel.Text = tip;
+            mainProgress.Value = 100;
+            label4.Text = "Done";
         }
 
         //Reset camera
@@ -554,7 +559,10 @@ namespace HistoGrading
         //Automatically reorient the sample
         private void rotate_button_Click(object sender, EventArgs e)
         {
+            label4.Text = "Calculating: ";
+            mainProgress.Value = 10;
             string angles = volume.auto_rotate();
+            mainProgress.Value = 80;
             dims = volume.getDims();
             sliceN[0] = (dims[1] + dims[0]) / 2;
             sliceN[1] = (dims[3] + dims[2]) / 2;
@@ -587,18 +595,23 @@ namespace HistoGrading
             // Update tip
             tip = angles;
             gradeLabel.Text = tip;
+            mainProgress.Value = 100;
+            label4.Text = "Done";
         }
 
         //Automatically segment the BC interface
         private void segmentButton_Click(object sender, EventArgs e)
         {
+            label4.Text = "Calculating: ";
+            mainProgress.Value = 10;
             //VOI for segmentation
 
-            volume.segmentation();            
+            volume.segmentation();
+            mainProgress.Value = 80;
 
             //Update rendering pipeline
             is_mask = 1;
-            maskLabel.Text = "Automatic";
+            maskLabel.Text = "Mask: automatic";
 
             
             //Render
@@ -624,15 +637,19 @@ namespace HistoGrading
             // Update tooltip
             tip = "Calcified zone interface segmented. Deep and surface zones can be extracted.";
             gradeLabel.Text = tip;
+            mainProgress.Value = 100;
+            label4.Text = "Done";
         }
 
         //Automatically crop the center of the sample
         private void cropButton_Click(object sender, EventArgs e)
         {
-
+            label4.Text = "Calculating: ";
+            mainProgress.Value = 10;
             //Connect mask to segmentation pipeline
             int size = 448;
-            volume.center_crop(size);            
+            volume.center_crop(size);
+            mainProgress.Value = 80;
             //Update sample dimensions
             dims = volume.getDims();
             sliceN[0] = (dims[1] + dims[0]) / 2;
@@ -657,12 +674,17 @@ namespace HistoGrading
             tip = "Cropped to " + size.ToString() + " | " + size.ToString() + " size";
             gradeLabel.Text = tip;
             GC.Collect();
+            mainProgress.Value = 100;
+            label4.Text = "Done";
         }
 
         //Remove preparation artefacts from the surface
         private void getVoiButton_Click(object sender, EventArgs e)
         {
+            label4.Text = "Calculating: ";
+            mainProgress.Value = 10;
             volume.analysis_vois();
+            mainProgress.Value = 80;
 
             is_mask = 1;
 
@@ -699,11 +721,15 @@ namespace HistoGrading
             // Update tooltip
             tip = "Surface, calcified and deep zones extracted. Automatic grading can be conducted.";
             gradeLabel.Text = tip;
+            mainProgress.Value = 100;
+            label4.Text = "Done";
         }
 
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
+            label4.Text = "Calculating: ";
+            mainProgress.Value = 10;
             string[] models = new string[] { ".\\Default\\calc_weights.dat", ".\\Default\\deep_weights.dat", ".\\Default\\surf_weights.dat" };
             string[] parameters = new string[] { ".\\Default\\calc_parameters.csv", ".\\Default\\deep_parameters.csv", ".\\Default\\surf_parameters.csv" };
             string grade = volume.grade_vois(models, parameters, fname);
@@ -711,11 +737,15 @@ namespace HistoGrading
             string grade = Grading.PredictSurface(ref volume, fname, out int[,] surfaceCoordinates);
             */
             gradeLabel.Text = grade;
+            mainProgress.Value = 100;
+            label4.Text = "Done";
         }
 
         private void saveButton_Click(object sender, EventArgs e)
         {
-            if(save_mask == 1)
+            label4.Text = "Saving: ";
+            mainProgress.Value = 10;
+            if (save_mask == 1)
             {
                 //Save sample
                 volume.save_data(fname, savedir);
@@ -729,8 +759,11 @@ namespace HistoGrading
                 volume.save_masks(names, savedir);
             }
 
-
-
+            // Update tooltip
+            tip = "Saved images in path " + savedir;
+            gradeLabel.Text = tip;
+            mainProgress.Value = 100;
+            label4.Text = "Done";
         }
 
         //Scroll bars
