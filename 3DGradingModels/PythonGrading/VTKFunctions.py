@@ -1,7 +1,7 @@
 import vtk
 import numpy as np
 
-def RenderVolume(data):
+def RenderVolume(data, savepath = None, white=True):
     # We begin by creating the data we want to render.
     # For this tutorial, we create a 3D-image containing three overlaping cubes.
     # This data can of course easily be replaced by data from a medical CT-scan or anything else three dimensional.
@@ -9,10 +9,10 @@ def RenderVolume(data):
     data_matrix = np.uint8(data)
     dims = np.shape(data)
 
-    # For VTK to be able to use the data, it must be stored as a VTK-image. This can be done by the vtkImageImport-class which
-    # imports raw data and stores it.
+    # For VTK to be able to use the data, it must be stored as a VTK-image. This can be done by the vtkImageImport-class
+    # which imports raw data and stores it.
     dataImporter = vtk.vtkImageImport()
-    # The preaviusly created array is converted to a string of chars and imported.
+    # The previously created array is converted to a string of chars and imported.
     data_string = data_matrix.tostring()
     dataImporter.CopyImportVoidPointer(data_string, len(data_string))
     # The type of the newly imported data is set to unsigned char (uint8)
@@ -28,7 +28,7 @@ def RenderVolume(data):
     dataImporter.SetWholeExtent(0, dims[2] - 1, 0, dims[1] - 1, 0, dims[0] - 1)
 
     # The following class is used to store transparencyv-values for later retrival. In our case, we want the value 0 to be
-    # completly opaque whereas the three different cubes are given different transperancy-values to show how it works.
+    # completely opaque whereas the three different cubes are given different transperancy-values to show how it works.
     alphaChannelFunc = vtk.vtkPiecewiseFunction()
     alphaChannelFunc.AddPoint(0, 0.0)
     alphaChannelFunc.AddPoint(70, 0.0)
@@ -65,26 +65,49 @@ def RenderVolume(data):
     renderInteractor = vtk.vtkRenderWindowInteractor()
     renderInteractor.SetRenderWindow(renderWin)
     
-    # Set outline
-    outline = vtk.vtkOutlineFilter()
-    outline.SetInputConnection(dataImporter.GetOutputPort())
-    mapper2 = vtk.vtkPolyDataMapper()
-    mapper2.SetInputConnection(outline.GetOutputPort())
-    actor2 = vtk.vtkActor()
-    actor2.SetMapper(mapper2)
-    renderer.AddActor(actor2)
+    ## Set outline
+    #outline = vtk.vtkOutlineFilter()
+    #outline.SetInputConnection(dataImporter.GetOutputPort())
+    #mapper2 = vtk.vtkPolyDataMapper()
+    #mapper2.SetInputConnection(outline.GetOutputPort())
+    #actor2 = vtk.vtkActor()
+    #actor2.SetMapper(mapper2)
+    #renderer.AddActor(actor2)
 
+    # Camera options
+    #camera = vtk.vtkCamera()
+    #camera.SetPosition(0.5, 1, 0)
+    #camera.SetFocalPoint(0, 0.5, 0.5)
+    #camera.SetViewUp(1, 0, 1)
+
+    #renderer.SetActiveCamera(camera)
+    #renderer.ResetCamera()
+    
+    #camera = vtk.vtkCamera()
+    #camera.SetPosition(0.5, 1, 0)
+    #camera.SetFocalPoint(0, 0.5, 0.5)
+    #camera.SetViewUp(1, 0, 1)
+    #renderer.SetActiveCamera(camera)
+    #renderer.ResetCamera()
+
+    # Set background color
+    if white:
+        renderer.SetBackground(1,1,1)
+    else:
+        renderer.SetBackground(0,0,0)
+    
     # We add the volume to the renderer ...
     renderer.AddVolume(volume)
-    # ... set background color to white ...
-    renderer.SetBackground(0,0,0)
-    # ... and set window size.
+    renderer.GetActiveCamera().SetPosition(0.5, 0.5, 0.5)
+    renderer.GetActiveCamera().Azimuth(-110)
+    renderer.GetActiveCamera().Elevation(-170)
+    renderer.ResetCameraClippingRange()
+    renderer.ResetCamera()
+    
+    # Window size
     renderWin.SetSize(600, 600)
 
-    # Set grid
-    
-
-    # A simple function to be called when the user decides to quit the application.
+    # Application quit
     def exitCheck(obj, event):
         if obj.GetEventPending() != 0:
             obj.SetAbortRender(1)
@@ -93,9 +116,21 @@ def RenderVolume(data):
     renderWin.AddObserver("AbortCheckEvent", exitCheck)
 
     renderInteractor.Initialize()
-    # Because nothing will be rendered without any input, we order the first render manually before control is handed over to the main-loop.
     renderWin.Render()
-    renderInteractor.Start()
+
+    if savepath:  # Take a screenshot
+        img = vtk.vtkWindowToImageFilter()
+        img.SetInput(renderWin)
+        img.Update()
+
+        writer = vtk.vtkPNGWriter()
+        print('Saved to: ' + savepath)
+        writer.SetFileName(str(savepath))
+        writer.SetInputData(img.GetOutput())
+        writer.Write()
+        return
+    else:
+        renderInteractor.Start()
     
 def ArrayToVTK(A):
     imagedata = vtk.vtkImageData()

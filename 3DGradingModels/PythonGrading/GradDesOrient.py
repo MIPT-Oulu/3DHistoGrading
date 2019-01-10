@@ -37,7 +37,7 @@ class find_ori_grad(object):
     def get_angle(self,sample):
         ori = np.array([0,0]).astype(np.float32)
         
-        for k in range(self.n):
+        for k in range(1+self.n+1):
             #Initialize gradient
             grads = np.zeros((2))
             
@@ -48,8 +48,8 @@ class find_ori_grad(object):
             rotated2 = opencvRotate(sample.astype(np.uint8),0,ori[0]-self.h)
             rotated2 = opencvRotate(rotated2.astype(np.uint8),1,ori[1])
             #Surface
-            surf1 = np.argmax(rotated1,2)
-            surf2 = np.argmax(rotated2,2)
+            surf1 = np.argmax(np.flip(rotated1,2),2)
+            surf2 = np.argmax(np.flip(rotated2,2),2)
             
             #Losses
             d1 = self.circle_loss(surf1)
@@ -66,8 +66,8 @@ class find_ori_grad(object):
             rotated2 = opencvRotate(rotated2.astype(np.uint8),1,ori[1]-self.h)
             
             #Surface
-            surf1 = np.argmax(rotated1,2)
-            surf2 = np.argmax(rotated2,2)
+            surf1 = np.argmax(np.flip(rotated1,2),2)
+            surf2 = np.argmax(np.flip(rotated2,2),2)
             
             #Losses
             d1 = self.circle_loss(surf1)

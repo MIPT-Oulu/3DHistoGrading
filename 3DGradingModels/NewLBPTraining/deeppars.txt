@@ -1,0 +1,339 @@
+Current minimum error is: 0.6140539441948825
+Parameters are:
+{'ks1': 15, 'sigma1': 4, 'ks2': 23, 'sigma2': 8, 'R': 23, 'r': 7, 'wc': 5, 'wR': 7, 'wr': 15}
+Took 77 seconds
+Current minimum error is: 0.5282088973272382
+Parameters are:
+{'ks1': 25, 'sigma1': 12, 'ks2': 9, 'sigma2': 7, 'R': 27, 'r': 7, 'wc': 13, 'wR': 3, 'wr': 3}
+Took 67 seconds
+Current minimum error is: 0.5750554686704326
+Parameters are:
+{'ks1': 9, 'sigma1': 9, 'ks2': 3, 'sigma2': 3, 'R': 20, 'r': 8, 'wc': 3, 'wR': 7, 'wr': 9}
+Took 57 seconds
+Current minimum error is: 0.6103883823839852
+Parameters are:
+{'ks1': 19, 'sigma1': 13, 'ks2': 25, 'sigma2': 7, 'R': 27, 'r': 4, 'wc': 11, 'wR': 9, 'wr': 3}
+Took 58 seconds
+Current minimum error is: 0.5685434183334097
+Parameters are:
+{'ks1': 13, 'sigma1': 13, 'ks2': 9, 'sigma2': 3, 'R': 25, 'r': 8, 'wc': 9, 'wR': 11, 'wr': 5}
+Took 76 seconds
+Current minimum error is: 0.666660363799807
+Parameters are:
+{'ks1': 17, 'sigma1': 10, 'ks2': 23, 'sigma2': 12, 'R': 15, 'r': 12, 'wc': 15, 'wR': 13, 'wr': 5}
+Took 59 seconds
+Current minimum error is: 0.6180159070050816
+Parameters are:
+{'ks1': 9, 'sigma1': 4, 'ks2': 13, 'sigma2': 12, 'R': 21, 'r': 12, 'wc': 13, 'wR': 15, 'wr': 7}
+Took 66 seconds
+Current minimum error is: 0.5961504827354729
+Parameters are:
+{'ks1': 19, 'sigma1': 4, 'ks2': 23, 'sigma2': 22, 'R': 19, 'r': 9, 'wc': 3, 'wR': 11, 'wr': 9}
+Took 62 seconds
+Current minimum error is: 0.6143991355878503
+Parameters are:
+{'ks1': 23, 'sigma1': 19, 'ks2': 5, 'sigma2': 4, 'R': 27, 'r': 6, 'wc': 3, 'wR': 15, 'wr': 9}
+Took 62 seconds
+Current minimum error is: 0.5455156819546346
+Parameters are:
+{'ks1': 9, 'sigma1': 6, 'ks2': 13, 'sigma2': 1, 'R': 26, 'r': 6, 'wc': 7, 'wR': 13, 'wr': 3}
+Took 61 seconds
+Current minimum error is: 0.7329729866081043
+Parameters are:
+{'ks1': 19, 'sigma1': 13, 'ks2': 21, 'sigma2': 18, 'R': 10, 'r': 8, 'wc': 15, 'wR': 13, 'wr': 7}
+Took 64 seconds
+Current minimum error is: 0.616091508276284
+Parameters are:
+{'ks1': 17, 'sigma1': 15, 'ks2': 11, 'sigma2': 9, 'R': 23, 'r': 9, 'wc': 5, 'wR': 9, 'wr': 3}
+Took 60 seconds
+Current minimum error is: 0.55743079824727
+Parameters are:
+{'ks1': 19, 'sigma1': 17, 'ks2': 9, 'sigma2': 6, 'R': 24, 'r': 8, 'wc': 3, 'wR': 15, 'wr': 3}
+Took 64 seconds
+Current minimum error is: 0.6753745157711355
+Parameters are:
+{'ks1': 23, 'sigma1': 8, 'ks2': 23, 'sigma2': 4, 'R': 19, 'r': 7, 'wc': 7, 'wR': 13, 'wr': 5}
+Took 57 seconds
+Current minimum error is: 0.5747731828335294
+Parameters are:
+{'ks1': 19, 'sigma1': 11, 'ks2': 17, 'sigma2': 10, 'R': 27, 'r': 7, 'wc': 7, 'wR': 7, 'wr': 5}
+Took 67 seconds
+Current minimum error is: 0.6270546224127602
+Parameters are:
+{'ks1': 13, 'sigma1': 9, 'ks2': 5, 'sigma2': 1, 'R': 18, 'r': 13, 'wc': 5, 'wR': 9, 'wr': 13}
+Took 57 seconds
+Current minimum error is: 0.6908771430017917
+Parameters are:
+{'ks1': 7, 'sigma1': 7, 'ks2': 15, 'sigma2': 10, 'R': 12, 'r': 11, 'wc': 11, 'wR': 13, 'wr': 15}
+Took 60 seconds
+Current minimum error is: 0.6202094259970425
+Parameters are:
+{'ks1': 17, 'sigma1': 15, 'ks2': 23, 'sigma2': 14, 'R': 20, 'r': 7, 'wc': 7, 'wR': 11, 'wr': 9}
+Took 58 seconds
+Current minimum error is: 0.5776971800509496
+Parameters are:
+{'ks1': 21, 'sigma1': 7, 'ks2': 5, 'sigma2': 2, 'R': 16, 'r': 10, 'wc': 5, 'wR': 15, 'wr': 5}
+Took 59 seconds
+Current minimum error is: 0.6292063662257159
+Parameters are:
+{'ks1': 25, 'sigma1': 20, 'ks2': 25, 'sigma2': 24, 'R': 20, 'r': 17, 'wc': 7, 'wR': 3, 'wr': 9}
+Took 67 seconds
+Current minimum error is: 0.6455693027921697
+Parameters are:
+{'ks1': 17, 'sigma1': 15, 'ks2': 17, 'sigma2': 17, 'R': 14, 'r': 11, 'wc': 3, 'wR': 13, 'wr': 9}
+Took 60 seconds
+Current minimum error is: 0.6956919504689245
+Parameters are:
+{'ks1': 11, 'sigma1': 9, 'ks2': 23, 'sigma2': 4, 'R': 4, 'r': 1, 'wc': 13, 'wR': 13, 'wr': 9}
+Took 61 seconds
+Current minimum error is: 0.6471448303214817
+Parameters are:
+{'ks1': 9, 'sigma1': 7, 'ks2': 21, 'sigma2': 18, 'R': 21, 'r': 4, 'wc': 5, 'wR': 3, 'wr': 15}
+Took 59 seconds
+Current minimum error is: 0.6804638933243218
+Parameters are:
+{'ks1': 5, 'sigma1': 1, 'ks2': 11, 'sigma2': 2, 'R': 27, 'r': 9, 'wc': 3, 'wR': 7, 'wr': 7}
+Took 63 seconds
+Current minimum error is: 0.6219094527189187
+Parameters are:
+{'ks1': 9, 'sigma1': 7, 'ks2': 21, 'sigma2': 4, 'R': 20, 'r': 6, 'wc': 7, 'wR': 13, 'wr': 7}
+Took 60 seconds
+Current minimum error is: 0.6513626630550692
+Parameters are:
+{'ks1': 3, 'sigma1': 3, 'ks2': 17, 'sigma2': 13, 'R': 21, 'r': 5, 'wc': 9, 'wR': 3, 'wr': 15}
+Took 66 seconds
+Current minimum error is: 0.7176758199313329
+Parameters are:
+{'ks1': 13, 'sigma1': 11, 'ks2': 19, 'sigma2': 13, 'R': 20, 'r': 2, 'wc': 11, 'wR': 11, 'wr': 15}
+Took 82 seconds
+Current minimum error is: 0.6367220699588003
+Parameters are:
+{'ks1': 11, 'sigma1': 6, 'ks2': 17, 'sigma2': 7, 'R': 23, 'r': 10, 'wc': 13, 'wR': 13, 'wr': 9}
+Took 71 seconds
+Current minimum error is: 0.6605830942855404
+Parameters are:
+{'ks1': 19, 'sigma1': 4, 'ks2': 11, 'sigma2': 8, 'R': 14, 'r': 10, 'wc': 13, 'wR': 13, 'wr': 9}
+Took 58 seconds
+Current minimum error is: 0.5710060457639186
+Parameters are:
+{'ks1': 21, 'sigma1': 12, 'ks2': 17, 'sigma2': 14, 'R': 27, 'r': 5, 'wc': 5, 'wR': 11, 'wr': 5}
+Took 63 seconds
+Current minimum error is: 0.5356561792747772
+Parameters are:
+{'ks1': 25, 'sigma1': 12, 'ks2': 19, 'sigma2': 2, 'R': 24, 'r': 3, 'wc': 9, 'wR': 9, 'wr': 13}
+Took 60 seconds
+Current minimum error is: 0.6693129945068672
+Parameters are:
+{'ks1': 19, 'sigma1': 19, 'ks2': 5, 'sigma2': 2, 'R': 13, 'r': 9, 'wc': 15, 'wR': 13, 'wr': 3}
+Took 73 seconds
+Current minimum error is: 0.5770430595326819
+Parameters are:
+{'ks1': 9, 'sigma1': 9, 'ks2': 7, 'sigma2': 4, 'R': 25, 'r': 7, 'wc': 9, 'wR': 9, 'wr': 9}
+Took 57 seconds
+Current minimum error is: 0.5713877274325607
+Parameters are:
+{'ks1': 13, 'sigma1': 3, 'ks2': 17, 'sigma2': 2, 'R': 19, 'r': 9, 'wc': 13, 'wR': 9, 'wr': 7}
+Took 59 seconds
+Current minimum error is: 0.5389053423448363
+Parameters are:
+{'ks1': 7, 'sigma1': 5, 'ks2': 15, 'sigma2': 9, 'R': 23, 'r': 6, 'wc': 5, 'wR': 13, 'wr': 9}
+Took 65 seconds
+Current minimum error is: 0.5801151603987071
+Parameters are:
+{'ks1': 19, 'sigma1': 19, 'ks2': 11, 'sigma2': 7, 'R': 23, 'r': 8, 'wc': 9, 'wR': 11, 'wr': 3}
+Took 64 seconds
+Current minimum error is: 0.5703960368166299
+Parameters are:
+{'ks1': 7, 'sigma1': 3, 'ks2': 5, 'sigma2': 2, 'R': 19, 'r': 8, 'wc': 15, 'wR': 13, 'wr': 15}
+Took 69 seconds
+Current minimum error is: 0.6468582454679895
+Parameters are:
+{'ks1': 23, 'sigma1': 9, 'ks2': 25, 'sigma2': 17, 'R': 17, 'r': 9, 'wc': 15, 'wR': 3, 'wr': 5}
+Took 72 seconds
+Current minimum error is: 0.6749787768717833
+Parameters are:
+{'ks1': 7, 'sigma1': 7, 'ks2': 5, 'sigma2': 3, 'R': 14, 'r': 9, 'wc': 9, 'wR': 15, 'wr': 3}
+Took 63 seconds
+Current minimum error is: 0.6837268440692122
+Parameters are:
+{'ks1': 17, 'sigma1': 8, 'ks2': 9, 'sigma2': 1, 'R': 19, 'r': 15, 'wc': 9, 'wR': 13, 'wr': 13}
+Took 63 seconds
+Current minimum error is: 0.6448075965630362
+Parameters are:
+{'ks1': 17, 'sigma1': 16, 'ks2': 23, 'sigma2': 22, 'R': 7, 'r': 3, 'wc': 3, 'wR': 11, 'wr': 7}
+Took 69 seconds
+Current minimum error is: 0.6650998030221175
+Parameters are:
+{'ks1': 21, 'sigma1': 13, 'ks2': 9, 'sigma2': 4, 'R': 25, 'r': 10, 'wc': 7, 'wR': 7, 'wr': 3}
+Took 63 seconds
+Current minimum error is: 0.6473833467760277
+Parameters are:
+{'ks1': 3, 'sigma1': 2, 'ks2': 5, 'sigma2': 5, 'R': 25, 'r': 4, 'wc': 7, 'wR': 11, 'wr': 7}
+Took 59 seconds
+Current minimum error is: 0.6834825094814346
+Parameters are:
+{'ks1': 23, 'sigma1': 16, 'ks2': 13, 'sigma2': 8, 'R': 15, 'r': 14, 'wc': 7, 'wR': 7, 'wr': 9}
+Took 70 seconds
+Current minimum error is: 0.6160569505994667
+Parameters are:
+{'ks1': 23, 'sigma1': 2, 'ks2': 9, 'sigma2': 1, 'R': 21, 'r': 10, 'wc': 11, 'wR': 15, 'wr': 7}
+Took 67 seconds
+Current minimum error is: 0.7228893770995038
+Parameters are:
+{'ks1': 21, 'sigma1': 18, 'ks2': 9, 'sigma2': 8, 'R': 9, 'r': 1, 'wc': 11, 'wR': 15, 'wr': 15}
+Took 62 seconds
+Current minimum error is: 0.6319871670308764
+Parameters are:
+{'ks1': 13, 'sigma1': 9, 'ks2': 11, 'sigma2': 7, 'R': 15, 'r': 14, 'wc': 9, 'wR': 15, 'wr': 15}
+Took 61 seconds
+Current minimum error is: 0.5310289670662625
+Parameters are:
+{'ks1': 13, 'sigma1': 9, 'ks2': 7, 'sigma2': 4, 'R': 21, 'r': 9, 'wc': 15, 'wR': 13, 'wr': 11}
+Took 63 seconds
+Current minimum error is: 0.6524688346494091
+Parameters are:
+{'ks1': 21, 'sigma1': 13, 'ks2': 23, 'sigma2': 22, 'R': 18, 'r': 8, 'wc': 7, 'wR': 3, 'wr': 11}
+Took 67 seconds
+Current minimum error is: 0.6379506567149252
+Parameters are:
+{'ks1': 5, 'sigma1': 3, 'ks2': 15, 'sigma2': 6, 'R': 20, 'r': 11, 'wc': 11, 'wR': 9, 'wr': 11}
+Took 72 seconds
+Current minimum error is: 0.6381694693237958
+Parameters are:
+{'ks1': 11, 'sigma1': 7, 'ks2': 25, 'sigma2': 17, 'R': 19, 'r': 10, 'wc': 13, 'wR': 11, 'wr': 7}
+Took 72 seconds
+Current minimum error is: 0.562691607707737
+Parameters are:
+{'ks1': 19, 'sigma1': 3, 'ks2': 5, 'sigma2': 4, 'R': 27, 'r': 8, 'wc': 11, 'wR': 11, 'wr': 3}
+Took 72 seconds
+Current minimum error is: 0.6692362272884915
+Parameters are:
+{'ks1': 23, 'sigma1': 21, 'ks2': 11, 'sigma2': 7, 'R': 19, 'r': 8, 'wc': 7, 'wR': 9, 'wr': 15}
+Took 76 seconds
+Current minimum error is: 0.7042825978070161
+Parameters are:
+{'ks1': 17, 'sigma1': 12, 'ks2': 17, 'sigma2': 14, 'R': 15, 'r': 9, 'wc': 15, 'wR': 5, 'wr': 7}
+Took 49 seconds
+Current minimum error is: 0.6294651888909073
+Parameters are:
+{'ks1': 21, 'sigma1': 14, 'ks2': 9, 'sigma2': 9, 'R': 23, 'r': 5, 'wc': 13, 'wR': 3, 'wr': 7}
+Took 66 seconds
+Current minimum error is: 0.5434763199139971
+Parameters are:
+{'ks1': 15, 'sigma1': 13, 'ks2': 5, 'sigma2': 4, 'R': 21, 'r': 7, 'wc': 5, 'wR': 11, 'wr': 3}
+Took 65 seconds
+Current minimum error is: 0.591435877788898
+Parameters are:
+{'ks1': 21, 'sigma1': 14, 'ks2': 21, 'sigma2': 14, 'R': 25, 'r': 9, 'wc': 3, 'wR': 13, 'wr': 7}
+Took 59 seconds
+Current minimum error is: 0.5685395134365833
+Parameters are:
+{'ks1': 9, 'sigma1': 7, 'ks2': 13, 'sigma2': 2, 'R': 17, 'r': 15, 'wc': 15, 'wR': 15, 'wr': 15}
+Took 72 seconds
+Current minimum error is: 0.6375345256425272
+Parameters are:
+{'ks1': 23, 'sigma1': 1, 'ks2': 23, 'sigma2': 23, 'R': 23, 'r': 4, 'wc': 15, 'wR': 5, 'wr': 15}
+Took 67 seconds
+Current minimum error is: 0.6246176222901205
+Parameters are:
+{'ks1': 19, 'sigma1': 14, 'ks2': 5, 'sigma2': 5, 'R': 17, 'r': 12, 'wc': 11, 'wR': 9, 'wr': 9}
+Took 62 seconds
+Current minimum error is: 0.663425425697397
+Parameters are:
+{'ks1': 25, 'sigma1': 9, 'ks2': 9, 'sigma2': 8, 'R': 21, 'r': 16, 'wc': 15, 'wR': 7, 'wr': 9}
+Took 66 seconds
+Current minimum error is: 0.6014608149360434
+Parameters are:
+{'ks1': 19, 'sigma1': 3, 'ks2': 17, 'sigma2': 4, 'R': 20, 'r': 11, 'wc': 7, 'wR': 13, 'wr': 3}
+Took 59 seconds
+Current minimum error is: 0.71048213956178
+Parameters are:
+{'ks1': 5, 'sigma1': 4, 'ks2': 13, 'sigma2': 10, 'R': 27, 'r': 23, 'wc': 3, 'wR': 11, 'wr': 15}
+Took 63 seconds
+Current minimum error is: 0.7248990969261999
+Parameters are:
+{'ks1': 7, 'sigma1': 5, 'ks2': 17, 'sigma2': 16, 'R': 15, 'r': 3, 'wc': 3, 'wR': 9, 'wr': 13}
+Took 59 seconds
+Current minimum error is: 0.6051653195763771
+Parameters are:
+{'ks1': 19, 'sigma1': 1, 'ks2': 13, 'sigma2': 7, 'R': 21, 'r': 11, 'wc': 7, 'wR': 15, 'wr': 13}
+Took 62 seconds
+Current minimum error is: 0.6531961210939881
+Parameters are:
+{'ks1': 19, 'sigma1': 8, 'ks2': 7, 'sigma2': 7, 'R': 16, 'r': 9, 'wc': 13, 'wR': 11, 'wr': 7}
+Took 64 seconds
+Current minimum error is: 0.5680518681954919
+Parameters are:
+{'ks1': 21, 'sigma1': 7, 'ks2': 25, 'sigma2': 10, 'R': 25, 'r': 6, 'wc': 7, 'wR': 5, 'wr': 7}
+Took 72 seconds
+Current minimum error is: 0.6835749011816944
+Parameters are:
+{'ks1': 25, 'sigma1': 14, 'ks2': 19, 'sigma2': 2, 'R': 20, 'r': 7, 'wc': 11, 'wR': 15, 'wr': 15}
+Took 66 seconds
+Current minimum error is: 0.612591051061521
+Parameters are:
+{'ks1': 5, 'sigma1': 3, 'ks2': 11, 'sigma2': 10, 'R': 16, 'r': 9, 'wc': 7, 'wR': 15, 'wr': 9}
+Took 60 seconds
+Current minimum error is: 0.6614570838150937
+Parameters are:
+{'ks1': 11, 'sigma1': 10, 'ks2': 13, 'sigma2': 3, 'R': 20, 'r': 6, 'wc': 11, 'wR': 3, 'wr': 15}
+Took 59 seconds
+Current minimum error is: 0.5884121224645907
+Parameters are:
+{'ks1': 19, 'sigma1': 1, 'ks2': 23, 'sigma2': 10, 'R': 27, 'r': 5, 'wc': 7, 'wR': 11, 'wr': 13}
+Took 60 seconds
+Current minimum error is: 0.6446469716608739
+Parameters are:
+{'ks1': 11, 'sigma1': 3, 'ks2': 17, 'sigma2': 7, 'R': 18, 'r': 6, 'wc': 9, 'wR': 7, 'wr': 11}
+Took 62 seconds
+Current minimum error is: 0.6634547569195742
+Parameters are:
+{'ks1': 13, 'sigma1': 13, 'ks2': 25, 'sigma2': 22, 'R': 14, 'r': 10, 'wc': 15, 'wR': 13, 'wr': 5}
+Took 58 seconds
+Current minimum error is: 0.6753020355359763
+Parameters are:
+{'ks1': 21, 'sigma1': 20, 'ks2': 19, 'sigma2': 14, 'R': 20, 'r': 15, 'wc': 5, 'wR': 15, 'wr': 15}
+Took 62 seconds
+Current minimum error is: 0.6291983606370359
+Parameters are:
+{'ks1': 13, 'sigma1': 3, 'ks2': 21, 'sigma2': 12, 'R': 24, 'r': 4, 'wc': 15, 'wR': 5, 'wr': 9}
+Took 69 seconds
+Current minimum error is: 0.6156103788450847
+Parameters are:
+{'ks1': 19, 'sigma1': 15, 'ks2': 23, 'sigma2': 4, 'R': 18, 'r': 12, 'wc': 13, 'wR': 9, 'wr': 7}
+Took 60 seconds
+Current minimum error is: 0.5682957368068071
+Parameters are:
+{'ks1': 7, 'sigma1': 5, 'ks2': 17, 'sigma2': 1, 'R': 19, 'r': 7, 'wc': 13, 'wR': 11, 'wr': 13}
+Took 66 seconds
+Current minimum error is: 0.5823279698240312
+Parameters are:
+{'ks1': 21, 'sigma1': 19, 'ks2': 25, 'sigma2': 18, 'R': 19, 'r': 11, 'wc': 7, 'wR': 15, 'wr': 3}
+Took 65 seconds
+Current minimum error is: 0.6550720460734705
+Parameters are:
+{'ks1': 19, 'sigma1': 2, 'ks2': 19, 'sigma2': 13, 'R': 22, 'r': 2, 'wc': 9, 'wR': 9, 'wr': 7}
+Took 52 seconds
+Current minimum error is: 0.6111358294863963
+Parameters are:
+{'ks1': 23, 'sigma1': 5, 'ks2': 15, 'sigma2': 12, 'R': 23, 'r': 7, 'wc': 11, 'wR': 9, 'wr': 11}
+Took 57 seconds
+Current minimum error is: 0.6750583225524679
+Parameters are:
+{'ks1': 23, 'sigma1': 6, 'ks2': 21, 'sigma2': 6, 'R': 16, 'r': 9, 'wc': 7, 'wR': 3, 'wr': 11}
+Took 72 seconds
+Current minimum error is: 0.5944091923595204
+Parameters are:
+{'ks1': 13, 'sigma1': 5, 'ks2': 13, 'sigma2': 7, 'R': 25, 'r': 9, 'wc': 11, 'wR': 13, 'wr': 9}
+Took 55 seconds
+Current minimum error is: 0.5683027274185571
+Parameters are:
+{'ks1': 9, 'sigma1': 5, 'ks2': 5, 'sigma2': 2, 'R': 18, 'r': 9, 'wc': 5, 'wR': 13, 'wr': 5}
+Took 55 seconds
+Current minimum error is: 0.7666232394997219
+Parameters are:
+{'ks1': 9, 'sigma1': 4, 'ks2': 5, 'sigma2': 1, 'R': 27, 'r': 18, 'wc': 13, 'wR': 3, 'wr': 15}
+Took 48 seconds
+Minimum error is : 0.5282088973272382
+Parameters are:
+{'ks1': 25, 'sigma1': 12, 'ks2': 9, 'sigma2': 7, 'R': 27, 'r': 7, 'wc': 13, 'wR': 3, 'wr': 3}
