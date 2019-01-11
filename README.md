@@ -24,15 +24,15 @@ To avoid memory issues, the software runs on 64-bit systems only.
 Currently available features:
 * Visualize 3D image datasets (.png, .tiff, .bmp) using 3D rendering and three orthogonal planes
 * Load Mask on top of visualized dataset (mask should be registered with the dataset)
-* Automatically estimate surface grade from center of the sample
-* Automatic segmentation of bone-cartilage -interface using CNTK
-* 3D volume-of-interest selection
+* Surface artefact cropping tool for coronal and sagittal plane
+* Automatic sample alignment
+* Automatic segmentation of bone-cartilage -interface using CNTK (Microsoft Cognitive Toolkit)
 * Automatic bone (calcified tissues) and articular cartilage segmentation
-* Automatic segmentation of different analysis zones (surface cartilage, deep cartilage and calcified tissue)
+* Automatic extraction of different volumes-of-interest (surface cartilage, deep cartilage and calcified tissue)
 * Automatic grading from different osteochondral zones
 
 ## Outputs
-* OA grade from analysed sample
+* OA grade from analysed sample volumes-of-interest (prediction of sample degeneration)
 * Extracted analysis volumes can be saved as separate datasets
 * Automatically segmented calcified tissue mask can be saved
 
