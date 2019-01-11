@@ -1,4 +1,5 @@
 # 3D-Histo-Grading
+
 ## About
 Software for 3D grading osteochondral tissue samples. We currently support only Windows.
 
@@ -25,16 +26,15 @@ Currently available features:
 * Load Mask on top of visualized dataset (mask should be registered with the dataset)
 * Automatically estimate surface grade from center of the sample
 * Automatic segmentation of bone-cartilage -interface using CNTK
-
-Features that are on development:
 * 3D volume-of-interest selection
-* Automatic bone and cartilage segmentation
-  * False positive suppression
-* Automatic segmentation of cartilage into different zones
+* Automatic bone (calcified tissues) and articular cartilage segmentation
+* Automatic segmentation of different analysis zones (surface cartilage, deep cartilage and calcified tissue)
 * Automatic grading from different osteochondral zones
 
 ## Outputs
-OA grade from analysed sample.
+* OA grade from analysed sample
+* Extracted analysis volumes can be saved as separate datasets
+* Automatically segmented calcified tissue mask can be saved
 
 ## Examples
 Example images from 3D rendering and 2D viewing osteochondral sample.
@@ -72,7 +72,7 @@ This software is distributed under the MIT License.
 ```
 @misc{3DGrading2018,
   author = {Frondelius, Tuomas and Rytky, Santeri and Tiulpin, Aleksei and Saarakkala Simo},
-  title = {Local Binary Pattern},
+  title = {3D Histological grading},
   year = {2018},
   publisher = {GitHub},
   journal = {GitHub repository},
