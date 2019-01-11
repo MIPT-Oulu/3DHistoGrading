@@ -552,6 +552,13 @@ namespace HistoGrading.Components
             return cropper.GetOutput();
         }
 
+        /// <summary>
+        /// Calculates average columns from 3D volume. Obsolete.
+        /// </summary>
+        /// <param name="averages"></param>
+        /// <param name="steps"></param>
+        /// <param name="input"></param>
+        /// <param name="n_tiles"></param>
         public static void average_tiles(out double[,,] averages, out int[] steps, vtkImageData input, int n_tiles = 16)
         {
             //Get dimensions
@@ -608,6 +615,13 @@ namespace HistoGrading.Components
             averages = _averages;
         }
 
+        /// <summary>
+        /// Otsu thresholding in 3D.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="axis"></param>
+        /// <param name="threshold"></param>
+        /// <returns></returns>
         public static vtkImageData otsu3D(vtkImageData input,int axis = 0, double threshold = 60.0)
         {
             //Get dimensions
@@ -745,6 +759,15 @@ namespace HistoGrading.Components
             stdImage = std;
         }
 
+        /// <summary>
+        /// Calculates mean and standard deviation images from volume-of-interest. Obsolete.
+        /// </summary>
+        /// <param name="output"></param>
+        /// <param name="mu"></param>
+        /// <param name="std"></param>
+        /// <param name="input"></param>
+        /// <param name="depth"></param>
+        /// <param name="threshold"></param>
         public static void get_voi_mu_std(out vtkImageData output, out double[,] mu, out double[,] std, vtkImageData input, int depth, double threshold = 70.0)
         {
             //Get data extent
@@ -753,41 +776,12 @@ namespace HistoGrading.Components
             int w = dims[3] - dims[2] + 1;
             int d = dims[5] - dims[4] + 1;
 
-            //Copute strides
+            //Compute strides
             int stridew = 1;
             int strideh = w;
             int strided = h * w;
 
             byte[] bytedata = DataTypes.vtkToByte(input);
-
-            /*
-            //Create top and bottom images
-            byte[] bottom = new byte[h*w];
-            byte[] top = new byte[h*w];
-
-            for(int k = 0; k < h*w; k++)
-            {
-                int pos1 = k;
-                int pos2 = (d-1) * (h * w) + k;
-
-                bottom[k] = bytedata[pos1];
-                top[k] = bytedata[pos2];
-            }
-
-            Mat im1 = new Mat(h, w, MatType.CV_8UC1, bottom);
-            Mat im2 = new Mat(h, w, MatType.CV_8UC1, top);
-
-            using (var window = new Window("bottom", image: im1, flags: WindowMode.AutoSize))
-            {
-                Cv2.WaitKey();
-            }
-
-            using (var window = new Window("top", image: im2, flags: WindowMode.AutoSize))
-            {
-                Cv2.WaitKey();
-            }
-            */
-
             byte[] voidata = new byte[bytedata.Length];
 
             double[,] _mu = new double[h,w];
@@ -856,6 +850,13 @@ namespace HistoGrading.Components
             output.Update();            
         }
 
+        /// <summary>
+        /// Calculates sample orientation using principal component analysis.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="axis"></param>
+        /// <param name="use_radians"></param>
+        /// <returns></returns>
         static double find_ori_pca(double[][] data, int axis = 1, int use_radians = 1)
         {
             //Get first principal component            
@@ -886,6 +887,12 @@ namespace HistoGrading.Components
             return theta;
         }
 
+        /// <summary>
+        /// Calculates orientation of 2D slice. Obsolete.
+        /// </summary>
+        /// <param name="slice"></param>
+        /// <param name="threshold"></param>
+        /// <returns></returns>
         public static double find_slice_ori(vtkImageData slice, double threshold = 70.0)
         {
             //Get dimensions
@@ -934,6 +941,11 @@ namespace HistoGrading.Components
             return theta;
         }
         
+        /// <summary>
+        /// Calculates loss function for gradient descent.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static double circle_loss(vtkImageData input)
         {
             //Get dimensions
@@ -995,6 +1007,14 @@ namespace HistoGrading.Components
 
         }
         
+        /// <summary>
+        /// Method to calculate sample orientation using gradient descent.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="alpha"></param>
+        /// <param name="h"></param>
+        /// <param name="n_iter"></param>
+        /// <returns></returns>
         public static double[] grad_descent(vtkImageData data, double alpha = 0.5, double h = 5.0, int n_iter = 60)
         {
             //Starting orientation
@@ -1052,6 +1072,14 @@ namespace HistoGrading.Components
             return ori;
         }
 
+        /// <summary>
+        /// Method to calculate mean and standard deviation images from 3D volume-of-interest along depth-axis.
+        /// </summary>
+        /// <param name="mean">Resulting mean image.</param>
+        /// <param name="sd">Resulting standard deviation image.</param>
+        /// <param name="VOI">Input volume-of-interest.</param>
+        /// <param name="voi_depth"></param>
+        /// <param name="crop_size"></param>
         public static void get_mean_sd(out double[,] mean, out double[,] sd, vtkImageData VOI, int voi_depth = 0, int crop_size = 0)
         {
             //Get input extent
@@ -1133,19 +1161,6 @@ namespace HistoGrading.Components
             //Return mu and sd
             mean = mu;
             sd = sigma;
-
-            //Mat meanmat = new Mat(h - crop_size * 2, w - crop_size * 2, MatType.CV_8UC1, muim);
-            //Mat sdmat = new Mat(h - crop_size * 2, w - crop_size * 2, MatType.CV_8UC1, sdim);
-
-            //using (Window win = new Window("Mean", WindowMode.AutoSize, meanmat))
-            //{
-            //    Cv2.WaitKey();
-            //}
-
-            //using (Window win = new Window("SD", WindowMode.AutoSize, sdmat))
-            //{
-            //    Cv2.WaitKey();
-            //}
         }
     }
 }

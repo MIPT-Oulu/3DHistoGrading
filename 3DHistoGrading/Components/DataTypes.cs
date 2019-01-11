@@ -26,6 +26,7 @@ namespace HistoGrading.Components
         /// Converts 3D byte array to vtkImageData.
         /// </summary>
         /// <param name="data">Input array.</param>
+        /// <param name="orientation">Data orientation as a list of axes (0-2)</param>
         /// <returns>Converted array.</returns>
         public static vtkImageData byteToVTK(byte[,,] data, int[] orientation = null)
         {
@@ -71,6 +72,7 @@ namespace HistoGrading.Components
         /// Converts 3D byte array to vtkImageData.
         /// </summary>
         /// <param name="data">Input array.</param>
+        /// <param name="dims">Input array dimensions. Give the begin and end extent for each dimension.</param>
         /// <returns>Converted array.</returns>
         public static vtkImageData byteToVTK1D(byte[] data, int[] dims)
         {
@@ -104,7 +106,6 @@ namespace HistoGrading.Components
         /// Converts 3D vtkImageData to 1D byte array.
         /// </summary>
         /// <param name="vtkdata">Input data.</param>
-        /// <param name="dims">Dimensions of the converted array. Give these as input to <seealso cref="VectorToVolume{T}(T[], int[])"/> function to convert from 1D to 3D.</param>
         /// <returns>Converted 1D array of vtkImageData.</returns>
         public static byte[] vtkToByte(vtkImageData vtkdata)
         {
@@ -242,7 +243,7 @@ namespace HistoGrading.Components
                 }
             });
             bytedata = null;
-            //return float data
+
             return floatdata;
         }
 
@@ -281,13 +282,7 @@ namespace HistoGrading.Components
             {
                 //List to array
                 float[] tmp = item.ToArray();
-                /*
-                Mat image = new Mat((extent[3] - extent[2] + 1), (extent[5] - extent[4] + 1), MatType.CV_32FC1, tmp);
-                using(Window win = new Window("Inference",WindowMode.AutoSize, image: image))
-                {
-                    Cv2.WaitKey();
-                }
-                */
+
                 //Iterate over the array in parallel
                 Parallel.For(extent[2], extent[3], (int h) =>
                 {
@@ -312,14 +307,6 @@ namespace HistoGrading.Components
         /// <returns>Bitmap</returns>
         public static Bitmap DoubleToBitmap(double[,] array)
         {
-            /*
-            // Scale
-            array = LBPLibrary.Functions.Normalize(array).Multiply(255);
-            // To byte
-            byte[,] bytearray = array.Round().ToByte(); // Round and convert to byte
-            // To Bitmap
-            return new Bitmap(LBPLibrary.Functions.ByteMatrixToBitmap(bytearray));
-             */          
             double min = 1e9; double max = -1e9;
             for (int kx = 0; kx < array.GetLength(1); kx++)
             {
@@ -345,16 +332,12 @@ namespace HistoGrading.Components
             return new Bitmap(LBPLibrary.Functions.ByteMatrixToBitmap(valim));
         }
 
+        /// <summary>
+        /// Function to display double arrays.
+        /// </summary>
+        /// <param name="array">Input array</param>
         public static void showDouble(double[,] array)
         {
-            /*
-            // Scale
-            array = LBPLibrary.Functions.Normalize(array).Multiply(255);
-            // To byte
-            byte[,] bytearray = array.Round().ToByte(); // Round and convert to byte
-            // To Bitmap
-            return new Bitmap(LBPLibrary.Functions.ByteMatrixToBitmap(bytearray));
-             */
             double min = 1e9; double max = -1e9;
 
             TestDelegate t = (ref double val) => {
@@ -395,22 +378,13 @@ namespace HistoGrading.Components
         /// Converts OpenCV Mat into a slice of of 3D byte array. Slice is set to extent at idx.
         /// </summary>
         /// <param name="array">Output array</param>
-        /// <param name="size">Output array size</param>
+        /// <param name="scale">Factor for scaling output array values</param>
         /// <param name="slice">OpenCV Mat</param>
         /// <param name="extent">Extent to be updated</param>
         /// <param name="axis">Axis for the index</param>
         /// <param name="idx">Slice index</param>
         public static byte[,,] setByteSlice(byte[,,] array, Mat slice, int[] extent, int axis, int idx, double scale = 1.0)
         {
-            /*
-            if( idx > 500)
-            {
-                using (var window = new Window("window", image: slice, flags: WindowMode.AutoSize))
-                {
-                    Cv2.WaitKey();
-                }
-            }
-            */
             
             Parallel.For(extent[2], extent[3] - 1, (int ky) =>
             {

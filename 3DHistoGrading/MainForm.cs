@@ -16,6 +16,9 @@ using HistoGrading.Models;
 
 namespace HistoGrading
 {
+    /// <summary>
+    /// Windows forms object that includes the main graphical user interface of the software. Includes callbacks for each interactor on the form.
+    /// </summary>
     public partial class MainForm : Form
     {
         //Settings and Initialization
@@ -48,8 +51,8 @@ namespace HistoGrading
         private vtkRenderWindow renWin;
 
         //Mouse interactor
-        bool mouseDown1 = false;
-        bool mouseDown2 = false;
+        //bool mouseDown1 = false;
+        //bool mouseDown2 = false;
 
         // Sample name
         string fname = null;
@@ -728,14 +731,16 @@ namespace HistoGrading
         // Predict OA grade
         private void predict_Click(object sender, EventArgs e)
         {
+            // Initialize
             label4.Text = "Calculating: ";
             mainProgress.Value = 10;
             string[] models = new string[] { ".\\Default\\calc_weights.dat", ".\\Default\\deep_weights.dat", ".\\Default\\surf_weights.dat" };
             string[] parameters = new string[] { ".\\Default\\calc_parameters.csv", ".\\Default\\deep_parameters.csv", ".\\Default\\surf_parameters.csv" };
+
+            // Pipeline for grading
             string grade = volume.grade_vois(models, parameters, fname);
-            /*
-            string grade = Grading.PredictSurface(ref volume, fname, out int[,] surfaceCoordinates);
-            */
+
+            // Output result
             gradeLabel.Text = grade;
             mainProgress.Value = 100;
             label4.Text = "Done";

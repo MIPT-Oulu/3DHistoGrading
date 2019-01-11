@@ -48,10 +48,14 @@ namespace HistoGrading.Components
             private List<vtkColorTransferFunction> maskctfs = new List<vtkColorTransferFunction>();
             private List<vtkPiecewiseFunction> maskspwfs = new List<vtkPiecewiseFunction>();            
 
-            //Renderer
+            /// <summary>
+            /// Renderer object.
+            /// </summary>
             public vtkRenderer renderer = vtkRenderer.New();
 
-            //Method for initializing components
+            /// <summary>
+            /// Method for initializing components
+            /// </summary>
             public void Initialize()
             {                
                 //Initialize new volume components
@@ -68,7 +72,10 @@ namespace HistoGrading.Components
 
             }
 
-            //Method for initializing mask components
+            /// <summary>
+            /// Method for initializing mask components
+            /// </summary>
+            /// <param name="N"></param>
             public void InitializeMasks(int N)
             {
                 maskvols = new List<vtkVolume>();
@@ -88,7 +95,9 @@ namespace HistoGrading.Components
                 }                
             }
 
-            //Method for disposing mask components, useful for memory management
+            /// <summary>
+            /// Method for disposing mask components, useful for memory management
+            /// </summary>
             public void DisposeMasks()
             {
                 //Dispose mask components
@@ -103,7 +112,11 @@ namespace HistoGrading.Components
                 }                    
             }
 
-            //Method for updating volume color
+            /// <summary>
+            /// Method for updating volume color.
+            /// </summary>
+            /// <param name="cmin"></param>
+            /// <param name="cmax"></param>
             public void setColor(int cmin, int cmax)
             {
                 /*Takes gray value range as input arguments*/
@@ -123,6 +136,8 @@ namespace HistoGrading.Components
             /// </summary>
             /// <param name="input">Volume data input.</param>
             /// <param name="inputRenderer">Renderer object.</param>
+            /// <param name="cmin">Grayscale minimum.</param>
+            /// <param name="cmax">Grayscale maximum.</param>
             public void connectComponents(vtkImageData input, vtkRenderer inputRenderer, int cmin, int cmax)
             {
                 /*Arguments: volumetric data and renderer*/
@@ -162,7 +177,10 @@ namespace HistoGrading.Components
             /// <summary>
             /// Method for connecting mask components.
             /// </summary>
-            /// <param name="mask"></param>
+            /// <param name="masks"></param>
+            /// <param name="colors"></param>
+            /// <param name="cmin"></param>
+            /// <param name="cmax"></param>
             public void connectMask(List<vtkImageData> masks, List<double[]> colors, int cmin, int cmax)
             {
                 DisposeMasks();
@@ -196,7 +214,9 @@ namespace HistoGrading.Components
                 }
             }
 
-            //Method s for disposing the object
+            /// <summary>
+            /// Methods for disposing the object
+            /// </summary>
             public void Dispose()
             {
                 DisposeMasks();
@@ -211,10 +231,17 @@ namespace HistoGrading.Components
                 Dispose(true);
                 GC.SuppressFinalize(this);
             }
+            /// <summary>
+            /// Dispose boolean.
+            /// </summary>
+            /// <param name="disposing"></param>
             protected virtual void Dispose(bool disposing)
             {
                 Disposed = true;
             }
+            /// <summary>
+            /// Dispose boolean.
+            /// </summary>
             protected bool Disposed { get; private set; }
         }
 
@@ -320,8 +347,10 @@ namespace HistoGrading.Components
             /// Method for setting mask color table.
             /// Creates lookup table for grayvalues.
             /// </summary>
+            /// <param name="idx"></param>
             /// <param name="cmin">Lower limit for color table.</param>
             /// <param name="cmax">Upper limit for color table.</param>
+            /// <param name="color"></param>
             public void setMaskGrayLevel(int idx, int cmin, int cmax, double[] color)
             {
                 //Set lookup table range
@@ -353,7 +382,13 @@ namespace HistoGrading.Components
 
             }
 
-            //Method for connecting image components
+            /// <summary>
+            /// Method for connecting image components
+            /// </summary>
+            /// <param name="I"></param>
+            /// <param name="inputRenderer"></param>
+            /// <param name="cmin"></param>
+            /// <param name="cmax"></param>
             public void connectComponents(vtkImageData I, vtkRenderer inputRenderer, int cmin, int cmax)
             {
                 /*Arguments: input image, renderer, color range*/
@@ -374,7 +409,10 @@ namespace HistoGrading.Components
             /// <summary>
             /// Method for connecting mask components
             /// </summary>
-            /// <param name="mask">Mask image data.</param>
+            /// <param name="masks">Mask image data.</param>
+            /// <param name="colors"></param>
+            /// <param name="cmin"></param>
+            /// <param name="cmax"></param>
             public void connectMask(List<vtkImageData> masks, List<double[]> colors, int cmin, int cmax)
             {
                 for (int k = 0; k < masks.Count(); k++)
@@ -392,7 +430,9 @@ namespace HistoGrading.Components
                 }
             }
 
-            //Method s for disposing the object
+            /// <summary>
+            /// Methods for disposing the object
+            /// </summary>
             public void Dispose()
             {
                 DisposeMasks();
@@ -406,10 +446,17 @@ namespace HistoGrading.Components
                 Dispose(true);
                 GC.SuppressFinalize(this);
             }
+            /// <summary>
+            /// Dispose boolean.
+            /// </summary>
+            /// <param name="disposing"></param>
             protected virtual void Dispose(bool disposing)
             {
                 Disposed = true;
             }
+            /// <summary>
+            /// Dispose boolean.
+            /// </summary>
             protected bool Disposed { get; private set; }
         }
 
@@ -531,7 +578,8 @@ namespace HistoGrading.Components
             /// <summary>
             /// Connect bone mask from memory.
             /// </summary>
-            /// <param name="input_mask">Bone mask input to be connected.</param>
+            /// <param name="input_masks">Bone mask input to be connected.</param>
+            /// <param name="multiply">Selection to multiply mask and data.</param>
             public void connectMaskFromData(List<vtkImageData> input_masks, int multiply = 1)
             {
                 //Add masks
@@ -865,6 +913,10 @@ namespace HistoGrading.Components
                 return voi;
             }
 
+            /// <summary>
+            /// Method for automatic sample rotation. Displays angles on Mainform.
+            /// </summary>
+            /// <returns></returns>
             public string auto_rotate()
             {
                 vtkImageData tmp = vtkImageData.New();
@@ -879,6 +931,11 @@ namespace HistoGrading.Components
                 return angletext;
             }
 
+            /// <summary>
+            /// Method for cropping sample edges.
+            /// </summary>
+            /// <param name="size"></param>
+            /// <param name="get_center"></param>
             public void center_crop(int size = 400,bool get_center = false)
             {
                 vtkImageData tmp = vtkImageData.New();
@@ -905,6 +962,9 @@ namespace HistoGrading.Components
                 }
             }
 
+            /// <summary>
+            /// Pipeline for bone-cartilage interface segmentation.
+            /// </summary>
             public void segmentation()
             {
                 //Get sample dimensions
@@ -993,6 +1053,9 @@ namespace HistoGrading.Components
                 connectMaskFromData(tmpmask, 1);
             }
 
+            /// <summary>
+            /// Pipeline for extracting analysis volumes-of-interest.
+            /// </summary>
             public void analysis_vois()
             {
                 center_crop(400, true);
@@ -1004,6 +1067,10 @@ namespace HistoGrading.Components
                 connectMaskFromData(new List<vtkImageData> { ccartilage, dcartilage, scartilage}, 0);
             }
 
+            /// <summary>
+            /// Pipeline for surface artefact removal.
+            /// </summary>
+            /// <param name="rendermask"></param>
             public void remove_artefact(bool rendermask = false)
             {
 
@@ -1022,12 +1089,22 @@ namespace HistoGrading.Components
                 tmp.Dispose();
             }
 
+            /// <summary>
+            /// Saves sample data including processing steps.
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="path"></param>
             public void save_data(string name, string path)
             {
                 //Functions.saveVTKPNG(idata, path, name);
                 Functions.saveVTK(idata, path, name);
             }
 
+            /// <summary>
+            /// Saves calculated masks.
+            /// </summary>
+            /// <param name="names"></param>
+            /// <param name="path"></param>
             public void save_masks(string[] names, string path)
             {
                 for(int k = 0; k<names.Length; k++)
@@ -1037,6 +1114,13 @@ namespace HistoGrading.Components
                 }
             }
 
+            /// <summary>
+            /// Pipeline for calculating mean, standard deviation images and grading the VOI.
+            /// </summary>
+            /// <param name="models">Paths to grading models.</param>
+            /// <param name="parameters">Paths to LBP parameters.</param>
+            /// <param name="sample_name">Name of the sample.</param>
+            /// <returns>OA grade for calculated VOIs.</returns>
             public string grade_vois(string[] models, string[] parameters, string sample_name)
             {
                 string cc_grade = "", deep_grade = "", surf_grade = "";
@@ -1073,7 +1157,9 @@ namespace HistoGrading.Components
                 return "OA grades: " + surf_grade + deep_grade + cc_grade;
             }
 
-            //Disposing methods
+            /// <summary>
+            /// Disposing methods and garbage collection.
+            /// </summary>
             public void Dispose()
             {
                 if(has_volume == 1)
@@ -1095,13 +1181,23 @@ namespace HistoGrading.Components
                 Dispose(true);
                 GC.SuppressFinalize(this);
             }
+            /// <summary>
+            /// Dispose boolean.
+            /// </summary>
+            /// <param name="disposing"></param>
             protected virtual void Dispose(bool disposing)
             {
                 Disposed = true;
             }
+            /// <summary>
+            /// Dispose boolean.
+            /// </summary>
             protected bool Disposed { get; private set; }
         }
 
+        /// <summary>
+        /// Line that is used to select surface artefacts to be cropped.
+        /// </summary>
         public class vtkLine : IDisposable
         {
             private static vtkLineSource line;
@@ -1111,12 +1207,21 @@ namespace HistoGrading.Components
 
             private static int slice;
 
+            /// <summary>
+            /// Initialize object.
+            /// </summary>
+            /// <param name="window"></param>
+            /// <param name="N"></param>
             public vtkLine(vtkRenderWindow window, int N)
             {
                 renWin = window;                
                 slice = N;
             }
 
+            /// <summary>
+            /// Draw the line on connected render window.
+            /// </summary>
+            /// <param name="points"></param>
             public void draw(double[] points)
             {
                 //Create new line
@@ -1137,6 +1242,10 @@ namespace HistoGrading.Components
                 renWin.Render();
             }
 
+            /// <summary>
+            /// Update the line position.
+            /// </summary>
+            /// <param name="points"></param>
             public void update(double[] points)
             {
                 //Create new line                
@@ -1154,7 +1263,9 @@ namespace HistoGrading.Components
             }
 
 
-            //Disposing methods
+            /// <summary>
+            /// Disposing methods
+            /// </summary>
             public void Dispose()
             {                
                 actor.Dispose();
@@ -1164,11 +1275,18 @@ namespace HistoGrading.Components
                 Dispose(true);
                 GC.SuppressFinalize(this);
             }
+            /// <summary>
+            /// Dispose boolean.
+            /// </summary>
+            /// <param name="disposing"></param>
             protected virtual void Dispose(bool disposing)
             {
                 Disposed = true;
 
             }
+            /// <summary>
+            /// Dispose boolean.
+            /// </summary>
             protected bool Disposed { get; private set; }
         }
 

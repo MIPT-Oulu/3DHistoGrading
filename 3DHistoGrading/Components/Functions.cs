@@ -438,6 +438,17 @@ namespace HistoGrading.Components
             return croppedVolume;
         }
 
+        /// <summary>
+        /// Method to get bounding box rectangle from input image.
+        /// </summary>
+        /// <param name="min_x"></param>
+        /// <param name="max_x"></param>
+        /// <param name="min_y"></param>
+        /// <param name="max_y"></param>
+        /// <param name="input"></param>
+        /// <param name="threshold"></param>
+        /// <param name="max_val"></param>
+        /// <param name="ks"></param>
         public static void get_bbox(out int min_x, out int max_x, out int min_y, out int max_y, Mat input, double threshold = 70.0, double max_val = 255.0, int ks=25)
         {
             //Threshold input
@@ -493,6 +504,13 @@ namespace HistoGrading.Components
             }
         }
 
+        /// <summary>
+        /// Method to find center of mass from the sample. Used with edge cropping.
+        /// </summary>
+        /// <param name="slice"></param>
+        /// <param name="threshold"></param>
+        /// <param name="scale"></param>
+        /// <returns></returns>
         public static double get_sample_center(vtkImageData slice, double threshold = 70.0, double scale = 1.0)
         {
             //Get slice dimensions, x and y axes swapped in vtk
@@ -548,6 +566,13 @@ namespace HistoGrading.Components
             */
         }
 
+        /// <summary>
+        /// Orientation of sample using bounding boxes.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="step"></param>
+        /// <param name="radians"></param>
+        /// <returns></returns>
         public static double get_angle(int[] data, int step = 1, bool radians = false)
         {
             //Compute the mean of the points
@@ -590,6 +615,12 @@ namespace HistoGrading.Components
             
         }
 
+        /// <summary>
+        /// Calculates depth indexes for sample surface on each column.
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="threshold"></param>
+        /// <returns></returns>
         public static int[,] get_surface_index_from_tiles(double[,,] array, double threshold)
         {
             int h = array.GetLength(0);
@@ -617,6 +648,12 @@ namespace HistoGrading.Components
             return idx;
         }
 
+        /// <summary>
+        /// Calculate orientation angles from bounding box points.
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <param name="steps"></param>
+        /// <returns></returns>
         public static double[] get_tile_angles(int[,] idx, int[] steps)
         {
             //Surface coordinates to points                       
@@ -644,6 +681,12 @@ namespace HistoGrading.Components
             return new double[] { thetax, thetay};
         }
 
+        /// <summary>
+        /// Calculate average using VTK.
+        /// </summary>
+        /// <param name="input1"></param>
+        /// <param name="input2"></param>
+        /// <returns></returns>
         public static vtkImageData vtk_average(vtkImageData input1, vtkImageData input2)
         {
             //Average the input arrays
@@ -668,6 +711,14 @@ namespace HistoGrading.Components
             return math.GetOutput();
         }
 
+        /// <summary>
+        /// Pipeline for surface volume extraction. Obsolete.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="n_tiles"></param>
+        /// <param name="threshold"></param>
+        /// <param name="mult"></param>
+        /// <returns></returns>
         public static vtkImageData get_surface_voi(vtkImageData input, int n_tiles = 64, double threshold = 70.0, double mult = 0.05)
         {
             //Get data dimensions
@@ -734,6 +785,12 @@ namespace HistoGrading.Components
 
         }
 
+        /// <summary>
+        /// Get surface indices from input mask.
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <param name="threshold"></param>
+        /// <returns></returns>
         public static int[,] get_surface(vtkImageData mask, double threshold = 0.0)
         {
             //Get data dimensions
@@ -774,6 +831,14 @@ namespace HistoGrading.Components
             return indices;
         }
 
+        /// <summary>
+        /// Pipeline for deep cartilage volume-of-interest.
+        /// </summary>
+        /// <param name="sample"></param>
+        /// <param name="BCI"></param>
+        /// <param name="depth"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public static vtkImageData get_deep_ac(vtkImageData sample, int[,] BCI, int[,] depth, int offset = 10)
         {
             //vtk to byte
@@ -807,6 +872,13 @@ namespace HistoGrading.Components
 
         }
 
+        /// <summary>
+        /// Pipeline for calcified cartilage volume-of-interest.
+        /// </summary>
+        /// <param name="sample"></param>
+        /// <param name="BCI"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public static vtkImageData get_calcified_cartilage(vtkImageData sample, int[,] BCI, int offset = 10)
         {
             //vtk to byte
@@ -838,6 +910,13 @@ namespace HistoGrading.Components
             return DataTypes.byteToVTK1D(output,dims);
         }
 
+        /// <summary>
+        /// Pipeline for cartilage surface volume-of-interest. This is the currently used pipeline.
+        /// </summary>
+        /// <param name="sample"></param>
+        /// <param name="surface"></param>
+        /// <param name="depth"></param>
+        /// <returns></returns>
         public static vtkImageData get_cartilage_surface_tmp(vtkImageData sample, int[,] surface, int depth = 50)
         {
             //vtk to byte
@@ -867,6 +946,13 @@ namespace HistoGrading.Components
             return DataTypes.byteToVTK1D(output, dims);
         }
 
+        /// <summary>
+        /// Pipeline for cartilage surface volume-of-intetrest. Obsolete.
+        /// </summary>
+        /// <param name="sample"></param>
+        /// <param name="surface"></param>
+        /// <param name="depth"></param>
+        /// <returns></returns>
         public static vtkImageData get_cartilage_surface(vtkImageData sample, int[,] surface, int depth = 25)
         {
             //Get dims
@@ -970,6 +1056,17 @@ namespace HistoGrading.Components
             return tmpvtk;
         }
 
+        /// <summary>
+        /// Pipeline for extracting all three analysis volumes-of-interest.
+        /// </summary>
+        /// <param name="dcartilage"></param>
+        /// <param name="ccartilage"></param>
+        /// <param name="scartilage"></param>
+        /// <param name="input"></param>
+        /// <param name="BCImask"></param>
+        /// <param name="surf_depth"></param>
+        /// <param name="bone_depth"></param>
+        /// <param name="cartilage_depth"></param>
         public static void get_analysis_vois(out vtkImageData dcartilage, out vtkImageData ccartilage, out vtkImageData scartilage,
             vtkImageData input, vtkImageData BCImask, int surf_depth = 25, int bone_depth = 0, double cartilage_depth = 0.6)
         {
@@ -982,7 +1079,7 @@ namespace HistoGrading.Components
 
             //Get strides
             int strideh = w;
-            int stridew = 1;
+            //int stridew = 1;
             int strided = h * w;
 
             //Threshold input array for surface detection
@@ -1022,6 +1119,11 @@ namespace HistoGrading.Components
             scartilage = get_cartilage_surface_tmp(input,surface);
         }
 
+        /// <summary>
+        /// Calculates largest component on the image mask.
+        /// </summary>
+        /// <param name="bw"></param>
+        /// <returns></returns>
         public static Mat largest_connected_component(Mat bw)
         {
             int h = bw.Height; int w = bw.Width;
@@ -1062,6 +1164,13 @@ namespace HistoGrading.Components
 
         }
 
+        /// <summary>
+        /// Pipeline for automatic orientation of the sample.
+        /// </summary>
+        /// <param name="vtkdata"></param>
+        /// <param name="angles"></param>
+        /// <param name="ori_thresh"></param>
+        /// <returns></returns>
         public static vtkImageData auto_rotate(vtkImageData vtkdata, out double[] angles, double ori_thresh = 5)
         {
             //Get sample dimensions
@@ -1116,6 +1225,13 @@ namespace HistoGrading.Components
             return vtkdata;
         }
 
+        /// <summary>
+        /// Calculates dice score between two images. Used in automatic orientation with gradient descent.
+        /// </summary>
+        /// <param name="image1"></param>
+        /// <param name="image2"></param>
+        /// <param name="threshold"></param>
+        /// <returns></returns>
         public static double dice_score_2d(byte[] image1, byte[] image2, double threshold = 0.0)
         {
             //Data dimensions
@@ -1145,6 +1261,11 @@ namespace HistoGrading.Components
             return score;
         }
 
+        /// <summary>
+        /// Orients surface volume in perpendicular direction.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static vtkImageData rotate_surface_voi(vtkImageData input)
         {
             //Get dims
@@ -1202,16 +1323,25 @@ namespace HistoGrading.Components
     /// </summary>
     public class ParaLoader : IDisposable
     {
-        //Methods for disposing the object
+        /// <summary>
+        /// Methods for disposing the object.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+        /// <summary>
+        /// Disposing boolean.
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             Disposed = true;
         }
+        /// <summary>
+        /// Disposing boolean.
+        /// </summary>
         protected bool Disposed { get; private set; }
 
         //Declarations
@@ -1230,6 +1360,7 @@ namespace HistoGrading.Components
         /// Set input files
         /// </summary>
         /// <param name="file">File path.</param>
+        /// <param name="dims"></param>
         public void setInput(string file, int[] dims = null)
         {
             //Get files
