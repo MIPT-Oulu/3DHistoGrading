@@ -123,6 +123,7 @@
             this.saveButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.saveButton.Enabled = false;
             this.saveButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.saveButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.saveButton.Location = new System.Drawing.Point(15, 1012);
             this.saveButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.saveButton.Name = "saveButton";
@@ -137,6 +138,7 @@
             this.rotate_button.Cursor = System.Windows.Forms.Cursors.Hand;
             this.rotate_button.Enabled = false;
             this.rotate_button.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.rotate_button.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.rotate_button.Location = new System.Drawing.Point(15, 534);
             this.rotate_button.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.rotate_button.Name = "rotate_button";
@@ -151,6 +153,7 @@
             this.getVoiButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.getVoiButton.Enabled = false;
             this.getVoiButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.getVoiButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.getVoiButton.Location = new System.Drawing.Point(14, 757);
             this.getVoiButton.Name = "getVoiButton";
             this.getVoiButton.Size = new System.Drawing.Size(141, 65);
@@ -173,6 +176,7 @@
             this.cropButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.cropButton.Enabled = false;
             this.cropButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.cropButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.cropButton.Location = new System.Drawing.Point(14, 605);
             this.cropButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cropButton.Name = "cropButton";
@@ -187,6 +191,7 @@
             this.segmentButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.segmentButton.Enabled = false;
             this.segmentButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.segmentButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.segmentButton.Location = new System.Drawing.Point(15, 686);
             this.segmentButton.Name = "segmentButton";
             this.segmentButton.Size = new System.Drawing.Size(141, 65);
@@ -218,6 +223,7 @@
             this.predict.Cursor = System.Windows.Forms.Cursors.Hand;
             this.predict.Enabled = false;
             this.predict.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.predict.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.predict.Location = new System.Drawing.Point(14, 883);
             this.predict.Name = "predict";
             this.predict.Size = new System.Drawing.Size(141, 65);
@@ -231,6 +237,7 @@
             this.sagittalButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.sagittalButton.Enabled = false;
             this.sagittalButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.sagittalButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.sagittalButton.Location = new System.Drawing.Point(10, 418);
             this.sagittalButton.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.sagittalButton.Name = "sagittalButton";
@@ -245,6 +252,7 @@
             this.coronalButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.coronalButton.Enabled = false;
             this.coronalButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.coronalButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.coronalButton.Location = new System.Drawing.Point(10, 369);
             this.coronalButton.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.coronalButton.Name = "coronalButton";
@@ -259,6 +267,7 @@
             this.transverseButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.transverseButton.Enabled = false;
             this.transverseButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.transverseButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.transverseButton.Location = new System.Drawing.Point(10, 320);
             this.transverseButton.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.transverseButton.Name = "transverseButton";
@@ -273,6 +282,7 @@
             this.volumeButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.volumeButton.Enabled = false;
             this.volumeButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.volumeButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.volumeButton.Location = new System.Drawing.Point(10, 275);
             this.volumeButton.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.volumeButton.Name = "volumeButton";
@@ -287,6 +297,7 @@
             this.resetButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.resetButton.Enabled = false;
             this.resetButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.resetButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.resetButton.Location = new System.Drawing.Point(10, 195);
             this.resetButton.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.resetButton.Name = "resetButton";
@@ -346,6 +357,7 @@
             this.maskButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.maskButton.Enabled = false;
             this.maskButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.maskButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.maskButton.Location = new System.Drawing.Point(10, 85);
             this.maskButton.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.maskButton.Name = "maskButton";
@@ -359,7 +371,7 @@
             // 
             this.fileButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.fileButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.fileButton.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.fileButton.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.fileButton.Location = new System.Drawing.Point(10, 6);
             this.fileButton.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.fileButton.Name = "fileButton";
