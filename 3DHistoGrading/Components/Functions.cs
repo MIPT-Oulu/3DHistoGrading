@@ -365,14 +365,14 @@ namespace HistoGrading.Components
                 string dirname = path + "\\" + name;
                 if (kz == 0) { Directory.CreateDirectory(dirname); }
                 string fname = dirname + "\\" + name + "_" + String.Format("{0}",kz).PadLeft(6, '0') + "." + extension;
-                Console.WriteLine(dirname);
-                Console.WriteLine(fname);
+                
                 Image _image = image.ToBitmap();
                 image.Dispose();
                 _tmp = null;
                 _image.Save(fname,ImageFormat.Png);
                 _image.Dispose();                                
             }
+            Console.WriteLine("Saved results from sample {0} to path {1}", name, path);
         }
 
         /// <summary>

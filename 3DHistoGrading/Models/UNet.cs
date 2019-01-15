@@ -374,7 +374,6 @@ namespace HistoGrading.Models
         private static Parameter weight_fromFloat(Parameter weight, float[] array, int[] view)
         {
             //Generate weight array with correct dimensions
-            Console.WriteLine("{0} | {1}", array.Length, view.Length);
             NDArrayView nDArray = new NDArrayView(view, array, DeviceDescriptor.GPUDevice(0));
             weight.SetValue(nDArray);
             return weight;
@@ -482,7 +481,6 @@ namespace HistoGrading.Models
             feature = Variable.InputVariable(input_size, DataType.Float);
             //Create the model
             create_model(use_bn);
-            //model.Save("Z:\\Tuomas\\UNetNew.model");
         }
 
         //Model creation

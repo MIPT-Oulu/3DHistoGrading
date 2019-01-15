@@ -62,6 +62,7 @@
             this.maskLabel = new System.Windows.Forms.Label();
             this.fileLabel = new System.Windows.Forms.Label();
             this.fileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.dirDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -496,7 +497,8 @@
             // 
             // fileDialog
             // 
-            this.fileDialog.FileName = "openFileDialog1";
+            this.fileDialog.Title = "Select an image from sample directory to load stack";
+            this.dirDialog.Description = "Select directory to save results";
             // 
             // MainForm
             // 
@@ -540,6 +542,7 @@
         private System.Windows.Forms.Button volumeButton;
         private System.Windows.Forms.Label viewLabel;
         private System.Windows.Forms.OpenFileDialog fileDialog;
+        private System.Windows.Forms.FolderBrowserDialog dirDialog;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button predict;
         private System.Windows.Forms.Button segmentButton;

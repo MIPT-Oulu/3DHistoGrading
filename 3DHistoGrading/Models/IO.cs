@@ -115,10 +115,18 @@ namespace HistoGrading.Models
 
             //Initialize unet
             string wpath = "Z:\\Tuomas\\NewUnets\\UNet_fold_2_new.h5";
-            //string wpath = "Z:\\Tuomas\\UNetE3bn.h5";
-
+            
             UNet model = new UNet();
-            model.Initialize(24, batch_d, wpath, false);
+            try
+            {
+                model.Initialize(24, batch_d, wpath, false);
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine("Model not found");
+
+                return;
+            }
                         
             for(int k = 0; k< axes.Length; k++)
             {

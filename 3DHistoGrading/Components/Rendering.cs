@@ -185,8 +185,8 @@ namespace HistoGrading.Components
             {
                 DisposeMasks();
                 InitializeMasks(masks.Count());
-                Console.WriteLine("N mappers: {0}",maskmappers.Count());
-                Console.WriteLine("N masks: {0}", masks.Count());
+                Console.WriteLine("Number of mappers: {0}",maskmappers.Count());
+                Console.WriteLine("Number of masks: {0}", masks.Count());
                 for (int k = 0; k < masks.Count(); k++)
                 {                    
                     double[] color = colors.ElementAt(k);
@@ -649,7 +649,7 @@ namespace HistoGrading.Components
             public void renderVolume()
             {
                 vtkFileOutputWindow fow = vtkFileOutputWindow.New();
-                fow.SetFileName("c:\\users\\Tuomas Frondelius\\Desktop\\errors.txt");
+                fow.SetFileName(".\\Default\\errors.txt");
                 vtkOutputWindow.SetInstance(fow);
                 //Detach first renderer from render window. Prevents multiple images from being
                 //rendered on top of each other, and helps with memory management.
@@ -967,6 +967,9 @@ namespace HistoGrading.Components
             /// </summary>
             public void segmentation()
             {
+                // Console output
+                Console.WriteLine("Calculating mask using UNet architecture...");
+
                 //Get sample dimensions
                 int[] extent = idata.GetExtent();
 
@@ -1051,6 +1054,9 @@ namespace HistoGrading.Components
                 tmpmask.ElementAt(0).DeepCopy(t.GetOutput());
                 t.Dispose();
                 connectMaskFromData(tmpmask, 1);
+
+                // Console output
+                Console.WriteLine("Segmentation done");
             }
 
             /// <summary>

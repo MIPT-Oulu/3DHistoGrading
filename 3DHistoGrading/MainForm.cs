@@ -60,8 +60,8 @@ namespace HistoGrading
         // Tooltip
         string tip = "Start by loading a PTA sample";
 
-        //Save directory
-        string savedir = "C:\\Users\\Tuomas Frondelius\\Desktop\\PTAResults";
+        //Save directory (asked from user)
+        string savedir = "";
 
         // Grading variables
         Model model = new Model();
@@ -607,8 +607,8 @@ namespace HistoGrading
         {
             label4.Text = "Calculating: ";
             mainProgress.Value = 10;
-            //VOI for segmentation
 
+            //VOI for segmentation
             volume.segmentation();
             mainProgress.Value = 80;
 
@@ -686,7 +686,9 @@ namespace HistoGrading
         {
             label4.Text = "Calculating: ";
             mainProgress.Value = 10;
+            Console.WriteLine("Extracting volumes of interest...");
             volume.analysis_vois();
+            Console.WriteLine("Extraction complete");
             mainProgress.Value = 80;
 
             is_mask = 1;
@@ -748,27 +750,31 @@ namespace HistoGrading
 
         private void saveButton_Click(object sender, EventArgs e)
         {
-            label4.Text = "Saving: ";
-            mainProgress.Value = 10;
-            if (save_mask == 1)
+            if (dirDialog.ShowDialog() == DialogResult.OK)
             {
-                //Save sample
-                volume.save_data(fname, savedir);
-                //Save segmentation mask
-                volume.save_masks(new string[] { fname + "_UNET" }, savedir);
-            }
-            if(save_vois == 1)
-            {
-                //Save analysis VOIs
-                string[] names = new string[] { fname + "_calcified", fname + "_deep", fname + "_surface" };
-                volume.save_masks(names, savedir);
-            }
+                savedir = dirDialog.SelectedPath;
+                label4.Text = "Saving: ";
+                mainProgress.Value = 10;
+                if (save_mask == 1)
+                {
+                    //Save sample
+                    volume.save_data(fname, savedir);
+                    //Save segmentation mask
+                    volume.save_masks(new string[] { fname + "_UNET" }, savedir);
+                }
+                if (save_vois == 1)
+                {
+                    //Save analysis VOIs
+                    string[] names = new string[] { fname + "_calcified", fname + "_deep", fname + "_surface" };
+                    volume.save_masks(names, savedir);
+                }
 
-            // Update tooltip
-            tip = "Saved images in path " + savedir;
-            gradeLabel.Text = tip;
-            mainProgress.Value = 100;
-            label4.Text = "Done";
+                // Update tooltip
+                tip = "Saved images in path " + savedir;
+                gradeLabel.Text = tip;
+                mainProgress.Value = 100;
+                label4.Text = "Done";
+            }
         }
 
         //Scroll bars
