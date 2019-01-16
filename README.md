@@ -1,7 +1,7 @@
 # 3D-Histo-Grading
 
 ## About
-Software for 3D grading osteochondral tissue samples. We currently support only Windows.
+Software for 3D grading osteochondral Phosphotungstic acid -stained tissue samples. We currently support only Windows.
 
 Current build status and code coverage:
 
