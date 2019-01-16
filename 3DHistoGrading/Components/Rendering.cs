@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
+using System.IO;
 
 using Kitware.VTK;
 
@@ -474,13 +475,14 @@ namespace HistoGrading.Components
             vtkRenderer renderer = vtkRenderer.New();
             //Interactor
             Interactors interactor;
-            //Volume/image data
+
             /// <summary>
             /// Original loaded image data as vtkImageData object.
             /// </summary>
             public vtkImageData idata = vtkImageData.New();
             List<vtkImageData> imasks = new List<vtkImageData>();
             List<double[]> maskcolors = new List<double[]>();
+
             //Rendering pipelines
             volumePipeLine volPipe = new volumePipeLine();
             imagePipeLine imPipe = new imagePipeLine();
@@ -648,15 +650,23 @@ namespace HistoGrading.Components
             /// </summary>
             public void renderVolume()
             {
-                vtkFileOutputWindow fow = vtkFileOutputWindow.New();
-                fow.SetFileName(".\\Default\\errors.txt");
+                // Path for error report
+                string errorPath =
+                    new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
+                    .Parent.Parent.Parent.Parent.FullName // Move to repository root
+                    + ".\\Default\\errors.txt";
+
+                // Initialize
+                var fow = vtkFileOutputWindow.New();
+                fow.SetFileName(errorPath);
                 vtkOutputWindow.SetInstance(fow);
-                //Detach first renderer from render window. Prevents multiple images from being
-                //rendered on top of each other, and helps with memory management.
+                
+                // Detach first renderer from render window. Prevents multiple images from being
+                // rendered on top of each other, and helps with memory management.
                 renWin.RemoveRenderer(renWin.GetRenderers().GetFirstRenderer());
 
-                //Initialize new volume rendering pipeline and connect components
-                //Disposes existing pipeline and initializes new pipeline
+                // Initialize new volume rendering pipeline and connect components
+                // Disposes existing pipeline and initializes new pipeline
                 if(has_volume == 1)
                 {
                     volPipe.Dispose();
@@ -671,28 +681,27 @@ namespace HistoGrading.Components
 
                 volPipe.Initialize();
 
-                //Initialize renderer, dispose existing renderer and connect new renderer
+                // Initialize renderer, dispose existing renderer and connect new renderer
                 renderer.Dispose();
                 renderer = vtkRenderer.New();
 
 
-                //Connect input data and renderer to rendering pipeline
+                // Connect input data and renderer to rendering pipeline
                 volPipe.connectComponents(idata, renderer, gray[0], gray[1]);
 
-                //Connect renderer to render window
+                // Connect renderer to render window
                 renWin.AddRenderer(renderer);
 
-                //Update flags
+                // Update flags
                 has_volume = 1;
                 has_image = 0;
 
-                //Render volume
+                // Render volume
                 renWin.Render();
 
-                //Update interactor
+                // Update interactor
                 interactor = new Interactors(renWin);
                 interactor.set_default();
-
             }       
 
             /// <summary>
@@ -700,14 +709,14 @@ namespace HistoGrading.Components
             /// </summary>
             public void renderImage()
             {
-                //Detach first renderer from render window. Prevents multiple images from being
-                //rendered on top of each other, and helps with memory management.
+                // Detach first renderer from render window. Prevents multiple images from being
+                // rendered on top of each other, and helps with memory management.
                 renWin.RemoveRenderer(renWin.GetRenderers().GetFirstRenderer());
 
-                //Initialize new image rendering pipeline and connect components
-                //Disposes existing pipeline and initializes new pipeline
-                //Initialize new volume rendering pipeline and connect components
-                //Disposes existing pipeline and initializes new pipeline
+                // Initialize new image rendering pipeline and connect components
+                // Disposes existing pipeline and initializes new pipeline
+                // Initialize new volume rendering pipeline and connect components
+                // Disposes existing pipeline and initializes new pipeline
                 if (has_volume == 1)
                 {
                     volPipe.Dispose();
@@ -723,23 +732,23 @@ namespace HistoGrading.Components
 
                 vtkImageData slice = Functions.volumeSlicer(idata, sliceN, curAx);
                                 
-                //Initialize renderer
+                // Initialize renderer
                 renderer.Dispose();
                 renderer = vtkRenderer.New();
 
-                //Connect components to rendering pipeline
+                // Connect components to rendering pipeline
                 imPipe.connectComponents(slice, renderer, gray[0], gray[1]);
-                //Connect renderer to render window
+                // Connect renderer to render window
                 renWin.AddRenderer(renderer);                
 
-                //Update flags
+                // Update flags
                 has_image = 1;
                 has_volume = 0;
 
-                //Render image
+                // Render image
                 renWin.Render();
 
-                //Update interactor
+                // Update interactor
                 interactor = new Interactors(renWin);
                 if (curAx == 2) { interactor.set_2d_nodraw(); }
                 else { interactor.set_2d(); }
@@ -756,9 +765,9 @@ namespace HistoGrading.Components
                 volPipe.DisposeMasks();
                 volPipe.InitializeMasks(imasks.Count());
 
-                //Initialize new volume rendering and connect components
+                // Initialize new volume rendering and connect components
                 volPipe.connectMask(imasks,maskcolors,gray[0],gray[1]);
-                //Render volume
+                // Render volume
                 renWin.Render();
             }
 
@@ -767,11 +776,11 @@ namespace HistoGrading.Components
             /// </summary>
             public void renderImageMask()
             {
-                /*Connect 2D mask to image rendering pipeline*/
+                // Connect 2D mask to image rendering pipeline
                 imPipe.DisposeMasks();
                 imPipe.InitializeMask(imasks.Count());
 
-                //Get mask slice
+                // Get mask slice
                 List<vtkImageData> maskSlices = new List<vtkImageData>();
                 foreach(vtkImageData mask in imasks)
                 {
@@ -781,7 +790,7 @@ namespace HistoGrading.Components
                 
                 imPipe.connectMask(maskSlices,maskcolors,gray[0],gray[1]);
 
-                //Render image
+                // Render image
                 renWin.Render();
             }
 
@@ -844,17 +853,17 @@ namespace HistoGrading.Components
             /// <returns> VOI</returns>
             public vtkImageData getVOI(int[] extent = null, int[] orientation = null)
             {
-                //Empty output data
+                // Empty output data
                 vtkImageData voi = vtkImageData.New();
 
-                //If no VOI is specified, full data is returned
+                // If no VOI is specified, full data is returned
                 if (extent == null)
                 {
                     voi = idata;
                 }
                 else
                 {
-                    //Extract VOI
+                    // Extract VOI
                     vtkExtractVOI extractor = vtkExtractVOI.New();
                     extractor.SetInput(idata);
                     extractor.SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
@@ -862,7 +871,7 @@ namespace HistoGrading.Components
                     voi.DeepCopy(extractor.GetOutput());
                     extractor.Dispose();
                 }
-                //If order of the axes is specified, the return array is permuted
+                // If order of the axes is specified, the return array is permuted
                 if (orientation != null)
                 {
                     vtkImagePermute permuter = vtkImagePermute.New();
@@ -882,17 +891,17 @@ namespace HistoGrading.Components
             /// <returns> VOI</returns>
             public vtkImageData getMaskVOI(int idx, int[] extent = null, int[] orientation = null)
             {
-                //Empty output data
+                // Empty output data
                 vtkImageData voi = vtkImageData.New();
 
-                //If no VOI is specified, full data is returned
+                // If no VOI is specified, full data is returned
                 if (extent == null)
                 {
                     voi = imasks.ElementAt(idx);
                 }
                 else
                 {
-                    //Extract VOI
+                    // Extract VOI
                     vtkExtractVOI extractor = vtkExtractVOI.New();
                     extractor.SetInput(imasks.ElementAt(idx));
                     extractor.SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
@@ -900,7 +909,7 @@ namespace HistoGrading.Components
                     voi.DeepCopy(extractor.GetOutput());
                     extractor.Dispose();
                 }
-                //If order of the axes is specified, the return array is permuted
+                // If order of the axes is specified, the return array is permuted
                 if (orientation != null)
                 {
                     vtkImagePermute permuter = vtkImagePermute.New();
@@ -965,15 +974,15 @@ namespace HistoGrading.Components
             /// <summary>
             /// Pipeline for bone-cartilage interface segmentation.
             /// </summary>
-            public void segmentation()
+            public void segmentation(string modelPath)
             {
                 // Console output
                 Console.WriteLine("Calculating mask using UNet architecture...");
 
-                //Get sample dimensions
+                // Get sample dimensions
                 int[] extent = idata.GetExtent();
 
-                //Check the sample height for segmentation region
+                // Check the sample height for segmentation region
                 int sample_height = extent[5] - extent[4] - 1;
 
                 int[] voi_extent = new int[6];
@@ -997,22 +1006,25 @@ namespace HistoGrading.Components
                 }
                 */
 
+                // Pipeline variables
                 voi_extent = new int[] { extent[0], extent[1], extent[2], extent[3], extent[4], extent[4]+767 };
                 batch_dims = new int[] { 448, 768, 1 };
+                int batchSize = 28;
+                int[] segmentationAxes = new int[] { 0, 1 };
 
-                //Empty list for output
+                // Empty list for output
                 List<vtkImageData> outputs;
 
-                IO.segmentation_pipeline(out outputs, this, batch_dims, voi_extent, new int[] { 0,1 }, 28);
+                IO.segmentation_pipeline(out outputs, this, batch_dims, voi_extent, segmentationAxes, modelPath, batchSize);
 
                 vtkImageThreshold t = vtkImageThreshold.New();
                 if (outputs.Count() == 2)
                 {
-                    //Sum operation
+                    // Sum operation
                     vtkImageMathematics math = vtkImageMathematics.New();
                     math.SetOperationToAdd();
 
-                    //Weighting
+                    // Weighting
                     vtkImageMathematics _tmp1 = vtkImageMathematics.New();
                     _tmp1.SetInput1(outputs.ElementAt(0));
                     _tmp1.SetConstantK(0.5);
@@ -1030,7 +1042,7 @@ namespace HistoGrading.Components
 
                     math.Update();
 
-                    //Threshold
+                    // Threshold
                     t = vtkImageThreshold.New();
                     t.SetInputConnection(math.GetOutputPort());
                     t.ThresholdByUpper(0.5 * 255.0);
@@ -1040,7 +1052,7 @@ namespace HistoGrading.Components
                 }
                 else
                 {
-                    //Threshold
+                    // Threshold
                     t = vtkImageThreshold.New();
                     t.SetInput(outputs.ElementAt(0));
                     t.ThresholdByUpper(0.5 * 255.0);
@@ -1065,7 +1077,7 @@ namespace HistoGrading.Components
             public void analysis_vois()
             {
                 center_crop(400, true);
-                vtkImageData ccartilage; vtkImageData dcartilage; vtkImageData scartilage;
+                vtkImageData ccartilage, dcartilage, scartilage;
                 Functions.get_analysis_vois(out dcartilage, out ccartilage, out scartilage, idata, imasks.ElementAt(0));
 
                 removeMask();

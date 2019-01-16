@@ -11,6 +11,9 @@ using System.Windows.Forms;
 
 namespace HistoGrading
 {
+    /// <summary>
+    /// Form that visualizes results of LBP and grading.
+    /// </summary>
     public partial class GradingForm : Form
     {
         // Grading form should update with its own thread in the future.

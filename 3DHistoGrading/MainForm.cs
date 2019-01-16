@@ -60,8 +60,12 @@ namespace HistoGrading
         // Tooltip
         string tip = "Start by loading a PTA sample";
 
-        //Save directory (asked from user)
+        //Directories (asked from user)
         string savedir = "";
+        string modelPath =
+                new DirectoryInfo(Directory.GetCurrentDirectory()) // Get current directory
+                .Parent.Parent.Parent.Parent.FullName // Move to repository root
+                + ".\\Default\\UNet_model.h5";
 
         // Grading variables
         Model model = new Model();
@@ -609,7 +613,7 @@ namespace HistoGrading
             mainProgress.Value = 10;
 
             //VOI for segmentation
-            volume.segmentation();
+            volume.segmentation(modelPath);
             mainProgress.Value = 80;
 
             //Update rendering pipeline

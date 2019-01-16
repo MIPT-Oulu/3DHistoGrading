@@ -106,16 +106,14 @@ namespace HistoGrading.Models
             return output;
         }
 
-        public static void segmentation_pipeline(out List<vtkImageData> outputs, Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int[] axes, int bs = 2)
+        public static void segmentation_pipeline(out List<vtkImageData> outputs, Rendering.renderPipeLine volume, int[] batch_d, int[] extent, int[] axes, string wpath, int bs = 2)
         {
             //Outputs
             outputs = new List<vtkImageData>();
             //Get input dimensions
             int[] dims = volume.getDims();
 
-            //Initialize unet
-            string wpath = "Z:\\Tuomas\\NewUnets\\UNet_fold_2_new.h5";
-            
+            // Initialize UNet
             UNet model = new UNet();
             try
             {

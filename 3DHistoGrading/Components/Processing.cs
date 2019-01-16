@@ -269,7 +269,13 @@ namespace HistoGrading.Components
             slice.SetOutputExtent(outExtent[0], outExtent[1], outExtent[2], outExtent[3], outExtent[4], outExtent[5]);
         }
 
-        //Remove artefacts
+        /// <summary>
+        /// Removes surface artefacts from the sample.
+        /// </summary>
+        /// <param name="volume">Sample volume data.</param>
+        /// <param name="points">Points for removal line.</param>
+        /// <param name="axis">Axis of removal.</param>
+        /// <returns>Sample data without artefacts</returns>
         public static vtkImageData remove_artefacts(vtkImageData volume, double[] points, int axis)
         {
             //Get input volume dimensions            
@@ -324,9 +330,9 @@ namespace HistoGrading.Components
         /// Rotates 3D vtk volume around x and y axes.
         /// </summary>
         /// <param name="input"></param>
-        /// <param name="angles"></param>
-        /// <param name="mode"></param>
-        /// <param name="invert"></param>
+        /// <param name="angle"></param>
+        /// <param name="axis"></param>
+        /// <param name="out_extent"></param>
         /// <returns></returns>
         public static vtkImageData rotate_sample(vtkImageData input, double angle, int axis, int out_extent = 0)
         {            
@@ -410,6 +416,12 @@ namespace HistoGrading.Components
             return output;
         }
 
+        /// <summary>
+        /// Function for scaling sample data. Used in automatic rotation to reduce calculation time in gradient descent.
+        /// </summary>
+        /// <param name="input">Input volume data</param>
+        /// <param name="scale">Scaling factor, e.g. 0.1 = downsampling with factor of 10.</param>
+        /// <returns></returns>
         public static vtkImageData rescale_sample(vtkImageData input, double scale)
         {
             //Get sample dimensions
@@ -453,6 +465,13 @@ namespace HistoGrading.Components
             return output;
         }
 
+        /// <summary>
+        /// Calculates center of volume data along z-axis.
+        /// </summary>
+        /// <param name="stack"></param>
+        /// <param name="threshold"></param>
+        /// <param name="zrange"></param>
+        /// <returns></returns>
         public static int[] find_center(vtkImageData stack, double threshold = 70.0, int[] zrange = null)
         {
             //Get byte data
@@ -514,6 +533,13 @@ namespace HistoGrading.Components
             return center;
         }
 
+        /// <summary>
+        /// Function for removing sample edges.
+        /// </summary>
+        /// <param name="stack"></param>
+        /// <param name="side"></param>
+        /// <param name="get_center"></param>
+        /// <returns></returns>
         public static vtkImageData center_crop(vtkImageData stack, int side = 400, bool get_center = true)
         {
             //Get input dimensions
@@ -523,25 +549,12 @@ namespace HistoGrading.Components
 
             int x1; int x2; int y1; int y2;
 
-            if(get_center = true)
-            {
-                int[] center = find_center(stack, 70, new int[] { 0, (dims[5] - dims[4] + 1) / 3 });//GetCenter(bytedata,80);
-                //Compute new volume sides
-                y2 = Math.Min(center[0] + (side / 2), dims[1]);
-                y1 = Math.Max(y2 - side + 1, dims[0]);
-                x2 = Math.Min(center[1] + (side / 2), dims[3]);
-                x1 = Math.Max(x2 - side + 1, dims[2]);
-            }
-            else
-            {
-                int diff = (dims[1] - dims[0] + 1) - side;
-                y2 = Math.Min(dims[1] - diff, dims[1]);
-                y1 = Math.Max(y2 - side + 1, dims[0]);
-                x2 = Math.Min(dims[3] - diff, dims[3]);
-                x1 = Math.Max(x2 - side + 1, dims[2]);
-            }
-            
-            
+            int[] center = find_center(stack, 70, new int[] { 0, (dims[5] - dims[4] + 1) / 3 });//GetCenter(bytedata,80);
+            //Compute new volume sides
+            y2 = Math.Min(center[0] + (side / 2), dims[1]);
+            y1 = Math.Max(y2 - side + 1, dims[0]);
+            x2 = Math.Min(center[1] + (side / 2), dims[3]);
+            x1 = Math.Max(x2 - side + 1, dims[2]);
 
             //Create VOI extractor
             vtkExtractVOI cropper = vtkExtractVOI.New();

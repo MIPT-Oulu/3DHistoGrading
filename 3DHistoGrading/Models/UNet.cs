@@ -469,7 +469,6 @@ namespace HistoGrading.Models
         static Variable feature;
 
         //Model initialization
-
         public void Initialize(int base_width, int[] sample_size, string weight_path = null, bool use_bn = true)
         {
             //Network and data parameters

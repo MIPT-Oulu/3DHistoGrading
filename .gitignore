@@ -9,6 +9,9 @@
 *.userosscache
 *.sln.docstates
 
+# Local segmentation models
+*.h5
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
