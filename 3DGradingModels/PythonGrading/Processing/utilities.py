@@ -5,11 +5,21 @@ import os
 import cv2
 import h5py
 import struct
-from tqdm.auto import tqdm
+from tqdm import tqdm
 from joblib import Parallel, delayed
 
 
-def load(path):
+def load_bbox(path):
+    """
+    Loads an image stack as numpy array. Calculates bounding box (rectangle) for each loaded image.
+
+    Pending update:
+    Test for image size inconsistency.
+
+    Keyword arguments:
+    :param path: Path to image stack.
+    :return: Loaded stack as 3D numpy array. Coordinates of image bounding boxes.
+    """
     files = os.listdir(path)
     files.sort()
     # Exclude extra files
@@ -31,6 +41,37 @@ def load(path):
     return data, (angles[:, 0], angles[:, 1], angles[:, 2], angles[:, 3])
 
 
+def load(path, axis=(1, 2, 0)):
+    """
+    Loads an image stack as numpy array.
+
+    Pending update:
+    Test for image size inconsistency.
+
+    Keyword arguments:
+    :param path: Path to image stack.
+    :return: Loaded stack as 3D numpy array. Coordinates of image bounding boxes.
+    """
+    files = os.listdir(path)
+    files.sort()
+    # Exclude extra files
+    newlist = []
+    for file in files:
+        if file.endswith('.png') or file.endswith('.bmp') or file.endswith('.tif'):
+            try:
+                int(file[-7:-4])
+                newlist.append(file)
+            except ValueError:
+                continue
+    files = newlist[:]  # replace list
+    # Load data and get bounding box
+    data = Parallel(n_jobs=12)(delayed(read_image)(path, file) for file in files)
+    if axis != (0, 1, 2):
+        return np.transpose(np.array(data), axis)
+
+    return np.array(data)
+
+
 def read_image(path, file):
     # Image
     f = os.path.join(path, file)
@@ -50,11 +91,11 @@ def read_image_bbox(path, file):
 
 def Save(path, fname, data):
     """
-    Save a volumetric dataset.
+    Save a volumetric 3D dataset in given directory.
 
-    :param path: path for dataset
-    :param fname: prefix for the filenames
-    :param data: volumetric data to be saved
+    :param path: Directory for dataset.
+    :param fname: Prefix for the image filenames.
+    :param data: Volumetric data to be saved (as numpy array).
     """
     if not os.path.exists(path):
         os.makedirs(path)
@@ -240,7 +281,7 @@ def PrintOrthogonal(data, invert=True, res=3.2):
     
     fig = plt.figure(dpi=300)
     ax1 = fig.add_subplot(131)
-    ax1.imshow(data[:,:,dims[2]].T, cmap='gray')
+    ax1.imshow(data[:, :, dims[2]].T, cmap='gray')
     plt.title('Transaxial (xy)')
     ax2 = fig.add_subplot(132)
     ax2.imshow(data[:, dims[1], :].T, cmap='gray')

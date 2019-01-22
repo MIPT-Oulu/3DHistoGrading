@@ -1,7 +1,7 @@
 import vtk
 import numpy as np
 
-def RenderVolume(data, savepath = None, white=True):
+def render_volume(data, savepath=None, white=True):
     # We begin by creating the data we want to render.
     # For this tutorial, we create a 3D-image containing three overlaping cubes.
     # This data can of course easily be replaced by data from a medical CT-scan or anything else three dimensional.

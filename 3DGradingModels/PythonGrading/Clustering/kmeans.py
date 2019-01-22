@@ -1,44 +1,68 @@
+import numpy as np
 import matplotlib.pyplot as plt
 
-from utilities import read_image
-from clustering import kmeans
+from utilities import read_image, load, PrintOrthogonal
+from VTKFunctions import render_volume
+from clustering import bone_kmeans
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
 # Paths and number of clusters
-path = r'Z:\3DHistoData\Test data'
+path = r'Y:\3DHistoData\Test data'
 file_2mm = '13_R3L_2_PTA_48h_cor504.png'
 file_4mm = 'KP03-L6-4MP2_Cor740.png'
 n_clusters = 3
+width = 448
 
 # Load
 cor_2mm = read_image(path, file_2mm)
 cor_4mm = read_image(path, file_4mm)
+data = load(r'C:\Users\Tuomas Frondelius\Desktop\Data\KP03-L6-4MC2_sub01')
 
+# Preprocess
 # Crop
 cor_2mm = cor_2mm[:, 300:748]
 cor_4mm = cor_4mm[:, 600:1048]
+a = data.shape[0] // 2 - width // 2
+b = data.shape[0] // 2 + width // 2
+data_cor = np.flip(data[a:b, data.shape[1] // 2, :].T)
 
 # Show images
 fig = plt.figure(dpi=300)
-ax1 = fig.add_subplot(121)
+ax1 = fig.add_subplot(131)
 ax1.imshow(cor_2mm)
 ax1.set_title('2mm image')
-ax2 = fig.add_subplot(122)
+ax2 = fig.add_subplot(132)
 ax2.imshow(cor_4mm)
 ax2.set_title('4mm image')
+ax3 = fig.add_subplot(133)
+ax3.imshow(data_cor)
+ax3.set_title('4mm image')
 plt.show()
 
 # K-means clustering
-mask_2mm = kmeans(cor_2mm, n_clusters)
-mask_4mm = kmeans(cor_4mm, n_clusters)
 
-# Show images
+# 3D clustering in parallel
+data = np.flip(data, 2)
+mask = Parallel(n_jobs=12)(delayed(bone_kmeans)(data[i, :, :].T, n_clusters, True)
+                           for i in tqdm(range(data.shape[0]), 'Calculating mask'))
+mask = np.transpose(np.array(mask), (0, 2, 1))
+PrintOrthogonal(mask)
+render_volume(mask * data, None, False)
+
+# 2D clustering
+mask_2mm = bone_kmeans(cor_2mm, n_clusters, True)
+mask_4mm = bone_kmeans(cor_4mm, n_clusters, True)
+mask_4mm_2 = bone_kmeans(data_cor, n_clusters, True)
+# Show cluster images
 fig = plt.figure(dpi=300)
-ax1 = fig.add_subplot(121)
+ax1 = fig.add_subplot(131)
 ax1.imshow(mask_2mm)
 ax1.set_title('2mm mask')
-ax2 = fig.add_subplot(122)
+ax2 = fig.add_subplot(132)
 ax2.imshow(mask_4mm)
 ax2.set_title('4mm mask')
+ax3 = fig.add_subplot(133)
+ax3.imshow(mask_4mm_2)
+ax3.set_title('4mm mask')
 plt.show()
-
-
