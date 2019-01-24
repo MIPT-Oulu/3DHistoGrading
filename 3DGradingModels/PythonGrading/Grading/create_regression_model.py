@@ -9,6 +9,7 @@ from scipy.stats import spearmanr, wilcoxon
 
 
 def pipeline_load(featurepath, gpath, save, choice, comps, modelpath):
+    # TODO implement grading for Insaf and Isokerays series
     # Start time
     start_time = time.time()
     # Load grades to array

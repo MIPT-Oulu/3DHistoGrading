@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utilities import read_image, load, PrintOrthogonal
+from utilities import read_image, load, print_orthogonal
 from VTKFunctions import render_volume
 from clustering import bone_kmeans
 from joblib import Parallel, delayed
@@ -15,45 +15,44 @@ n_clusters = 3
 width = 448
 
 # Load
-cor_2mm = read_image(path, file_2mm)
-cor_4mm = read_image(path, file_4mm)
+cor_2mm = np.flip(read_image(path, file_2mm))
+cor_4mm = np.flip(read_image(path, file_4mm))
 data = load(r'C:\Users\Tuomas Frondelius\Desktop\Data\KP03-L6-4MC2_sub01')
 
-# Preprocess
 # Crop
 cor_2mm = cor_2mm[:, 300:748]
 cor_4mm = cor_4mm[:, 600:1048]
 a = data.shape[0] // 2 - width // 2
 b = data.shape[0] // 2 + width // 2
-data_cor = np.flip(data[a:b, data.shape[1] // 2, :].T)
+data_cor = data[a:b, data.shape[1] // 2, :].T
 
 # Show images
 fig = plt.figure(dpi=300)
 ax1 = fig.add_subplot(131)
-ax1.imshow(cor_2mm)
+ax1.imshow(cor_2mm, cmap='gray')
 ax1.set_title('2mm image')
 ax2 = fig.add_subplot(132)
-ax2.imshow(cor_4mm)
+ax2.imshow(cor_4mm, cmap='gray')
 ax2.set_title('4mm image')
 ax3 = fig.add_subplot(133)
-ax3.imshow(data_cor)
+ax3.imshow(data_cor, cmap='gray')
 ax3.set_title('4mm image')
 plt.show()
+render_volume(data, None, False)
 
 # K-means clustering
 
 # 3D clustering in parallel
-data = np.flip(data, 2)
-mask = Parallel(n_jobs=12)(delayed(bone_kmeans)(data[i, :, :].T, n_clusters, True)
+mask = Parallel(n_jobs=12)(delayed(bone_kmeans)(data[i, :, :].T, n_clusters, scale=True, method='loop')
                            for i in tqdm(range(data.shape[0]), 'Calculating mask'))
 mask = np.transpose(np.array(mask), (0, 2, 1))
-PrintOrthogonal(mask)
-render_volume(mask * data, None, False)
+print_orthogonal(mask, True)
 
 # 2D clustering
-mask_2mm = bone_kmeans(cor_2mm, n_clusters, True)
-mask_4mm = bone_kmeans(cor_4mm, n_clusters, True)
-mask_4mm_2 = bone_kmeans(data_cor, n_clusters, True)
+mask_2mm = bone_kmeans(cor_2mm, n_clusters, True, limit=2, method='loop')
+mask_4mm = bone_kmeans(cor_4mm, n_clusters, True, limit=2, method='loop')
+mask_4mm_2 = bone_kmeans(data_cor, n_clusters, True, limit=2, method='loop')
+
 # Show cluster images
 fig = plt.figure(dpi=300)
 ax1 = fig.add_subplot(131)

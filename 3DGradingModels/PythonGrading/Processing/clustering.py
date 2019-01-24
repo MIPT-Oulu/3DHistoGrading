@@ -3,7 +3,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import cv2
 from scipy.signal import medfilt
+# from scipy.ndimage.morphology import binary_fill_holes
 
+cv2.ocl.setUseOpenCL(False)
+cv2.setNumThreads(0)
 
 def kmeans(image, clusters=2, scale=True):
 
@@ -27,25 +30,30 @@ def kmeans(image, clusters=2, scale=True):
         return result
 
 
-def bone_kmeans(image, clusters=3, scale=True, kernel=5):
+def bone_kmeans(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3, limit=4, method='loop'):
     """
     Calculates bone mask from PTA images
     :param image: input 2D image
     :param clusters: Number of clusters
     :param scale: Output either uint8 (True) or bool (False)
-    :param kernel: Kernel size for median filter
+    :param kernel_median: Kernel size for median filter
+    :param kernel_morph: Kernel size for erosion/dilation
+    :param limit: Limit for setting background relative to deep cartilage layer.
     :return: Bone mask
     """
+    # Image dimensions
+    dims = image.shape
 
     # Median filter
-    image = medfilt(image, kernel_size=kernel)
+    image = medfilt(image, kernel_size=kernel_median)
+
     # Reshape image
     image_vector = image.flatten()
     image_vector = np.float32(image_vector)
 
     # Clustering
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
-                20, 0.5)
+                10, 1)
     _, labels, center = cv2.kmeans(image_vector, clusters, None,
                                    criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
 
@@ -72,40 +80,50 @@ def bone_kmeans(image, clusters=3, scale=True, kernel=5):
     c = max(contours, key=cv2.contourArea)
     # Bounding rectangle for largest contour
     x, y, w, h = cv2.boundingRect(c)
-    limit = y + 4 * h // 5
+
+    # Find bottom of deep cartilage contour and fill the top
+    if method == 'loop':
+        largest_cnt = cv2.drawContours(image.copy(), [c], 0, (255, 255, 255), 3)  # Draw largest contour
+        # Loop to fill above the contour bottom
+        for i in range(dims[1]):
+            for j in range(dims[0]):
+                if largest_cnt[j, i] == 255:
+                    bone_mask[j:, i] = 0
+        # Get result
+        if scale:
+            return bone_mask
+        else:
+            return bone_mask.astype(np.bool)
 
     # Fill largest contour
-    # c = cv2.drawContours(image.copy(), [c], 0, (255, 255, 255), 3)  # Draw largest contour
-    c = np.array(cv2.fillPoly(image.copy(), [c], (255, 255, 255))).astype(np.uint8)  # Fill largest contour
+    c = np.array(cv2.fillPoly(image.copy(), [c], (255, 255, 255))).astype(np.uint8)
     # Floodfill top of mask
-    flood_mask = np.zeros((image.shape[0] + 2, image.shape[1] + 2), np.uint8)
-    cv2.floodFill(c, flood_mask, (0, 0), 255)
-    c[:limit, :] = 255
+    flood_mask = np.zeros((dims[0] + 2, dims[1] + 2), np.uint8)
+    cv2.floodFill(c, flood_mask, (dims[1] - 1, dims[0] - 1), 255)
+    # Zero false positives above limit
+    limit = y + h // limit
+    c[limit:, :] = 255
 
     # Erase using filled contour
     bone_mask = (bone_mask - c).astype(np.uint8)
     bone_mask[bone_mask <= 1] = 0
-    # Erasing loop
-    # split = 20
-    # offset = image.shape[0] // split
-    # for i in range(1, split // 2):
-    #    zero = np.zeros(image.shape)
-    #    zero[:-offset * i, :] = c[offset * i:, :]
-    #    bone_mask = (bone_mask - zero).astype('uint8')
-    #    #plt.imshow(bone_mask)
-    #    #plt.show()
 
-    ## Visualize rectangle
-    #fig = plt.figure(dpi=300)
-    #ax = fig.add_subplot(121)
-    #ax.imshow(bone_mask)
-    #rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
-    #ax.add_patch(rect)
-    #ax2 = fig.add_subplot(122)
-    #ax2.imsho#w(c)
-    #rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
-    #ax2.add_patch(rect)
-    #plt.show()
+    # Erode and dilate
+    kernel = np.ones((kernel_morph, kernel_morph), np.uint8)
+    bone_mask = cv2.erode(bone_mask, kernel, iterations=1)
+    bone_mask = cv2.dilate(bone_mask, kernel, iterations=1)
+
+    # # Visualize rectangle
+    # fig = plt.figure(dpi=300)
+    # ax = fig.add_subplot(121)
+    # ax.imshow(image)
+    # rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
+    # ax.add_patch(rect)
+    # ax2 = fig.add_subplot(122)
+    # ax2.imshow(c)
+    # rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
+    # ax2.add_patch(rect)
+    # plt.show()
 
     # Check values in mask
     # print(np.unique(bone_mask))

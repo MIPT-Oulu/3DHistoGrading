@@ -10,6 +10,7 @@ from Grading.roc_curve import *
 
 
 def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
+    # TODO Implement LBP calculation for Insaf and Isokeräys dataset
     # Start time
     start_time = time.time()
     # Calculate MRELBP from dataset

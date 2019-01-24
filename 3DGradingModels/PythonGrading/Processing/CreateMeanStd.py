@@ -15,7 +15,8 @@ def calculate_batch(impath, savepath, size, mask=False, modelpath=None, snapshot
 
     for k in range(offset * extra, len(files), extra):  # Skip 1 CA4+ file and 2 .zip files
         # Data path
-        if files[k] == 'Images' or files[k] == 'MeanStd':
+        if (files[k] == 'Images' or files[k] == 'MeanStd'
+                or files[k] == 'MeanStd_Pytorch' or files[k] == 'Images_Pytorch'):
             continue
         try:
             os.listdir(impath + "\\" + files[k])  # + "\\" + "Registration")
@@ -108,14 +109,14 @@ def calculate_multiple(impath, savepath, size, selection=None, mask=False, model
 
 if __name__ == '__main__':
     # Pipeline variables
-    impath = r"Y:\3DHistoData\Subvolumes_2mm"
-    savepath = r"Y:\3DHistoData\Subvolumes_2mm"
+    impath = r"Y:\3DHistoData\Subvolumes_Isokerays"
+    savepath = r"Y:\3DHistoData\Subvolumes_Isokerays"
     size = [448, 25, 10, 150, 50]  # width, surf depth, offset, deep depth, cc depth
     modelpath = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/"
     snapshots = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/"
     selection = [3, 9, 10, 13, 14, 15, 22, 23, 28]
 
     # Call pipeline
-    # calculate_batch(impath, savepath, size, False, modelpath, snapshots)
-    calculate_multiple(impath, savepath, size, selection, False, modelpath, snapshots)
+    calculate_batch(impath, savepath, size, False, modelpath, snapshots)
+    # calculate_multiple(impath, savepath, size, selection, False, modelpath, snapshots)
     # calculate_individual(impath, savepath, size, False, modelpath)

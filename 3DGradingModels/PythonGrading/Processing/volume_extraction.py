@@ -15,31 +15,32 @@ import torch.nn.functional as F
 from torch.utils import data
 from model import UNet
 from scipy.ndimage import affine_transform, rotate, zoom, shift
-from sklearn.decomposition import PCA
+
 from scipy.signal import medfilt
 
 from utilities import *
-from VTKFunctions import *
-from segmentation import *
+from rotations import pca_angle, get_angle
+from VTKFunctions import render_volume
+from segmentation import get_split, inference
+from clustering import bone_kmeans
 
 from tqdm.auto import tqdm
-from ipywidgets import FloatProgress
-from IPython.display import display
 from argparse import ArgumentParser
 from joblib import Parallel,delayed
 
 
 def Pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
     # 1. Load sample
-    print('Sample name: ' + sample); print('1. Load sample')
+    print('Sample name: ' + sample)
+    print('1. Load sample')
     data, bounds = load_bbox(path)
-    PrintOrthogonal(data)
-    SaveOrthogonal(savepath + "\\Images\\" + sample + "_input.png", data)
+    print_orthogonal(data)
+    save_orthogonal(savepath + "\\Images\\" + sample + "_input.png", data)
     render_volume(data, savepath + "\\Images\\" + sample + "_input_render.png")
     if maskpath is not None and modelpath is None:
         print(maskpath)
         mask, _ = load_bbox(maskpath)
-        PrintOrthogonal(mask)
+        print_orthogonal(mask)
 
     # 2. Segment BCI mask
     if modelpath is not None:
@@ -51,36 +52,40 @@ def Pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, indivi
                 offset = 20
             elif 1600 <= data.shape[2]:
                 offset = 50
-            mask = segmentation(data, modelpath, snapshots, cropsize, offset)  # generate mask from crop data
+            # Pytorch segmentation
+            # mask = segmentation_pytorch(data, modelpath, snapshots, cropsize, offset)  # generate mask from crop data
+            # K-means segmentation
+            mask = segmentation_kmeans(data, n_clusters=3, offset=offset)
         else:
-            mask = cntk_segmentation(data, modelpath)  # generate mask from crop data
-        PrintOrthogonal(mask)
-        SaveOrthogonal(savepath + "\\Images\\" + sample + "_mask.png", mask)
-        render_volume((mask > 0.7) * 255, savepath + "\\Images\\" + sample + "_mask_render.png", white=False)
+            mask = segmentation_cntk(data, modelpath)  # generate mask from crop data
+        print_orthogonal(mask)
+        save_orthogonal(savepath + "\\Images\\" + sample + "_mask.png", mask * data)
+        render_volume((mask > 0.7) * data, savepath + "\\Images\\" + sample + "_mask_render.png")
+        Save(savepath + '\\' + sample + '\\Mask', sample, mask)
 
     # Crop
     data = data[24:-24, 24:-24, :]
     mask = mask[24:-24, 24:-24, :]
-    sizetemp = size[:]
-    sizetemp[0] = 400
+    size_temp = size[:]
+    size_temp[0] = 400
 
     # Calculate cartilage depth
     data = np.flip(data, 2); mask = np.flip(mask, 2)  # flip
     dist = return_interface(data, mask)
-    sizetemp[3] = (0.6 * dist).astype('int')
+    size_temp[3] = (0.6 * dist).astype('int')
     print('Automatically setting deep voi depth to {0}'.format((0.6 * dist).astype('int')))
 #
     # 4. Get VOIs
     print('4. Get interface coordinates:')
-    surfvoi, interface, otsu_thresh = get_interface(data, sizetemp, 'surface', None)
-    PrintOrthogonal(surfvoi)
-    SaveOrthogonal(savepath + "\\Images\\" + sample + "_surface.png", surfvoi)
+    surfvoi, interface, otsu_thresh = get_interface(data, size_temp, 'surface', None)
+    print_orthogonal(surfvoi)
+    save_orthogonal(savepath + "\\Images\\" + sample + "_surface.png", surfvoi)
     render_volume(np.flip(surfvoi, 2), savepath + "\\Images\\" + sample + "_surface_render.png")
     if maskpath is not None or modelpath is not None:  # Input offset for size[2] to give voi offset from mask interface
-        deepvoi, ccvoi, interface = get_interface(data, sizetemp, 'bci', (mask > 0.7))
-        PrintOrthogonal(deepvoi); PrintOrthogonal(ccvoi)
-        SaveOrthogonal(savepath + "\\Images\\" + sample + "_deep.png", deepvoi)
-        SaveOrthogonal(savepath + "\\Images\\" + sample + "_cc.png", ccvoi)
+        deepvoi, ccvoi, interface = get_interface(data, size_temp, 'bci', (mask > 0.7))
+        print_orthogonal(deepvoi); print_orthogonal(ccvoi)
+        save_orthogonal(savepath + "\\Images\\" + sample + "_deep.png", deepvoi)
+        save_orthogonal(savepath + "\\Images\\" + sample + "_cc.png", ccvoi)
         render_volume(np.flip(deepvoi, 2), savepath + "\\Images\\" + sample + "_deep_render.png")
         render_volume(np.flip(ccvoi, 2), savepath + "\\Images\\" + sample + "_cc_render.png")
 
@@ -94,18 +99,18 @@ def Pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, indivi
 
 def pipeline_subvolume(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
     # 1. Load sample
-    print('Sample name: ' + sample);
+    print('Sample name: ' + sample)
     print('1. Load sample')
     data, bounds = load_bbox(path)
-    PrintOrthogonal(data)
-    SaveOrthogonal(savepath + "\\Images\\" + sample + "_input.png", data)
+    print_orthogonal(data)
+    save_orthogonal(savepath + "\\Images\\" + sample + "_input.png", data)
     render_volume(data, savepath + "\\Images\\" + sample + "_input_render.png")
     if maskpath is not None and modelpath is None:
         print(maskpath)
         mask, _ = load_bbox(maskpath)
-        PrintOrthogonal(mask)
+        print_orthogonal(mask)
 
-    ## 2. Orient array
+    # # 2. Orient array
     # print('2. Orient sample')
     # data, angles = orient(data, bounds, individual)
     # SaveOrthogonal(savepath + "\\Images\\" + sample + "_orient.png", data)
@@ -117,8 +122,8 @@ def pipeline_subvolume(path, sample, savepath, size, maskpath=None, modelpath=No
     print('3. Crop and flip center volume:')
     sizewide = 640
     data, crop = crop_center(data, size[0], size[0], individual, 'mass')  # crop data
-    PrintOrthogonal(data)
-    SaveOrthogonal(savepath + "\\Images\\" + sample + "_orient_cropped.png", data)
+    print_orthogonal(data)
+    save_orthogonal(savepath + "\\Images\\" + sample + "_orient_cropped.png", data)
     render_volume(data, savepath + "\\Images\\" + sample + "_orient_cropped_render.png")
 
     # Different pipeline for large dataset
@@ -130,24 +135,23 @@ def pipeline_subvolume(path, sample, savepath, size, maskpath=None, modelpath=No
     Save(savepath + '\\' + sample, sample, data)
 
 
-
-
 def large_pipeline(data, sample, savepath, size, modelpath=None, snapshots=None):
     dims = [448, data.shape[2] // 2]
-    PrintOrthogonal(data)
-    
+    print_orthogonal(data)
+
+    # Loop for 9 subvolumes
     for n in range(3):
         for nn in range(3):
             # Selection
             x1 = n * 200
             y1 = nn * 200
             
-            ## Plot selection
-            #fig, ax = plt.subplots(1)
-            #ax.imshow(data[:, :, dims[1]])
-            #rect = patches.Rectangle((x1, y1), dims[0], dims[0], linewidth=3, edgecolor='r', facecolor='none')
-            #ax.add_patch(rect)
-            #plt.show()
+            # # Plot selection
+            # fig, ax = plt.subplots(1)
+            # ax.imshow(data[:, :, dims[1]])
+            # rect = patches.Rectangle((x1, y1), dims[0], dims[0], linewidth=3, edgecolor='r', facecolor='none')
+            # ax.add_patch(rect)
+            # plt.show()
             
             # Crop subvolume
             subdata = data[x1:x1 + dims[0], y1:y1 + dims[0], :]
@@ -155,31 +159,29 @@ def large_pipeline(data, sample, savepath, size, modelpath=None, snapshots=None)
             # Save data
             subpath = savepath + r'\Data\\' + sample + "_sub" + str(n) + str(nn)
             subsample = sample + "_sub" + str(n) + str(nn) + '_'
-#             print(subsample)
             Save(subpath, subsample, subdata)
     return True
 
 
 def orient(data, bounds, individual=False):
+    # Sample dimensions
     dims = np.array(np.shape(data))
     
     # Skip large sample
     if dims[0] > 1200 and dims[1] > 1200 or dims[2] > 2000:
         print('Skipping orientation for large sample')
         return data, (0, 0)
+
+    # Ignore edges of sample
+    cut1 = int((1/4) * len(bounds[0]))
+    cut2 = int((1/2) * len(bounds[0]))
     
-    p = FloatProgress(min=0, max=100, description='Orienting:')
-    display(p)
-    cut1 = int((1/4) * len(bounds[0]))  # ignore edges of sample
-    cut2 = int((1/2) * len(bounds[0]))  # ignore edges of sample
-    
-    # Get angles
-    # bbox
+    # Get bounding box angles
     theta_x1, line_x1 = get_angle(bounds[0][cut1:cut2], bool(0))
     theta_x2, line_x2 = get_angle(bounds[1][cut1:cut2], bool(0))
     theta_y1, line_y1 = get_angle(bounds[2][cut1:cut2], bool(0))
     theta_y2, line_y2 = get_angle(bounds[3][cut1:cut2], bool(0))
-    angle1 = 0.5 * (theta_x1 + theta_x2)  # bbox angles
+    angle1 = 0.5 * (theta_x1 + theta_x2)
     angle2 = 0.5 * (theta_y1 + theta_y2)
     
     # Plot bbox fits
@@ -194,19 +196,18 @@ def orient(data, bounds, individual=False):
     plt.plot(xpoints, (xpoints - line_y2[2]) * (line_y2[1] / line_y2[0]) + line_y2[3], 'r--')
     plt.show()
     
-    # PCA
+    # PCA angles
     xangle = pca_angle(data[dims[0] // 2, :, :], 1, 80)
     yangle = pca_angle(data[:, dims[1] // 2, :], 1, 80)
     
-    # Gradient descent
+    # Gradient descent angles
     origrad = find_ori_grad(alpha=0.5, h=5, n_iter=60)
     mask = data > 70
     binned = zoom(mask, (0.125, 0.125, 0.125))
-    #binned[:, :, binned.shape[2] * 1 // 2:] = 0
-    PrintOrthogonal(binned)
+    # binned[:, :, binned.shape[2] * 1 // 2:] = 0
+    print_orthogonal(binned)
     ori = origrad(binned)
 
-    p.value += 20
     print('BBox angles: {0}, {1}'.format(angle1, angle2))
     print('PCA angles: {0}, {1}'.format(xangle, yangle))
     print('Gradient descent angles: {0}, {1}'.format(ori[0], ori[1]))
@@ -232,155 +233,46 @@ def orient(data, bounds, individual=False):
         else:
             print('Invalid selection! Bounding box is used.')
     else:
-        # Calculate average angle
-        #print('Average angles selected.')
-        #if abs(xangle) > 20:
-        #    angle1 = (ori[0] + angle1) / 2
-        #else:
-        #    angle1 = (ori[0] + xangle + angle1) / 3
-        #if abs(yangle) > 20:
-        #    angle2 = (ori[1] + angle2) / 2
-        #else:
-        #    angle2 = (ori[1] + yangle + angle2) / 3
-        #angle1 = ori[0]; angle2 = ori[1]
         print('Selected angles: {0}, {1}'.format(angle1, angle2))
+        # Calculate average angle
+        # print('Average angles selected.')
+        # if abs(xangle) > 20:
+        #    angle1 = (ori[0] + angle1) / 2
+        # else:
+        #    angle1 = (ori[0] + xangle + angle1) / 3
+        # if abs(yangle) > 20:
+        #    angle2 = (ori[1] + angle2) / 2
+        # else:
+        #    angle2 = (ori[1] + yangle + angle2) / 3
+        # angle1 = ori[0]; angle2 = ori[1]
 
     # 1st rotation
     if abs(angle1) >= 4:  # check for small angle
         data = opencvRotate(data, 0, angle1)
-    # Crop to original size
-    #data = rotate(data, angle1, (1, 2))
-    #rdims = np.uint32((np.array(np.shape(data)) - dims) / 2)
-    #data = data[:,rdims[1]:-rdims[1],rdims[2]:-rdims[2]]
-    p.value += 40
-    PrintOrthogonal(data)
+    print_orthogonal(data)
 
     # 2nd rotation
     if abs(angle2) >= 4:  # check for small angle
         data = opencvRotate(data, 1, angle2)
-    # Crop to original size
-    #data = rotate(data, angle2, (0, 2))
-    #rdims = np.uint32((np.array(np.shape(data)) - dims) / 2)
-    #data = data[rdims[0]:-rdims[0],:,rdims[2]:-rdims[2]]
-    p.value += 40
-    PrintOrthogonal(data)
+    print_orthogonal(data)
 
     # Rotate array (affine transform)
-    #xangle = RotationMatrix(0.5 * (theta_x1 + theta_x2), 1)
-    #yangle = RotationMatrix(-0.5 * (theta_y1 + theta_y2), 0)
-    #data = affine_transform(data, xangle)
-    #data = affine_transform(data, yangle)
+    # xangle = RotationMatrix(0.5 * (theta_x1 + theta_x2), 1)
+    # yangle = RotationMatrix(-0.5 * (theta_y1 + theta_y2), 0)
+    # data = affine_transform(data, xangle)
+    # data = affine_transform(data, yangle)
     
     return data, (angle1, angle2)
 
 
 def orient_mask(mask, angles):
-    # Initialization
-    dims = np.array(np.shape(mask))
-    p = FloatProgress(min=0, max=100, description='Rotate mask:')
-    display(p)
-    
     # 1st rotation
-    mask = rotate(mask, angles[0], (1, 2))
-    rdims = np.uint32((np.array(np.shape(mask)) - dims) / 2)
-    mask = mask[:, rdims[1]:-rdims[1], rdims[2]:-rdims[2]]
-    p.value += 50
-    
+    mask = opencvRotate(mask, 0, angles[0])
+
     # 2nd rotation
-    mask = rotate(mask, angles[1], (0, 2))
-    rdims = np.uint32((np.array(np.shape(mask)) - dims) / 2)
-    mask = mask[rdims[0]:-rdims[0], :, rdims[2]:-rdims[2]]
-    p.value += 50
-    PrintOrthogonal(mask)
-    
+    mask = opencvRotate(mask, 1, angles[1])
+    print_orthogonal(mask)
     return mask
-
-
-def pca_angle(image, axis, threshold = 80, radians = bool(0)):
-    # Threshold
-    mask = image > threshold
-    # Get nonzero indices from BW image
-    ind = np.array(np.nonzero(mask)).T
-    # Fit pca
-    pcs = PCA(1, random_state=42)
-    pcs.fit(ind)
-    # Get components
-    x = pcs.components_
-    # Normalize to unit length
-    L2 = np.linalg.norm(x)
-    x_n = x/L2
-    # Generate vector for the other axis
-    if axis == 0:
-        ypos = np.array([1, 0]).reshape(-1, 1)
-        yneg = np.array([-1, 0]).reshape(-1, 1)
-    elif axis == 1:
-        ypos = np.array([0, 1]).reshape(-1, 1)
-        yneg = np.array([0, -1]).reshape(-1, 1)
-    else:
-        raise Exception('Invalid axis selected!')
-    
-    # Get orientation using dot product
-    ori1 = np.arccos(np.matmul(x_n, ypos))
-    ori2 = np.arccos(np.matmul(x_n, yneg))
-    
-    if ori1 < ori2:
-        ori = ori1
-    else:
-        ori = - ori2
-    if not radians:
-        ori = ori * 180 / np.pi
-        
-    return ori
-
-
-def rotation_matrix(angle, axis):
-    rotate = np.identity(3)
-    if axis == 0:
-        rotate[1, 1] = np.cos(angle)
-        rotate[2, 2] = np.cos(angle)
-        rotate[1, 2] = np.sin(angle)
-        rotate[2, 1] = - np.sin(angle)
-    elif axis == 1:
-        rotate[0, 0] = np.cos(angle)
-        rotate[2, 2] = np.cos(angle)
-        rotate[2, 0] = np.sin(angle)
-        rotate[0, 2] = - np.sin(angle)
-    elif axis == 2:
-        rotate[0, 0] = np.cos(angle)
-        rotate[1, 1] = np.cos(angle)
-        rotate[0, 1] = np.sin(angle)
-        rotate[1, 0] = - np.sin(angle)
-    else:
-        raise Exception('Invalid axis!')
-    return rotate
-
-
-def get_angle(data, radians=bool(0)):
-    # Calculate mean value
-    mean = 0.0
-    for k in range(len(data)):
-        if data[k] > 0:
-            mean += data[k] / len(data)
-    
-    # Centering, exclude points that are <= 0
-    ypoints = []
-    for k in range(len(data)):
-        if data[k] > 0:
-            ypoints.append(data[k] - mean)
-    xpoints = np.linspace(-len(ypoints)/2, len(ypoints) / 2, len(ypoints))
-    points = np.vstack([xpoints, ypoints]).transpose()
-    
-    # Fit line 
-    vx, vy, x, y = cv2.fitLine(points, cv2.DIST_L2, 0, 0.01, 0.01)
-    # print('vx {0}, vy {1}, x {2}, y {3}'.format(vx, vy, x, y))
-    slope = vy / (vx + 1e-9)
-    
-    if radians:
-        angle = np.arctan(slope)
-    else:
-        angle = np.arctan(slope) * 180 / np.pi
-    line = (vx, vy, x, y)
-    return angle, line
 
 
 def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
@@ -454,7 +346,25 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
     return data[xx1:xx2, yy1:yy2, :], (xx1, xx2, yy1, yy2)
 
 
-def cntk_segmentation(data, path):
+def segmentation_kmeans(data, n_clusters=3, offset=0, limit=2):
+    # TODO Check that segmentation works for pipeline
+    # Segmentation
+    mask = Parallel(n_jobs=12)(delayed(bone_kmeans)
+                               (data[i, :, offset:].T, n_clusters, scale=True, limit=limit, method='loop')
+                               for i in tqdm(range(data.shape[0]), 'Calculating mask'))
+    mask = np.transpose(np.array(mask), (0, 2, 1))
+
+    # Visualize
+    print_orthogonal(mask, False)
+
+    # Take offset into account
+    mask_array = np.zeros(data.shape)
+    mask_array[:, :, offset:] = mask
+
+    return mask_array
+
+
+def segmentation_cntk(data, path):
     """
     Segments bone-cartilage interface using saved CNTK models.
 
@@ -491,7 +401,7 @@ def cntk_segmentation(data, path):
     return maskarray
 
 
-def segmentation(data, modelpath, snapshots, cropsize=512, offset=700):
+def segmentation_pytorch(data, modelpath, snapshots, cropsize=512, offset=700):
     # Check for gpu
     device = "auto"
     if device == "auto":
@@ -500,7 +410,8 @@ def segmentation(data, modelpath, snapshots, cropsize=512, offset=700):
         else:
             device = "gpu"
 
-    #Get contents of snapshot directory, should contain pretrained models, session file and mean/sd vector
+    # Get contents of snapshot directory,
+    # should contain pretrained models, session file and mean/sd vector
     snaps = os.listdir(snapshots)
     snaps.sort()
 
@@ -526,12 +437,10 @@ def segmentation(data, modelpath, snapshots, cropsize=512, offset=700):
     splits, folds = get_split(session)
 
     # Inference
-    X, Y = inference(data[:, :, offset:cropsize+offset], args, splits, mu, sd)
-    #PrintOrthogonal(X)
-    #PrintOrthogonal(Y)
-    
+    x, y = inference(data[:, :, offset:cropsize+offset], args, splits, mu, sd)
+
     mask = np.zeros(data.shape)
-    mask[:, :, offset:cropsize + offset] = ((X + Y) / 2) > 0.5
+    mask[:, :, offset:cropsize + offset] = ((x + y) / 2) > 0.5
     
     return mask
 
@@ -633,7 +542,7 @@ Input data should be a thresholded, cropped volume of the sample"""
         return deepvoi, ccvoi, interface
 
 
-def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, save=True, otsu_thresh=None):
+def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=None):
     # Create save paths
     if not os.path.exists(savepath + "\\MeanStd\\"):
         os.makedirs(savepath + "\\MeanStd\\")
@@ -642,14 +551,14 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, save=True, ots
 
     # Surface
     if otsu_thresh is not None:
-        BW = surfvoi > otsu_thresh
+        voi_mask = surfvoi > otsu_thresh
     else:
-        BW, _ = otsuThreshold(surfvoi)
-    mean = (surfvoi * BW).sum(2) / (BW.sum(2) + 1e-9)
+        voi_mask, _ = otsuThreshold(surfvoi)
+    mean = (surfvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
     centered = np.zeros(surfvoi.shape)
     for i in range(surfvoi.shape[2]):
-        centered[:, :, i] = surfvoi[:, :, i] * BW[:, :, i] - mean
-    std = np.sqrt(np.sum((centered * BW) ** 2, 2) / (BW.sum(2) - 1 + 1e-9))
+        centered[:, :, i] = surfvoi[:, :, i] * voi_mask[:, :, i] - mean
+    std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
 
     # Plot
     fig = plt.figure(dpi=300)
@@ -674,14 +583,14 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, save=True, ots
 
     # Deep
     if otsu_thresh is not None:
-        BW = deepvoi > otsu_thresh
+        voi_mask = deepvoi > otsu_thresh
     else:
-        BW, _ = otsuThreshold(deepvoi)
-    mean = (deepvoi * BW).sum(2) / (BW.sum(2) + 1e-9)
+        voi_mask, _ = otsuThreshold(deepvoi)
+    mean = (deepvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
     centered = np.zeros(deepvoi.shape)
     for i in range(deepvoi.shape[2]):
-        centered[:, :, i] = deepvoi[:, :, i] * BW[:, :, i] - mean
-    std = np.sqrt(np.sum((centered * BW) ** 2, 2) / (BW.sum(2) - 1 + 1e-9))
+        centered[:, :, i] = deepvoi[:, :, i] * voi_mask[:, :, i] - mean
+    std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
     ax3 = fig.add_subplot(323)
     ax3.imshow(mean, cmap='gray')
     ax4 = fig.add_subplot(324)
@@ -700,14 +609,14 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, save=True, ots
 
     # Calc
     if otsu_thresh is not None:
-        BW = ccvoi > otsu_thresh
+        voi_mask = ccvoi > otsu_thresh
     else:
-        BW, _ = otsuThreshold(ccvoi)
-    mean = (ccvoi * BW).sum(2) / (BW.sum(2) + 1e-9)
+        voi_mask, _ = otsuThreshold(ccvoi)
+    mean = (ccvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
     centered = np.zeros(ccvoi.shape)
     for i in range(ccvoi.shape[2]):
-        centered[:, :, i] = ccvoi[:, :, i] * BW[:, :, i] - mean
-    std = np.sqrt(np.sum((centered * BW) ** 2, 2) / (BW.sum(2) - 1 + 1e-9))
+        centered[:, :, i] = ccvoi[:, :, i] * voi_mask[:, :, i] - mean
+    std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
 
     # Plot
     ax5 = fig.add_subplot(325)
@@ -739,14 +648,14 @@ def mean_std_surf(surfvoi, savepath, sample, otsu_thresh=None):
 
     # Surface
     if otsu_thresh is not None:
-        BW = surfvoi > otsu_thresh
+        voi_mask = surfvoi > otsu_thresh
     else:
-        BW, _ = otsuThreshold(surfvoi)
-    mean = (surfvoi * BW).sum(2) / (BW.sum(2) + 1e-9)
+        voi_mask, _ = otsuThreshold(surfvoi)
+    mean = (surfvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
     centered = np.zeros(surfvoi.shape)
     for i in range(surfvoi.shape[2]):
-        centered[:, :, i] = surfvoi[:, :, i] * BW[:, :, i] - mean
-    std = np.sqrt(np.sum((centered * BW) ** 2, 2) / (BW.sum(2) - 1 + 1e-9))
+        centered[:, :, i] = surfvoi[:, :, i] * voi_mask[:, :, i] - mean
+    std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
 
     # Plot
     fig = plt.figure(dpi=300)

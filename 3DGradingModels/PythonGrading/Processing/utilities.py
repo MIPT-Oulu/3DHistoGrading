@@ -65,7 +65,7 @@ def load(path, axis=(1, 2, 0)):
                 continue
     files = newlist[:]  # replace list
     # Load data and get bounding box
-    data = Parallel(n_jobs=12)(delayed(read_image)(path, file) for file in files)
+    data = Parallel(n_jobs=12)(delayed(read_image)(path, file) for file in tqdm(files, 'Loading'))
     if axis != (0, 1, 2):
         return np.transpose(np.array(data), axis)
 
@@ -259,7 +259,7 @@ def otsuThreshold(data):
     return data > value, value
 
 
-def PrintOrthogonal(data, invert=True, res=3.2):
+def print_orthogonal(data, invert=True, res=3.2):
     dims = np.array(np.shape(data)) // 2
     dims2 = np.array(np.shape(data))
     x = np.linspace(0, dims2[0], dims2[0])
@@ -315,7 +315,7 @@ def PrintOrthogonal(data, invert=True, res=3.2):
     plt.show()
 
 
-def SaveOrthogonal(path, data, invert=True, res=3.2):
+def save_orthogonal(path, data, invert=True, res=3.2):
     directory = path.rsplit('\\', 1)[0]
     if not os.path.exists(directory):
         os.makedirs(directory)
