@@ -2,31 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1807f0cf-5aea-425d-a657-1bf8ddb332b9" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Processing/rotations.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Grading/display_meanstd.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/PythonGrading.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PythonGrading.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNTK.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/CNTK.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Clustering/kmeans.py" beforeDir="false" afterPath="$PROJECT_DIR$/Clustering/kmeans.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Conversions.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/Conversions.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Debugging.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/Debugging.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Examples and debugging.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/Examples and debugging.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GradDesOrient.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/GradDesOrient.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/LBP features old.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/LBP features old.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/LBP features.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/LBP features.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/LBPEvaluation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/LBPEvaluation.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/create_regression_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Grading/create_regression_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/lbp_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/Grading/lbp_features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LoopExample.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/LoopExample.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PCAOrient.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/PCAOrient.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/CreateMeanStd.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/CreateMeanStd.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/CreateMeanStd.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/CreateMeanStd.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/GradDesOrient.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/GradDesOrient.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/VTKFunctions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/VTKFunctions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/clustering.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/clustering.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/large_sample.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/large_sample.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/segmentation.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/segmentation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/utilities.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/utilities.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/volume_extraction.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/volume_extraction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Segmentation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/Segmentation.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Notebooks/LBPEvaluation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Notebooks/LBPEvaluation.ipynb" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -35,12 +15,13 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/PythonGrading$display_meanstd.coverage" NAME="display_meanstd Coverage Results" MODIFIED="1548587745473" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Grading" />
+    <SUITE FILE_PATH="coverage/PythonGrading$CreateSubvolume.coverage" NAME="CreateSubvolume Coverage Results" MODIFIED="1548243741541" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
+    <SUITE FILE_PATH="coverage/PythonGrading$kmeans.coverage" NAME="kmeans Coverage Results" MODIFIED="1548252701416" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Clustering" />
+    <SUITE FILE_PATH="coverage/PythonGrading$CreateMeanStd.coverage" NAME="CreateMeanStd Coverage Results" MODIFIED="1548336127906" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
+    <SUITE FILE_PATH="coverage/PythonGrading$kmeans__1_.coverage" NAME="kmeans (1) Coverage Results" MODIFIED="1547546580464" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Clustering" />
     <SUITE FILE_PATH="coverage/PythonGrading$clustering.coverage" NAME="clustering Coverage Results" MODIFIED="1547548412558" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
     <SUITE FILE_PATH="coverage/PythonGrading$CreateMeanStd__1_.coverage" NAME="CreateMeanStd Coverage Results" MODIFIED="1547548345727" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
-    <SUITE FILE_PATH="coverage/PythonGrading$kmeans.coverage" NAME="kmeans Coverage Results" MODIFIED="1548252701416" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Clustering" />
-    <SUITE FILE_PATH="coverage/PythonGrading$kmeans__1_.coverage" NAME="kmeans (1) Coverage Results" MODIFIED="1547546580464" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Clustering" />
-    <SUITE FILE_PATH="coverage/PythonGrading$CreateMeanStd.coverage" NAME="CreateMeanStd Coverage Results" MODIFIED="1548336127906" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
-    <SUITE FILE_PATH="coverage/PythonGrading$CreateSubvolume.coverage" NAME="CreateSubvolume Coverage Results" MODIFIED="1548243741541" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
   </component>
   <component name="DatabaseView">
     <option name="SHOW_INTERMEDIATE" value="true" />
@@ -56,13 +37,45 @@
     <expand />
     <select />
   </component>
+  <component name="FUSProjectUsageTrigger">
+    <session id="-130516207">
+      <usages-collector id="statistics.lifecycle.project">
+        <counts>
+          <entry key="project.open.time.13" value="1" />
+          <entry key="project.opened" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.open">
+        <counts>
+          <entry key="ipynb" value="1" />
+          <entry key="py" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.open">
+        <counts>
+          <entry key="IPNB" value="1" />
+          <entry key="Python" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.edit">
+        <counts>
+          <entry key="py" value="463" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.edit">
+        <counts>
+          <entry key="Python" value="463" />
+        </counts>
+      </usages-collector>
+    </session>
+  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Processing/utilities.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="901">
-              <caret line="61" column="32" selection-start-line="61" selection-start-column="32" selection-end-line="61" selection-end-column="32" />
+            <state relative-caret-position="190">
+              <caret line="343" column="4" selection-start-line="343" selection-start-column="4" selection-end-line="353" selection-end-column="30" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -73,7 +86,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Clustering/kmeans.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="404">
+            <state relative-caret-position="646">
               <caret line="45" column="45" selection-start-line="45" selection-start-column="45" selection-end-line="45" selection-end-column="45" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -85,7 +98,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Processing/clustering.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="489">
+            <state relative-caret-position="1649">
               <caret line="101" column="27" selection-start-line="101" selection-start-column="27" selection-end-line="101" selection-end-column="27" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -94,13 +107,26 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Processing/CreateMeanStd.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-612">
-              <caret line="18" column="16" selection-start-line="18" selection-start-column="16" selection-end-line="18" selection-end-column="16" />
+            <state relative-caret-position="241">
+              <caret line="76" column="16" selection-start-line="75" selection-start-column="4" selection-end-line="76" selection-end-column="16" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Grading/display_meanstd.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="527">
+              <caret line="31" column="18" selection-start-line="31" selection-start-column="18" selection-end-line="31" selection-end-column="18" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+                <marker date="1548587745412" expanded="true" signature="81:1117" ph="..." />
               </folding>
             </state>
           </provider>
@@ -133,8 +159,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Processing/volume_extraction.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="926">
-              <caret line="592" column="38" lean-forward="true" selection-start-line="592" selection-start-column="38" selection-end-line="592" selection-end-column="38" />
+            <state relative-caret-position="9588">
+              <caret line="592" column="38" selection-start-line="592" selection-start-column="38" selection-end-line="592" selection-end-column="38" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -190,8 +216,15 @@
         <option value="$PROJECT_DIR$/Processing/clustering.py" />
         <option value="$PROJECT_DIR$/Processing/VTKFunctions.py" />
         <option value="$PROJECT_DIR$/Processing/CreateMeanStd.py" />
+        <option value="$PROJECT_DIR$/Grading/display_meanstd.py" />
       </list>
     </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="33" />
@@ -223,6 +256,11 @@
               <item name="PythonGrading" type="b2602c69:ProjectViewProjectNode" />
               <item name="PythonGrading" type="462c0819:PsiDirectoryNode" />
               <item name="Grading" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="PythonGrading" type="b2602c69:ProjectViewProjectNode" />
+              <item name="PythonGrading" type="462c0819:PsiDirectoryNode" />
+              <item name="Notebooks" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="PythonGrading" type="b2602c69:ProjectViewProjectNode" />
@@ -265,7 +303,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.CreateMeanStd">
+  <component name="RunManager" selected="Python.display_meanstd">
     <configuration name="CreateMeanStd" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="PythonGrading" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -351,6 +389,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="display_meanstd" type="PythonConfigurationType" factoryName="Python">
+      <module name="PythonGrading" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Grading" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Grading/display_meanstd.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="kmeans" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="PythonGrading" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -377,6 +437,7 @@
       <item itemvalue="Python.CreateSubvolume" />
       <item itemvalue="Python.CreateMeanStd" />
       <item itemvalue="Python.kmeans" />
+      <item itemvalue="Python.display_meanstd" />
     </list>
     <recent_temporary>
       <list>
@@ -428,35 +489,39 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17643923" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17803837" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32936078" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4989339" visible="true" weight="0.2524377" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.38678223" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49840087" visible="true" weight="0.2516269" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49946696" weight="0.38611713" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32827735" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32936078" />
       <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5010661" side_tool="true" visible="true" weight="0.2524377" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.50159913" side_tool="true" visible="true" weight="0.2516269" />
       <window_info anchor="bottom" id="Terminal" order="11" weight="0.7291441" />
       <window_info anchor="bottom" id="Python Console" order="12" sideWeight="0.49946696" weight="0.36403033" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info active="true" anchor="right" id="SciView" order="3" visible="true" weight="0.30703625" />
+      <window_info anchor="right" id="SciView" order="3" sideWeight="0.4985507" visible="true" weight="0.30703625" />
       <window_info anchor="right" id="R Graphics" order="4" />
       <window_info anchor="right" id="R Packages" order="5" />
       <window_info anchor="right" id="Database" order="6" weight="0.32995737" />
-      <window_info anchor="right" x="0" y="0" width="434" height="976" id="Documentation" order="7" side_tool="true" weight="0.32995737" />
+      <window_info anchor="right" x="0" y="0" width="434" height="976" id="Documentation" order="7" sideWeight="0.5014493" side_tool="true" weight="0.30703625" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -550,34 +615,12 @@ plt.show()</expression-string>
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2018.3/system/python_stubs/931779050/cv2/cv2/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="188">
-          <caret line="5662" column="4" selection-start-line="5662" selection-start-column="4" selection-end-line="5662" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/pyenv/Lib/site-packages/numpy/core/fromnumeric.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="184" column="4" selection-start-line="184" selection-start-column="4" selection-end-line="184" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2018.3/system/python_stubs/931779050/cv2/cv2/__init__.py" />
+    <entry file="file://C:/pyenv/Lib/site-packages/numpy/core/fromnumeric.py" />
     <entry file="file://$PROJECT_DIR$/Grading/ImageProcessing.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="51">
           <caret line="3" lean-forward="true" selection-start-line="3" selection-end-line="3" />
-          <folding>
-            <element signature="e#114#132#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Notebooks/LBPEvaluation.ipynb">
-      <provider selected="true" editor-type-id="ipnb-editor">
-        <state>
-          <selected id="0" />
         </state>
       </provider>
     </entry>
@@ -592,9 +635,6 @@ plt.show()</expression-string>
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="462">
           <caret line="230" selection-start-line="230" selection-end-line="230" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -605,20 +645,11 @@ plt.show()</expression-string>
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/pyenv/Lib/site-packages/scipy/misc/pilutil.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="326" selection-start-line="326" selection-end-line="326" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/pyenv/Lib/site-packages/scipy/misc/pilutil.py" />
     <entry file="file://$PROJECT_DIR$/Processing/rotations.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="540">
           <caret line="90" selection-start-line="90" selection-end-line="90" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -626,26 +657,11 @@ plt.show()</expression-string>
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
           <caret line="8" lean-forward="true" selection-start-line="8" selection-end-line="8" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/concurrent/futures/_base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="383" selection-start-line="383" selection-end-line="383" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/pyenv/Lib/site-packages/joblib/parallel.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="1007" selection-start-line="1007" selection-end-line="1007" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/concurrent/futures/_base.py" />
+    <entry file="file://C:/pyenv/Lib/site-packages/joblib/parallel.py" />
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="289">
@@ -664,9 +680,6 @@ plt.show()</expression-string>
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
           <caret line="9" column="13" lean-forward="true" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -674,9 +687,6 @@ plt.show()</expression-string>
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3230">
           <caret line="208" selection-start-line="208" selection-end-line="208" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -684,16 +694,37 @@ plt.show()</expression-string>
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="580">
           <caret line="160" column="4" selection-start-line="160" selection-start-column="4" selection-end-line="160" selection-end-column="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Grading/create_regression_model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="11" column="59" selection-start-line="11" selection-start-column="59" selection-end-line="11" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Processing/VTKFunctions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="727">
+          <caret line="68" selection-start-line="68" selection-end-line="68" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Clustering/kmeans.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="646">
+          <caret line="45" column="45" selection-start-line="45" selection-start-column="45" selection-end-line="45" selection-end-column="45" />
           <folding>
-            <element signature="e#0#31#0" expanded="true" />
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Processing/utilities.py">
+    <entry file="file://$PROJECT_DIR$/Processing/clustering.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="901">
-          <caret line="61" column="32" selection-start-line="61" selection-start-column="32" selection-end-line="61" selection-end-column="32" />
+        <state relative-caret-position="1649">
+          <caret line="101" column="27" selection-start-line="101" selection-start-column="27" selection-end-line="101" selection-end-column="27" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -710,16 +741,6 @@ plt.show()</expression-string>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Grading/create_regression_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="11" column="59" selection-start-line="11" selection-start-column="59" selection-end-line="11" selection-end-column="59" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Grading/lbp_features.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
@@ -730,40 +751,10 @@ plt.show()</expression-string>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Processing/VTKFunctions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="727">
-          <caret line="68" selection-start-line="68" selection-end-line="68" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Processing/clustering.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="489">
-          <caret line="101" column="27" selection-start-line="101" selection-start-column="27" selection-end-line="101" selection-end-column="27" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Clustering/kmeans.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="404">
-          <caret line="45" column="45" selection-start-line="45" selection-start-column="45" selection-end-line="45" selection-end-column="45" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Processing/volume_extraction.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="926">
-          <caret line="592" column="38" lean-forward="true" selection-start-line="592" selection-start-column="38" selection-end-line="592" selection-end-column="38" />
+        <state relative-caret-position="9588">
+          <caret line="592" column="38" selection-start-line="592" selection-start-column="38" selection-end-line="592" selection-end-column="38" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -772,10 +763,38 @@ plt.show()</expression-string>
     </entry>
     <entry file="file://$PROJECT_DIR$/Processing/CreateMeanStd.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-612">
-          <caret line="18" column="16" selection-start-line="18" selection-start-column="16" selection-end-line="18" selection-end-column="16" />
+        <state relative-caret-position="241">
+          <caret line="76" column="16" selection-start-line="75" selection-start-column="4" selection-end-line="76" selection-end-column="16" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Processing/utilities.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="190">
+          <caret line="343" column="4" selection-start-line="343" selection-start-column="4" selection-end-line="353" selection-end-column="30" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Notebooks/LBPEvaluation.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Grading/display_meanstd.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="527">
+          <caret line="31" column="18" selection-start-line="31" selection-start-column="18" selection-end-line="31" selection-end-column="18" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+            <marker date="1548587745412" expanded="true" signature="81:1117" ph="..." />
           </folding>
         </state>
       </provider>
