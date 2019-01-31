@@ -423,7 +423,7 @@ def loadbinary(path, datatype=np.int32):
         return features
 
 
-def loadh5(impath, file):
+def load_h5(impath, file):
     # Image loading
     h5 = h5py.File(os.path.join(impath,file), 'r')
     name = list(h5.keys())[0]
@@ -433,7 +433,7 @@ def loadh5(impath, file):
     return ims
 
 
-def saveh5(impath, flist, dsetname="dataset"):
+def save_h5(impath, flist, dsetname="dataset"):
     if not os.path.exists(impath.rsplit('\\', 1)[0]):
         os.makedirs(impath.rsplit('\\', 1)[0])
     f = h5py.File(impath, "w")

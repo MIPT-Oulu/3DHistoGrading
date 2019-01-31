@@ -1,5 +1,6 @@
 from volume_extraction import *
 from utilities import *
+import listbox
 
 
 def calculate_batch(impath, savepath, size, mask=False, modelpath=None, snapshots=None):
@@ -31,7 +32,11 @@ def calculate_batch(impath, savepath, size, mask=False, modelpath=None, snapshot
 
         if modelpath is not None and snapshots is not None:
             # Pipeline with Pytorch model
-            Pipeline(pth, files[k], savepath, size, None, modelpath, False, snapshots)
+            try:
+                pipeline(pth, files[k], savepath, size, None, modelpath, False, snapshots)
+            except Exception:
+                print('Error on sample {0}, skipping to next one.'.format(files[k]))
+                continue
         else:
             raise Exception('Select mask or model to be used!')
 
@@ -66,7 +71,7 @@ def calculate_individual(impath, savepath, size, mask=False, modelpath=None, sna
 
     if modelpath is not None and snapshots is not None:
         # Pipeline with Pytorch model
-        Pipeline(pth, files[k], savepath, size, None, modelpath, True, snapshots)
+        pipeline(pth, files[k], savepath, size, None, modelpath, True, snapshots)
     else:
         raise Exception('Select mask or model to be used!')
 
@@ -75,8 +80,6 @@ def calculate_multiple(impath, savepath, size, selection=None, mask=False, model
     # List directories
     files = os.listdir(impath)
     files.sort()
-    for i in range(len(files)):
-        print('{0}\t {1}'.format(i, files[i]))
 
     # Print selection
     files = [files[i] for i in selection]
@@ -101,7 +104,11 @@ def calculate_multiple(impath, savepath, size, selection=None, mask=False, model
                 continue
 
         if modelpath is not None and snapshots is not None:  # Pipeline with Pytorch model
-            Pipeline(pth, files[k], savepath, size, None, modelpath, False, snapshots)
+            try:
+                pipeline(pth, files[k], savepath, size, None, modelpath, False, snapshots)
+            except Exception:
+                print('Sample {0} failing. Skipping to next one'.format(files[k]))
+                continue
         else:  # No matching pipeline
             raise Exception('Select mask or model to be used!')
     print('Done')
@@ -109,14 +116,16 @@ def calculate_multiple(impath, savepath, size, selection=None, mask=False, model
 
 if __name__ == '__main__':
     # Pipeline variables
-    impath = r"Y:\3DHistoData\Subvolumes_Isokerays"
-    savepath = r"Y:\3DHistoData\Subvolumes_Isokerays"
+    path = r"Y:\3DHistoData\Subvolumes_Insaf"
     size = [448, 25, 10, 150, 50]  # width, surf depth, offset, deep depth, cc depth
     modelpath = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/"
     snapshots = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/"
-    selection = [3, 9, 10, 13, 14, 15, 22, 23, 28]
+    selection = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+    # Use listbox (Result is saved in listbox.file_list)
+    listbox.GetFileSelection(path)
 
     # Call pipeline
-    calculate_batch(impath, savepath, size, False, modelpath, snapshots)
-    # calculate_multiple(impath, savepath, size, selection, False, modelpath, snapshots)
+    # calculate_batch(impath, savepath, size, False, modelpath, snapshots)
+    calculate_multiple(path, path, size, listbox.file_list, False, modelpath, snapshots)
     # calculate_individual(impath, savepath, size, False, modelpath)

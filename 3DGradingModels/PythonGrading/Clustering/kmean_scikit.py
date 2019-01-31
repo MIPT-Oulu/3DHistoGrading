@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from utilities import read_image, load, print_orthogonal
 from VTKFunctions import render_volume
-from clustering import kmeans_opencv
+from clustering import kmeans_scikit
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
@@ -11,13 +11,17 @@ from tqdm import tqdm
 path = r'Y:\3DHistoData\Test data'
 file_2mm = '13_R3L_2_PTA_48h_cor504.png'
 file_4mm = 'KP03-L6-4MP2_Cor740.png'
-n_clusters = 3
+impath = r'C:\Users\Tuomas Frondelius\Desktop\Data\KP03-L6-4MC2_sub01'
+# impath = r'Y:\3DHistoData\Subvolumes_Isokerays\OA036-R6-4LD3_sub00'
+impath = r'Y:\3DHistoData\Subvolumes_Insaf\6060-28L_PTA_Rec_sub1'
+n_clusters = 4
 width = 448
 
 # Load
 cor_2mm = np.flip(read_image(path, file_2mm))
 cor_4mm = np.flip(read_image(path, file_4mm))
-data = load(r'C:\Users\Tuomas Frondelius\Desktop\Data\KP03-L6-4MC2_sub01')
+
+data = load(impath)
 
 # Crop
 cor_2mm = cor_2mm[:, 300:748]
@@ -38,32 +42,18 @@ ax3 = fig.add_subplot(133)
 ax3.imshow(data_cor, cmap='gray')
 ax3.set_title('4mm image')
 plt.show()
-render_volume(data, None, False)
+# render_volume(data, None, False)
 
-# Downscale images
-
-# K-means clustering
+mask = kmeans_scikit(data[data.shape[0] // 2, :, :].T, n_clusters, scale=True, method='loop')
+plt.imshow(mask)
+plt.show()
 
 # 3D clustering in parallel
-mask = Parallel(n_jobs=12)(delayed(kmeans_opencv)(data[i, :, :].T, n_clusters, scale=True, method='loop')
+mask = Parallel(n_jobs=8)(delayed(kmeans_scikit)(data[i, :, :].T, n_clusters, scale=True, method='loop')
                            for i in tqdm(range(data.shape[0]), 'Calculating mask'))
 mask = np.transpose(np.array(mask), (0, 2, 1))
 print_orthogonal(mask, True)
+render_volume(mask * data, None, False)
 
-# 2D clustering
-mask_2mm = kmeans_opencv(cor_2mm, n_clusters, True, limit=2, method='loop')
-mask_4mm = kmeans_opencv(cor_4mm, n_clusters, True, limit=2, method='loop')
-mask_4mm_2 = kmeans_opencv(data_cor, n_clusters, True, limit=2, method='loop')
-
-# Show cluster images
-fig = plt.figure(dpi=300)
-ax1 = fig.add_subplot(131)
-ax1.imshow(mask_2mm)
-ax1.set_title('2mm mask')
-ax2 = fig.add_subplot(132)
-ax2.imshow(mask_4mm)
-ax2.set_title('4mm mask')
-ax3 = fig.add_subplot(133)
-ax3.imshow(mask_4mm_2)
-ax3.set_title('4mm mask')
-plt.show()
+# TODO Implement downscaling and upscaling of image stacks. K-means or spectral clustering
+# TODO Scikit kmeans

@@ -10,7 +10,6 @@ from Grading.roc_curve import *
 
 
 def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
-    # TODO Implement LBP calculation for Insaf and Isokeräys dataset
     # Start time
     start_time = time.time()
     # Calculate MRELBP from dataset
@@ -19,7 +18,6 @@ def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
 
     # Save parameters
     writer = pd.ExcelWriter(save + r'\LBP_parameters.xlsx')
-    print(pars)
     df1 = pd.DataFrame(pars, index=[0])
     df1.to_excel(writer)
     writer.save()
@@ -59,9 +57,14 @@ def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
 
         # Combine mean and sd images
         if dtype == 'h5':
-            image = images[k]
+            image_surf, image_deep, image_calc = load_vois_h5(impath, files[k])
+            # image = images[k]
             if np.shape(image)[0] != 400:
-                image = image[24:-24, 24:-24]
+                crop = (np.shape(image)[0] - 400) // 2
+                image = image[crop:-crop, crop:-crop]
+                image_surf = image_surf[crop:-crop, crop:-crop]
+                image_deep = image_deep[crop:-crop, crop:-crop]
+                image_calc = image_calc[crop:-crop, crop:-crop]
         else:
             image = Mz + sz
         # Grayscale normalization
@@ -69,27 +72,24 @@ def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
         image = localstandard(image, pars['ks1'], pars['sigma1'], pars['ks2'], pars['sigma2'])
         plt.imshow(image)
         plt.show()
-        print(image)
         # LBP
-        hist, lbpIL, lbpIS, lbpIR = MRELBP(image, pars['N'], pars['R'], pars['r'], pars['wc'], (pars['wl'], pars['ws']))
+        hist, lbp_il, lbp_is, lbp_ir = MRELBP(image, pars['N'], pars['R'], pars['r'], pars['wc'], (pars['wl'], pars['ws']))
         # hist = Conv_MRELBP(image,dict['N'],dict['R'],dict['r'],dict['wr'][0],dict['wr'][1] ,dict['wc'])
         if hist.shape[0] == 1:
             hist = hist.T
-        # print(hist2.shape)
-        # print(np.sum(abs(hist2-hist)))
         try:
             features = np.concatenate((features, hist), axis=1)
         except ValueError:
             features = hist
         # Save images
         # if dtype == 'dat':
-        #    cv2.imwrite(savepath + '\\' + files[2 * k][:-9] + '.png', lbpIS)
+        #    cv2.imwrite(savepath + '\\' + files[2 * k][:-9] + '.png', lbp_is)
         # else:
-        #    cv2.imwrite(savepath + '\\' + files[k][:-9] + '.png', lbpIS)
+        #    cv2.imwrite(savepath + '\\' + files[k][:-9] + '.png', lbp_is)
 
         # Plot LBP images
-        # plt.imshow(lbpIS); plt.show()
-        # plt.imshow(lbpIL); plt.show()
+        # plt.imshow(lbp_is); plt.show()
+        # plt.imshow(lbp_il); plt.show()
         # plt.imshow(lbpIR); plt.show()
 
     # Save features

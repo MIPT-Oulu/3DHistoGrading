@@ -136,8 +136,8 @@ def logreg_group(features, score, groups=None):
         P = regr.predict_proba(X_test)
         pred.append(P)
 
-    #pred = np.array(pred)
-    #pred = pred[:,:,1]
+    # pred = np.array(pred)
+    # pred = pred[:,:,1]
     
     predflat = []
     for group in pred:
@@ -149,138 +149,142 @@ def logreg_group(features, score, groups=None):
 
 # Bilinear interpolation (new)
 def imbilinear(im, col, x, row, y):
-    # Takes bilinear interpotalion from image
-    # Starts from coordinates [y,x], ends at row,col
+    """Takes bilinear interpolation from image.
+    Starts from coordinates [y,x], ends at row,col.
+    See Wikipedia article for bilinear interpolation."""
     x1 = int(np.floor(x))
     x2 = int(np.ceil(x))
     y1 = int(np.floor(y))
     y2 = int(np.ceil(y))
-    Q11 = im[y1:y1+row, x1:x1+col]
-    Q21 = im[y1:y1+row, x2:x2+col]
-    Q12 = im[y2:y2+row, x1:x1+col]
-    Q22 = im[y2:y2+row, x2:x2+col]
-    R1 = ((x2-x)/(x2-x1+1e-12))*Q11+((x-x1)/(x2-x1+1e-12))*Q21
-    R2 = ((x2-x)/(x2-x1+1e-12))*Q12+((x-x1)/(x2-x1+1e-12))*Q22
-    P = ((y2-y)/(y2-y1+1e-12))*R1+((y-y1)/(y2-y1+1e-12))*R2
-    return P
+    q11 = im[y1:y1+row, x1:x1+col]
+    q21 = im[y1:y1+row, x2:x2+col]
+    q12 = im[y2:y2+row, x1:x1+col]
+    q22 = im[y2:y2+row, x2:x2+col]
+    r1 = ((x2-x)/(x2-x1+1e-12))*q11+((x-x1)/(x2-x1+1e-12))*q21
+    r2 = ((x2-x)/(x2-x1+1e-12))*q12+((x-x1)/(x2-x1+1e-12))*q22
+    p = ((y2-y)/(y2-y1+1e-12))*r1+((y-y1)/(y2-y1+1e-12))*r2
+    return p
 
 
-def MRELBP(im, N, R, r, w_c, w_r):
+def MRELBP(im, parameters):
     """ Takes Median Robust Extended Local Binary Pattern from image im
-    Uses N neighbours from radii R and r, R must be larger than r
-    Median filter uses kernel sizes w_c for center pixels, w_r[0] for larger radius and w_r[1]
+    Uses n neighbours from radii r_large and r_small, r_large must be larger than r_small
+    Median filter uses kernel sizes weight_center for center pixels, w_r[0] for larger radius and w_r[1]
     #or smaller radius
     Grayscale values are centered at their mean and scales with global standad deviation
     """
 
+    n = parameters['N']
+    r_large = parameters['R']
+    r_small = parameters['r']
+    weight_center = parameters['wc']
+    weight_large = parameters['wl']
+    weight_small = parameters['ws']
+
     # Mean grayscale value and std
-    muI = im.mean()
-    stdI = im.std()
+    mean_image = im.mean()
+    std_image = im.std()
 
     # Centering and scaling with std
-    I = (im-muI)/stdI
+    image = (im-mean_image)/std_image
 
     # Median filtering
-    Ic = medfilt(I, w_c)
+    image_center = medfilt(image, weight_center)
     # Center pixels
-    d = round(R+(w_r[0]-1)/2)
-    Ic = Ic[d:-d, d:-d]
+    dist = round(r_large+(weight_large-1)/2)
+    image_center = image_center[dist:-dist, dist:-dist]
     # Subtracting the mean pixel value from center pixels
-    Ic = Ic-Ic.mean()
-    # Bining center pixels
-    Chist = np.zeros((1, 2))
-    Chist[0, 0] = np.sum(I >= 0)
-    Chist[0, 1] = np.sum(Ic < 0)
+    image_center = image_center-image_center.mean()
+    # Binning center pixels
+    center_hist = np.zeros((1, 2))
+    center_hist[0, 0] = np.sum(image >= 0)
+    center_hist[0, 1] = np.sum(image_center < 0)
+
     # --------------- #
-    #Chist[0,0] = np.sum(Ic>=-1e-06)
-    #Chist[0,1] = np.sum(Ic<-1e-06)
+    # center_hist[0,0] = np.sum(image_center>=-1e-06)
+    # center_hist[0,1] = np.sum(image_center<-1e-06)
     # --------------- #
     
-
     # Median filtered images for large and small radius
-    IL = medfilt(I, w_r[0])
-    IS = medfilt2d(I, w_r[1])
+    image_large = medfilt(image, weight_large)
+    image_small = medfilt2d(image, weight_small)
 
     # Neighbours
     pi = np.pi
     # Empty arrays for the neighbours
-    row, col = np.shape(Ic)
-    NL = np.zeros((row, col, N))
-    NS = np.zeros((row, col, N))
+    row, col = np.shape(image_center)
+    n_large = np.zeros((row, col, n))
+    n_small = np.zeros((row, col, n))
     
-    for k in range(N):
+    for k in range(n):
         # Angle to the neighbour
-        theta = 0+k*(-1*2*pi/N)
+        theta = k * (-1 * 2 * pi / n)
         # Large neighbourhood
-        x = d+R*np.cos(theta)
-        y = d+R*np.sin(theta)
+        x = dist + r_large * np.cos(theta)
+        y = dist + r_large * np.sin(theta)
         if abs(x-round(x)) < 1e-06 and abs(y-round(y)) < 1e-06:
             x = int(round(x))
             y = int(round(y))
-            P = IL[y:y+row, x:x+col]
+            p = image_large[y:y+row, x:x+col]
         else:
-            P = imbilinear(IL, col, x, row, y)
-        NL[:, :, k] = P
+            p = imbilinear(image_large, col, x, row, y)
+        n_large[:, :, k] = p
         # Small neighbourhood
-        x = d+r*np.cos(theta)
-        y = d+r*np.sin(theta)
+        x = dist+r_small*np.cos(theta)
+        y = dist+r_small*np.sin(theta)
         if abs(x-round(x)) < 1e-06 and abs(y-round(y)) < 1e-06:
             x = int(round(x))
             y = int(round(y))
-            P = IS[y:y+row, x:x+col]
+            p = image_small[y:y+row, x:x+col]
         else:
-            P = imbilinear(IS, col, x, row, y)
-        NS[:, :, k] = P
-    # Thresholding
+            p = imbilinear(image_small, col, x, row, y)
+        n_small[:, :, k] = p
 
     # Thresholding radial neighbourhood
-    NR = NL-NS
+    n_radial = n_large-n_small
 
     # Subtraction of means
-    # Large neighbourhood
-    NLmu = NL.mean(axis=2)		
-    # Small neighbouhood
-    NSmu = NS.mean(axis=2)
-
-    for k in range(N):
-        NL[:, :, k] = NL[:, :, k]-NLmu
-        NS[:, :, k] = NS[:, :, k]-NSmu
+    mean_large = n_large.mean(axis=2)
+    mean_small = n_small.mean(axis=2)
+    for k in range(n):
+        n_large[:, :, k] = n_large[:, :, k]-mean_large
+        n_small[:, :, k] = n_small[:, :, k]-mean_small
 
     # Converting to binary images and taking the lbp values
 
     # Initialization of arrays
-    lbpIL = np.zeros((row, col))
-    lbpIS = np.zeros((row, col))
-    lbpIR = np.zeros((row, col))
+    lbp_large = np.zeros((row, col))
+    lbp_small = np.zeros((row, col))
+    lbp_radial = np.zeros((row, col))
 
-    for k in range(N):
-        lbpIL = lbpIL+(NL[:, :, k] >= 0)*2**k # NOTE ACCURACY FOR THRESHOLDING!!!
-        lbpIS = lbpIS+(NS[:, :, k] >= 0)*2**k
-        lbpIR = lbpIR+(NR[:, :, k] >= 0)*2**k
+    for k in range(n):
+        lbp_large = lbp_large+(n_large[:, :, k] >= 0)*2**k  # NOTE ACCURACY FOR THRESHOLDING!!!
+        lbp_small = lbp_small+(n_small[:, :, k] >= 0)*2**k
+        lbp_radial = lbp_radial+(n_radial[:, :, k] >= 0)*2**k
         # --------------- #
-        #lbpIL = lbpIL+(NL[:,:,k]>=-1e-06)*2**k # NOTE ACCURACY FOR THRESHOLDING!!!
-        #lbpIS = lbpIS+(NS[:,:,k]>=-1e-06)*2**k
-        #lbpIR = lbpIR+(NR[:,:,k]>=-1e-06)*2**k
+        # lbp_large = lbp_large+(n_large[:,:,k]>=-1e-06)*2**k  # NOTE ACCURACY FOR THRESHOLDING!!!
+        # lbp_small = lbp_small+(n_small[:,:,k]>=-1e-06)*2**k
+        # lbp_radial = lbp_radial+(n_radial[:,:,k]>=-1e-06)*2**k
         # --------------- #
 
     # Binning
-    Lhist = np.zeros((1, 2**N))
-    Shist = np.zeros((1, 2**N))
-    Rhist = np.zeros((1, 2**N))
-    for k in range(2**N):
-        Lhist[0, k] = np.sum(lbpIL == k)
-        Shist[0, k] = np.sum(lbpIS == k)
-        Rhist[0, k] = np.sum(lbpIR == k)
+    large_hist = np.zeros((1, 2**n))
+    small_hist = np.zeros((1, 2**n))
+    radial_hist = np.zeros((1, 2**n))
+    for k in range(2**n):
+        large_hist[0, k] = np.sum(lbp_large == k)
+        small_hist[0, k] = np.sum(lbp_small == k)
+        radial_hist[0, k] = np.sum(lbp_radial == k)
 
     # Mapping
-    mapping = getmapping(N)
-    Lhist = maplbp(Lhist, mapping)
-    Shist = maplbp(Shist, mapping)
-    Rhist = maplbp(Rhist, mapping)
+    mapping = getmapping(n)
+    large_hist = maplbp(large_hist, mapping)
+    small_hist = maplbp(small_hist, mapping)
+    radial_hist = maplbp(radial_hist, mapping)
     
-    hist = np.concatenate((Chist, Lhist, Shist, Rhist), 1)
+    hist = np.concatenate((center_hist, large_hist, small_hist, radial_hist), 1)
     
-    return hist.T, lbpIL, lbpIS, lbpIR
+    return hist.T, (lbp_large, lbp_small, lbp_radial)
 
 
 def getmapping(N):
@@ -405,8 +409,13 @@ def ScikitPCA(features, ncomp, whitening=False, solver='full'):
 
 
 # Local grayscale standardization
-def localstandard(im, w1, w2, sigma1, sigma2):
-    # Centers grayscales with Gaussian weighted mean
+def localstandard(im, parameters):
+    """Centers grayscales with Gaussian weighted mean"""
+    # Unpack parameters
+    w1 = parameters['ks1']
+    w2 = parameters['ks2']
+    sigma1 = parameters['sigma1']
+    sigma2 = parameters['sigma2']
 
     # Gaussian kernels
     kernel1 = Gauss2D(w1, sigma1)
