@@ -123,14 +123,14 @@ def render_volume(data, savepath=None, white=True):
         writer.SetInputData(img.GetOutput())
         writer.Write()
         return
-    else:
+    else:  # Run the window with user interactions
         interactor.Start()
 
 
-def array_to_vtk(A):
+def array_to_vtk(array):
     imagedata = vtk.vtkImageData()
-    depth_array = numpy_support.numpy_to_vtk(A.ravel(), deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
-    imagedata.SetDimensions(A.shape)
+    depth_array = numpy_support.numpy_to_vtk(array.ravel(), deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
+    imagedata.SetDimensions(array.shape)
     imagedata.SetOrigin(0, 0, 0)
     imagedata.GetPointData().SetScalars(depth_array)
     return imagedata

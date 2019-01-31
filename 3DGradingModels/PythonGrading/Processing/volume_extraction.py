@@ -22,14 +22,14 @@ from utilities import *
 from rotations import pca_angle, get_angle
 from VTKFunctions import render_volume
 from segmentation import get_split, inference
-from clustering import bone_kmeans
+from clustering import kmeans_opencv, kmeans_scikit
 
 from tqdm.auto import tqdm
 from argparse import ArgumentParser
-from joblib import Parallel,delayed
+from joblib import Parallel, delayed
 
 
-def Pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
+def pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
     # 1. Load sample
     print('Sample name: ' + sample)
     print('1. Load sample')
@@ -97,7 +97,7 @@ def Pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, indivi
         mean_std_surf(surfvoi, savepath, sample, otsu_thresh)
 
 
-def pipeline_subvolume(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
+def pipeline_subvolume(path, sample, savepath, size, sizewide, modelpath=None, individual=False, snapshots=None):
     # 1. Load sample
     print('Sample name: ' + sample)
     print('1. Load sample')
@@ -105,23 +105,16 @@ def pipeline_subvolume(path, sample, savepath, size, maskpath=None, modelpath=No
     print_orthogonal(data)
     save_orthogonal(savepath + "\\Images\\" + sample + "_input.png", data)
     render_volume(data, savepath + "\\Images\\" + sample + "_input_render.png")
-    if maskpath is not None and modelpath is None:
-        print(maskpath)
-        mask, _ = load_bbox(maskpath)
-        print_orthogonal(mask)
 
-    # # 2. Orient array
-    # print('2. Orient sample')
-    # data, angles = orient(data, bounds, individual)
-    # SaveOrthogonal(savepath + "\\Images\\" + sample + "_orient.png", data)
-    # RenderVolume(data, savepath + "\\Images\\" + sample + "_orient_render.png")
-    # if maskpath is not None and modelpath is None:
-    #    mask = orient_mask(mask, angles)
+    # 2. Orient array
+    print('2. Orient sample')
+    data, angles = orient(data, bounds, individual)
+    save_orthogonal(savepath + "\\Images\\" + sample + "_orient.png", data)
+    render_volume(data, savepath + "\\Images\\" + sample + "_orient_render.png")
 
     # 3. Crop and flip volume
     print('3. Crop and flip center volume:')
-    sizewide = 640
-    data, crop = crop_center(data, size[0], size[0], individual, 'mass')  # crop data
+    data, crop = crop_center(data, size[0], sizewide, individual, 'cm')  # crop data
     print_orthogonal(data)
     save_orthogonal(savepath + "\\Images\\" + sample + "_orient_cropped.png", data)
     render_volume(data, savepath + "\\Images\\" + sample + "_orient_cropped_render.png")
@@ -132,7 +125,11 @@ def pipeline_subvolume(path, sample, savepath, size, maskpath=None, modelpath=No
         return
 
     # Save crop data
-    Save(savepath + '\\' + sample, sample, data)
+    if data.shape[0] > 448:
+        Save(savepath + '\\' + sample + '_sub1', sample + '_sub1_', data[:448, :, :])
+        Save(savepath + '\\' + sample + '_sub2', sample + '_sub2_', data[-448:, :, :])
+    else:
+        Save(savepath + '\\' + sample, sample, data)
 
 
 def large_pipeline(data, sample, savepath, size, modelpath=None, snapshots=None):
@@ -200,17 +197,17 @@ def orient(data, bounds, individual=False):
     xangle = pca_angle(data[dims[0] // 2, :, :], 1, 80)
     yangle = pca_angle(data[:, dims[1] // 2, :], 1, 80)
     
-    # Gradient descent angles
-    origrad = find_ori_grad(alpha=0.5, h=5, n_iter=60)
-    mask = data > 70
-    binned = zoom(mask, (0.125, 0.125, 0.125))
-    # binned[:, :, binned.shape[2] * 1 // 2:] = 0
-    print_orthogonal(binned)
-    ori = origrad(binned)
+    ## Gradient descent angles
+    #origrad = find_ori_grad(alpha=0.5, h=5, n_iter=60)
+    #mask = data > 70
+    #binned = zoom(mask, (0.125, 0.125, 0.125))
+    ## binned[:, :, binned.shape[2] * 1 // 2:] = 0
+    #print_orthogonal(binned)
+    #ori = origrad(binned)
 
     print('BBox angles: {0}, {1}'.format(angle1, angle2))
     print('PCA angles: {0}, {1}'.format(xangle, yangle))
-    print('Gradient descent angles: {0}, {1}'.format(ori[0], ori[1]))
+    #print('Gradient descent angles: {0}, {1}'.format(ori[0], ori[1]))
 
     # Ask user to choose rotation
     if individual:
@@ -222,11 +219,11 @@ def orient(data, bounds, individual=False):
             angle1 = xangle; angle2 = yangle
         elif choice == 3:
             print('Gradient descent selected.')
-            angle1 = ori[0]; angle2 = ori[1]
+            #angle1 = ori[0]; angle2 = ori[1]
         elif choice == 4:
             print('Average selected.')
-            angle1 = (ori[0] + xangle + angle1) / 3
-            angle2 = (ori[1] + yangle + angle2) / 3
+            #angle1 = (ori[0] + xangle + angle1) / 3
+           # angle2 = (ori[1] + yangle + angle2) / 3
         elif choice == 0:
             print('No rotation performed.')
             return data, (0, 0)
@@ -280,9 +277,9 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
     center = np.zeros(2)
 
     # Calculate center moment
-    # crop = dims[2] // 3
-    # sumarray = data[:, :, :crop].sum(2).astype(float)
-    sumarray = data.sum(2).astype(float)
+    crop = dims[2] // 3
+    sumarray = data[:, :, :crop].sum(2).astype(float)
+    # sumarray = data.sum(2).astype(float)
     sumarray -= sumarray.min()
     sumarray /= sumarray.max()
     sumarray = sumarray > 0.1
@@ -346,16 +343,19 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
     return data[xx1:xx2, yy1:yy2, :], (xx1, xx2, yy1, yy2)
 
 
-def segmentation_kmeans(data, n_clusters=3, offset=0, limit=2):
+def segmentation_kmeans(data, n_clusters=3, offset=0, limit=2, method='scikit'):
     # TODO Check that segmentation works for pipeline
     # Segmentation
-    mask = Parallel(n_jobs=12)(delayed(bone_kmeans)
-                               (data[i, :, offset:].T, n_clusters, scale=True, limit=limit, method='loop')
-                               for i in tqdm(range(data.shape[0]), 'Calculating mask'))
+    if method is 'scikit':
+        mask = Parallel(n_jobs=12)(delayed(kmeans_scikit)
+                                   (data[i, :, offset:].T, n_clusters, scale=True, limit=limit, method='loop')
+                                   for i in tqdm(range(data.shape[0]), 'Calculating mask'))
+    else:  # OpenCV
+        mask = Parallel(n_jobs=12)(delayed(kmeans_opencv)
+                                   (data[i, :, offset:].T, n_clusters, scale=True, limit=limit, method='loop')
+                                   for i in tqdm(range(data.shape[0]), 'Calculating mask'))
+    # Reshape
     mask = np.transpose(np.array(mask), (0, 2, 1))
-
-    # Visualize
-    print_orthogonal(mask, False)
 
     # Take offset into account
     mask_array = np.zeros(data.shape)
