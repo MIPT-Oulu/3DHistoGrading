@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import h5py
 
 
-def display_dataset(path):
+def display_dataset(path, save):
     # List datasets
     files_surf = os.listdir(path[0])
     files_surf.sort()
@@ -12,6 +12,11 @@ def display_dataset(path):
     files_calc = os.listdir(path[2])
     files_calc.sort()
 
+    # Corrected names
+    files = os.listdir(r'X:\3DHistoData\Subvolumes_2mm')
+    files.sort()
+
+    k = 0
     # Loop for displaying images
     for fsurf, fdeep, fcalc in zip(files_surf, files_deep, files_calc):
         # Load images
@@ -30,7 +35,29 @@ def display_dataset(path):
         ax3 = fig.add_subplot(133)
         ax3.imshow(im_calc, cmap='gray')
         plt.title('Calcified')
-        plt.show()
+        if save is not None:
+            while files[k] == 'Images' or files[k] == 'MeanStd':
+                k += 1
+
+            # Save figure
+            if not os.path.exists(save):
+                os.makedirs(save)
+            plt.tight_layout()
+            fig.savefig(os.path.join(save, files[k]), bbox_inches="tight", transparent=True)
+            plt.close()
+
+            # Save h5
+            if not os.path.exists(save + '\\MeanStd\\'):
+                os.makedirs(save + '\\MeanStd\\')
+
+            h5 = h5py.File(save + "\\MeanStd\\" + files[k] + '.h5', 'w')
+            h5.create_dataset('surf', data=im_surf)
+            h5.create_dataset('deep', data=im_deep)
+            h5.create_dataset('calc', data=im_calc)
+            h5.close()
+        else:
+            plt.show()
+        k += 1
 
 
 def loadh5(path, file):
@@ -48,7 +75,7 @@ if __name__ == '__main__':
     impath = [r"X:\3DHistoData\cartvoi_surf_new",
               r"X:\3DHistoData\cartvoi_deep_new",
               r"X:\3DHistoData\cartvoi_calc_new"]
-    savepath = r"X:\3DHistoData\Subvolumes_Isokerays"
+    savepath = r"X:\3DHistoData\MeanStd_Images"
 
     # Call pipeline
-    display_dataset(impath)
+    display_dataset(impath, savepath)
