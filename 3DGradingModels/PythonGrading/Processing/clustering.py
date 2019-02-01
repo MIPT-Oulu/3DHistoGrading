@@ -1,14 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from sklearn.utils import shuffle
 import cv2
+from scipy.ndimage import zoom
 from scipy.signal import medfilt
-from sklearn.cluster import KMeans
-# from scipy.ndimage.morphology import binary_fill_holes
+from sklearn.utils import shuffle
+from sklearn.cluster import KMeans, spectral_clustering
+from sklearn.feature_extraction import image as im
+from skimage import segmentation
 
 cv2.ocl.setUseOpenCL(False)
 cv2.setNumThreads(0)
+
+
+def segment_clusters(image, clusters=3):
+    labels = segmentation.slic(image, clusters, compactness=40)
+    plt.imshow(labels)
+    plt.show()
+    return
 
 def kmeans(image, clusters=2, scale=True):
 
@@ -30,6 +39,33 @@ def kmeans(image, clusters=2, scale=True):
         result = label.flatten()
         result = result.reshape(image.shape)
         return result
+
+
+def spectral_clusters_scikit(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3, limit=4, method='loop'):
+    image = zoom(image, (0.125, 0.125))
+    plt.imshow(image)
+    plt.show()
+
+    # Remove background
+    mask = image.astype(bool)
+    # Add random noise
+    img = image.astype(float)
+    img += np.random.randn(*img.shape)
+
+    # Convert image to graph (gradient on the edges)
+    graph = im.img_to_graph(img, mask=mask)
+
+    # Decreasing function of the gradient
+    graph.data = np.exp(-graph.data / graph.data.std())
+
+    # Solve using arpack
+    labels = spectral_clustering(graph, n_clusters=clusters, eigen_solver='arpack')
+    label_im = np.full(mask.shape, -1.)
+    label_im[mask] = labels
+
+    plt.imshow(img)
+    plt.imshow(label_im)
+    plt.show()
 
 
 def kmeans_opencv(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3, limit=4, method='loop'):
@@ -205,7 +241,7 @@ def kmeans_scikit(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3
         # Loop to fill above the contour bottom
         for i in range(dims[1]):
             for j in range(dims[0]):
-                if largest_cnt[j, i] == 255:
+                if largest_cnt[j, i] == 255 or j > x + w:
                     bone_mask[j:, i] = 0
         # Get result
         if scale:

@@ -40,13 +40,14 @@ def pipeline_lbp(impath, save, pars_surf, pars_deep, pars_calc):
             image_calc = image_calc[crop:-crop, crop:-crop]
 
         # Grayscale normalization
-        image_surf = localstandard(image_surf, pars_surf)
-        image_deep = localstandard(image_deep, pars_deep)
-        image_calc = localstandard(image_calc, pars_calc)
+        image_surf = local_standard(image_surf, pars_surf)
+        image_deep = local_standard(image_deep, pars_deep)
+        image_calc = local_standard(image_calc, pars_calc)
 
         # Show LBP input
         titles_norm = ['Surface', 'Deep', 'Calcified']
-        print_images((image_surf, image_deep, image_calc), subtitles=titles_norm, title=files[k] + ' input')
+        print_images((image_surf, image_deep, image_calc), subtitles=titles_norm, title=files[k] + ' input',
+                     save_path=save + r'\Images\\', sample=files[k][:-3] + '_input.png')
 
         # LBP
         hist_surf, lbp_images_surf = MRELBP(image_surf, pars_surf)
@@ -74,9 +75,11 @@ def pipeline_lbp(impath, save, pars_surf, pars_deep, pars_calc):
         titles_deep = ['Large LBP', 'Small LBP', 'Radial LBP']
         titles_calc = ['Large LBP', 'Small LBP', 'Radial LBP']
         print_images(lbp_images_surf, subtitles=titles_surf, title=files[k] + ', surface',
-                     save_path=save + r'\Images\\' + files[k])
-        print_images(lbp_images_deep, subtitles=titles_deep, title=files[k] + ', deep')
-        print_images(lbp_images_calc, subtitles=titles_calc, title=files[k] + ', calcified')
+                     save_path=save + r'\Images\\', sample=files[k][:-3] + '_surface.png')
+        print_images(lbp_images_deep, subtitles=titles_deep, title=files[k] + ', deep',
+                     save_path=save + r'\Images\\', sample=files[k][:-3] + '_deep.png')
+        print_images(lbp_images_calc, subtitles=titles_calc, title=files[k] + ', calcified',
+                     save_path=save + r'\Images\\', sample=files[k][:-3] + '_calcified.png')
 
     # Save features
     save_excel(features_surf, save + r'\LBP_features_surface.xlsx')
@@ -118,7 +121,7 @@ def save_excel(array, save_path):
     writer.save()
 
 
-def print_images(images, title=None, subtitles=None, save_path=None):
+def print_images(images, title=None, subtitles=None, save_path=None, sample=None):
     # Configure plot
     fig = plt.figure(dpi=300)
     if title is not None:
@@ -137,10 +140,12 @@ def print_images(images, title=None, subtitles=None, save_path=None):
         plt.title(subtitles[2])
 
     # Save or show
-    if save_path is not None:
+    if save_path is not None and sample is not None:
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-        fig.savefig(save_path, bbox_inches="tight", transparent=True)
+        plt.tight_layout()  # Make sure that axes are not overlapping
+        fig.savefig(save_path + sample, transparent=True)
+        plt.close(fig)
     else:
         plt.show()
 

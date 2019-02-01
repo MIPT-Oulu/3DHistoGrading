@@ -36,12 +36,12 @@ def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
                 break
             file = os.path.join(impath, files[2 * k])
             try:
-                Mz = loadbinary(file, np.float64)
+                Mz = load_binary(file, np.float64)
             except FileNotFoundError:
                 continue
             file = os.path.join(impath, files[2 * k + 1])
             try:
-                sz = loadbinary(file, np.float64)
+                sz = load_binary(file, np.float64)
             except FileNotFoundError:
                 continue
         elif dtype == 'mat':
@@ -69,7 +69,7 @@ def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
             image = Mz + sz
         # Grayscale normalization
         # image = local_normalize(image,dict['ks1'],dict['sigma1'],dict['ks2'],dict['sigma2'])
-        image = localstandard(image, pars['ks1'], pars['sigma1'], pars['ks2'], pars['sigma2'])
+        image = local_standard(image, pars['ks1'], pars['sigma1'], pars['ks2'], pars['sigma2'])
         plt.imshow(image)
         plt.show()
         # LBP

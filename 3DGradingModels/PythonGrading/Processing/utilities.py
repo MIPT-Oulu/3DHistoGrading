@@ -50,6 +50,7 @@ def load(path, axis=(1, 2, 0)):
 
     Keyword arguments:
     :param path: Path to image stack.
+    :param axis: Order of loaded sample axes.
     :return: Loaded stack as 3D numpy array. Coordinates of image bounding boxes.
     """
     files = os.listdir(path)
@@ -85,11 +86,11 @@ def read_image_bbox(path, file):
     image = cv2.imread(f, cv2.IMREAD_GRAYSCALE)
 
     # Bounding box
-    x1, x2, y1, y2 = BoundingBox(image)
+    x1, x2, y1, y2 = bounding_box(image)
     return [x1, x2, y1, y2]
 
 
-def Save(path, fname, data):
+def Save(path, fname, data, parallel=True):
     """
     Save a volumetric 3D dataset in given directory.
 
@@ -100,11 +101,22 @@ def Save(path, fname, data):
     if not os.path.exists(path):
         os.makedirs(path)
     nfiles = np.shape(data)[2]
-    for k in tqdm(range(nfiles), desc='Saving dataset'):
-        cv2.imwrite(path + '\\' + fname + str(k).zfill(8) + '.png', data[:,:,k])
+
+    if data[0, 0, 0].dtype is bool:
+        data = data * 255
+
+    if parallel:
+        # Parallelized saving
+        Parallel(n_jobs=12)(delayed(cv2.imwrite)
+                            (path + '\\' + fname + str(k).zfill(8) + '.png', data[:, :, k].astype(np.uint8))
+                            for k in tqdm(range(nfiles), 'Saving dataset'))
+    else:
+        # Nonparallel
+        for k in tqdm(range(nfiles), desc='Saving dataset'):
+            cv2.imwrite(path + '\\' + fname + str(k).zfill(8) + '.png', data[:, :, k])
 
 
-def BoundingBox(image, threshold=80, max_val=255, min_area=1600):
+def bounding_box(image, threshold=80, max_val=255, min_area=1600):
     # Threshold
     _, mask = cv2.threshold(image, threshold, max_val, 0)
     # Get contours
@@ -148,7 +160,7 @@ def cv_rotate(image, theta):
     return cv2.warpAffine(image, m, (w, h))
 
 
-def opencvRotate(stack, axis, theta):
+def opencv_rotate(stack, axis, theta):
     h, w, d = stack.shape
     if axis == 0:
         for k in range(h):
@@ -162,7 +174,7 @@ def opencvRotate(stack, axis, theta):
     return stack
 
 
-class find_ori_grad(object):
+class FindOriGrad(object):
     def __init__(self, alpha=1, h=5, n_iter=20):
         self.a = alpha
         self.h = h
@@ -198,11 +210,11 @@ class find_ori_grad(object):
             grads = np.zeros(2)
 
             # Rotate sample and compute 1st gradient
-            rotated1 = opencvRotate(sample.astype(np.uint8), 0, ori[0] + self.h)
-            rotated1 = opencvRotate(rotated1.astype(np.uint8), 1, ori[1])
+            rotated1 = opencv_rotate(sample.astype(np.uint8), 0, ori[0] + self.h)
+            rotated1 = opencv_rotate(rotated1.astype(np.uint8), 1, ori[1])
 
-            rotated2 = opencvRotate(sample.astype(np.uint8), 0, ori[0] - self.h)
-            rotated2 = opencvRotate(rotated2.astype(np.uint8), 1, ori[1])
+            rotated2 = opencv_rotate(sample.astype(np.uint8), 0, ori[0] - self.h)
+            rotated2 = opencv_rotate(rotated2.astype(np.uint8), 1, ori[1])
             # Surface
             surf1 = np.argmax(np.flip(rotated1, 2), 2)
             surf2 = np.argmax(np.flip(rotated2, 2), 2)
@@ -215,11 +227,11 @@ class find_ori_grad(object):
             grads[0] = (d1 - d2) / (2 * self.h)
 
             # Rotate sample and compute 2nd gradient
-            rotated1 = opencvRotate(sample.astype(np.uint8), 0, ori[0])
-            rotated1 = opencvRotate(rotated1.astype(np.uint8), 1, ori[1] + self.h)
+            rotated1 = opencv_rotate(sample.astype(np.uint8), 0, ori[0])
+            rotated1 = opencv_rotate(rotated1.astype(np.uint8), 1, ori[1] + self.h)
 
-            rotated2 = opencvRotate(sample.astype(np.uint8), 0, ori[0])
-            rotated2 = opencvRotate(rotated2.astype(np.uint8), 1, ori[1] - self.h)
+            rotated2 = opencv_rotate(sample.astype(np.uint8), 0, ori[0])
+            rotated2 = opencv_rotate(rotated2.astype(np.uint8), 1, ori[1] - self.h)
 
             # Surface
             surf1 = np.argmax(np.flip(rotated1, 2), 2)
@@ -241,7 +253,7 @@ class find_ori_grad(object):
         return ori
 
 
-def otsuThreshold(data):
+def otsu_threshold(data, parallel=True):
 
     if len(data.shape) == 2:
         val, mask = cv2.threshold(data.astype('uint8'), 0, 255, cv2.THRESH_OTSU)
@@ -259,7 +271,7 @@ def otsuThreshold(data):
     return data > value, value
 
 
-def print_orthogonal(data, invert=True, res=3.2):
+def print_orthogonal(data, invert=True, res=3.2, title=None):
     dims = np.array(np.shape(data)) // 2
     dims2 = np.array(np.shape(data))
     x = np.linspace(0, dims2[0], dims2[0])
@@ -290,6 +302,10 @@ def print_orthogonal(data, invert=True, res=3.2):
     ax3 = fig.add_subplot(133)
     ax3.imshow(data[dims[0], :, :].T, cmap='gray')
     plt.title('Sagittal (yz)')
+
+    # Give plot a title
+    if title is not None:
+        plt.suptitle(title)
     
     ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))
     ticks_y = ticker.FuncFormatter(lambda y, pos: '{0:g}'.format(y/scale))
@@ -315,7 +331,7 @@ def print_orthogonal(data, invert=True, res=3.2):
     plt.show()
 
 
-def save_orthogonal(path, data, invert=True, res=3.2):
+def save_orthogonal(path, data, invert=True, res=3.2, title=None):
     directory = path.rsplit('\\', 1)[0]
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -352,6 +368,10 @@ def save_orthogonal(path, data, invert=True, res=3.2):
     ax3 = fig.add_subplot(133)
     ax3.imshow(data[dims[0], :, :].T, cmap='gray')
     plt.title('Sagittal (yz)')
+
+    # Give plot a title
+    if title is not None:
+        plt.suptitle(title)
 
     # Set ticks
     ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))

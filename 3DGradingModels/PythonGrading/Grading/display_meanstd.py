@@ -4,6 +4,7 @@ import h5py
 
 
 def display_dataset(path, save):
+    """Displays a dataset, where VOIs are saved in individual locations."""
     # List datasets
     files_surf = os.listdir(path[0])
     files_surf.sort()

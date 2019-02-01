@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 
 from utilities import read_image, load, print_orthogonal
 from VTKFunctions import render_volume
-from clustering import kmeans_scikit
+from clustering import kmeans_scikit, spectral_clusters_scikit, segment_clusters
 from joblib import Parallel, delayed
 from tqdm import tqdm
+from scipy.ndimage import zoom
 
 # Paths and number of clusters
 path = r'Y:\3DHistoData\Test data'
@@ -13,7 +14,7 @@ file_2mm = '13_R3L_2_PTA_48h_cor504.png'
 file_4mm = 'KP03-L6-4MP2_Cor740.png'
 impath = r'C:\Users\Tuomas Frondelius\Desktop\Data\KP03-L6-4MC2_sub01'
 # impath = r'Y:\3DHistoData\Subvolumes_Isokerays\OA036-R6-4LD3_sub00'
-impath = r'Y:\3DHistoData\Subvolumes_Insaf\6060-28L_PTA_Rec_sub1'
+impath = r'Y:\3DHistoData\Subvolumes_Insaf\6060-17M_PTA_Rec_sub2'
 n_clusters = 4
 width = 448
 
@@ -44,16 +45,33 @@ ax3.set_title('4mm image')
 plt.show()
 # render_volume(data, None, False)
 
+# Scikit kmeans for single image
 mask = kmeans_scikit(data[data.shape[0] // 2, :, :].T, n_clusters, scale=True, method='loop')
 plt.imshow(mask)
 plt.show()
 
+# Spectral clustering
+# spectral_clusters_scikit(data[data.shape[0] // 2, :, :].T, 6)
+
+# Scikit image segmentation
+segment_clusters(data[data.shape[0] // 2, :, :].T, 6)
+
 # 3D clustering in parallel
-mask = Parallel(n_jobs=8)(delayed(kmeans_scikit)(data[i, :, :].T, n_clusters, scale=True, method='loop')
-                           for i in tqdm(range(data.shape[0]), 'Calculating mask'))
-mask = np.transpose(np.array(mask), (0, 2, 1))
-print_orthogonal(mask, True)
-render_volume(mask * data, None, False)
+data_downscaled = zoom(data, 0.25, order=3)
+mask_x = Parallel(n_jobs=8)(delayed(kmeans_scikit)(data_downscaled[i, :, :].T, n_clusters, scale=True, method='loop')
+                            for i in tqdm(range(data_downscaled.shape[0]), 'Calculating mask'))
+mask_y = Parallel(n_jobs=8)(delayed(kmeans_scikit)(data_downscaled[:, i, :].T, n_clusters, scale=True, method='loop')
+                            for i in tqdm(range(data_downscaled.shape[1]), 'Calculating mask'))
+mask = (np.array(mask_x) + np.array(mask_y).T) / 2
+mask = zoom(mask, 4.0, order=3)
+mask = np.transpose(np.array(mask > 0.5), (0, 2, 1))
+mask_array = np.zeros(data.shape)
+try:
+    mask_array[:, :, :mask.shape[2]] = mask
+except ValueError:
+    mask_array = mask[:, :, :data.shape[2]]
+print_orthogonal(mask_array, True)
+render_volume(mask_array * data, None, False)
 
 # TODO Implement downscaling and upscaling of image stacks. K-means or spectral clustering
 # TODO Scikit kmeans

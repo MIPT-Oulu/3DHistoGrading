@@ -26,28 +26,28 @@ class FindOriGrad(object):
         circle = np.zeros(sample.shape)
         for ky in range(h):
             for kx in range(w):
-                val = (ky-y)**2 + (kx-x)**2
-                if val <= r**2:
+                val = (ky-y) ** 2 + (kx-x) ** 2
+                if val <= r ** 2:
                     circle[ky, kx] = 1
 
         # Get dice score
-        intersection = circle*(sample > 0)
-        dice = (2*intersection.sum()+1e-9)/((sample > 0).sum()+circle.sum()+1e-9)
-        return 1-dice
-    
+        intersection = circle * (sample > 0)
+        dice = (2 * intersection.sum() + 1e-9) / ((sample > 0).sum() + circle.sum() + 1e-9)
+        return 1 - dice
+
     def get_angle(self, sample):
         ori = np.array([0, 0]).astype(np.float32)
         
-        for k in range(1+self.n+1):
+        for k in range(1 + self.n + 1):
             # Initialize gradient
             grads = np.zeros(2)
             
-            # Rotate sample and comput 1st gradient
-            rotated1 = opencvRotate(sample.astype(np.uint8), 0, ori[0]+self.h)
-            rotated1 = opencvRotate(rotated1.astype(np.uint8), 1, ori[1])
+            # Rotate sample and compute 1st gradient
+            rotated1 = opencv_rotate(sample.astype(np.uint8), 0, ori[0] + self.h)
+            rotated1 = opencv_rotate(rotated1.astype(np.uint8), 1, ori[1])
 
-            rotated2 = opencvRotate(sample.astype(np.uint8), 0, ori[0]-self.h)
-            rotated2 = opencvRotate(rotated2.astype(np.uint8), 1, ori[1])
+            rotated2 = opencv_rotate(sample.astype(np.uint8), 0, ori[0] - self.h)
+            rotated2 = opencv_rotate(rotated2.astype(np.uint8), 1, ori[1])
             # Surface
             surf1 = np.argmax(np.flip(rotated1, 2), 2)
             surf2 = np.argmax(np.flip(rotated2, 2), 2)
@@ -59,12 +59,12 @@ class FindOriGrad(object):
             # Gradient
             grads[0] = (d1-d2)/(2*self.h)
             
-            # Rotate sample and comput 2nd gradient
-            rotated1 = opencvRotate(sample.astype(np.uint8), 0, ori[0])
-            rotated1 = opencvRotate(rotated1.astype(np.uint8), 1, ori[1]+self.h)
+            # Rotate sample and compute 2nd gradient
+            rotated1 = opencv_rotate(sample.astype(np.uint8), 0, ori[0])
+            rotated1 = opencv_rotate(rotated1.astype(np.uint8), 1, ori[1] + self.h)
 
-            rotated2 = opencvRotate(sample.astype(np.uint8), 0, ori[0])
-            rotated2 = opencvRotate(rotated2.astype(np.uint8), 1, ori[1]-self.h)
+            rotated2 = opencv_rotate(sample.astype(np.uint8), 0, ori[0])
+            rotated2 = opencv_rotate(rotated2.astype(np.uint8), 1, ori[1] - self.h)
             
             # Surface
             surf1 = np.argmax(np.flip(rotated1, 2), 2)

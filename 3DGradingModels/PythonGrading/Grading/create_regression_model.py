@@ -30,11 +30,11 @@ def pipeline_load(featurepath, gpath, save, choice, comps, modelpath):
     # PCA
     # PCA parameters: whitening, svd solver (auto/full)
     # pca, score = ScikitPCA(features.T, comps, True, 'auto')
-    pca, score = ScikitPCA(features.T, comps, True, 'auto')
+    pca, score = scikit_pca(features.T, comps, True, 'auto')
     # pca, score = PCA(features,10)
 
     # Regression
-    pred1, weights = regress_group(score, g)
+    pred1, weights = regress_logo(score, g)
     # pred1 = regress_new(score, g)
     pred2 = logreg_group(score, g > 1)
     for p in range(len(pred1)):

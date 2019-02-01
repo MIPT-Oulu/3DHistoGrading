@@ -1,35 +1,22 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import os
-import cv2
-import sys
-import h5py
 import pickle
-import gc
 
 import cntk as C
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils import data
-from model import UNet
 from scipy.ndimage import affine_transform, rotate, zoom, shift
-
-from scipy.signal import medfilt
 
 from utilities import *
 from rotations import pca_angle, get_angle
 from VTKFunctions import render_volume
-from segmentation import get_split, inference
+from segmentation_torch import get_split, inference
 from clustering import kmeans_opencv, kmeans_scikit
+from extract_voi import calculate_surf, calculate_bci, get_interface, deep_depth
 
 from tqdm.auto import tqdm
-from argparse import ArgumentParser
 from joblib import Parallel, delayed
 
 
-def pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
+def pipeline_old(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
     # 1. Load sample
     print('Sample name: ' + sample)
     print('1. Load sample')
@@ -43,7 +30,7 @@ def pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, indivi
         print_orthogonal(mask)
 
     # 2. Segment BCI mask
-    if modelpath is not None:
+    if modelpath is not None and maskpath is None:
         if snapshots is not None:
             cropsize = 512
             if data.shape[2] < 1000:
@@ -70,8 +57,8 @@ def pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, indivi
     size_temp[0] = 400
 
     # Calculate cartilage depth
-    data = np.flip(data, 2); mask = np.flip(mask, 2)  # flip
-    dist = return_interface(data, mask)
+    data = np.flip(data, 2); mask = np.flip(mask, 2)  # flip to begin indexing from surface
+    dist = deep_depth(data, mask)
     size_temp[3] = (0.6 * dist).astype('int')
     print('Automatically setting deep voi depth to {0}'.format((0.6 * dist).astype('int')))
 #
@@ -97,6 +84,71 @@ def pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, indivi
         mean_std_surf(surfvoi, savepath, sample, otsu_thresh)
 
 
+def pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
+    # 1. Load sample
+    print('Sample name: ' + sample)
+    print('1. Load sample')
+    data, bounds = load_bbox(path)
+    print_orthogonal(data)
+    save_orthogonal(savepath + "\\Images\\" + sample + "_input.png", data)
+    render_volume(data, savepath + "\\Images\\" + sample + "_input_render.png")
+    if maskpath is not None and modelpath is None:
+        print(maskpath)
+        mask, _ = load_bbox(maskpath)
+        print_orthogonal(mask)
+
+    # 2. Segment BCI mask
+    if modelpath is not None and maskpath is None:
+        if snapshots is not None:
+            cropsize = 512
+            if data.shape[2] < 1000:
+                offset = 0
+            elif 1000 <= data.shape[2] < 1600:
+                offset = 20
+            elif 1600 <= data.shape[2]:
+                offset = 50
+            # Pytorch segmentation
+            # mask = segmentation_pytorch(data, modelpath, snapshots, cropsize, offset)  # generate mask from crop data
+            # K-means segmentation
+            mask = segmentation_kmeans(data, n_clusters=3, offset=offset)
+        else:
+            mask = segmentation_cntk(data, modelpath)  # generate mask from crop data
+        print_orthogonal(mask)
+        save_orthogonal(savepath + "\\Images\\" + sample + "_mask.png", mask * data)
+        render_volume((mask > 0.7) * data, savepath + "\\Images\\" + sample + "_mask_render.png")
+        Save(savepath + '\\' + sample + '\\Mask', sample, mask)
+
+    # Crop
+    data = data[24:-24, 24:-24, :]
+    mask = mask[24:-24, 24:-24, :]
+    size_temp = size[:]
+    size_temp[0] = 400
+
+    # Calculate cartilage depth
+    data = np.flip(data, 2); mask = np.flip(mask, 2)  # flip to begin indexing from surface
+    dist = deep_depth(data, mask)
+    size_temp[3] = (0.6 * dist).astype('int')
+    print('Automatically setting deep voi depth to {0}'.format((0.6 * dist).astype('int')))
+#
+    # 4. Get VOIs
+    print('4. Get interface coordinates:')
+    surfvoi, deepvoi, ccvoi, otsu_thresh = get_interface(data, size_temp, (mask > 0.7))
+    # Show and save results
+    print_orthogonal(surfvoi)
+    print_orthogonal(deepvoi)
+    print_orthogonal(ccvoi)
+    save_orthogonal(savepath + "\\Images\\" + sample + "_surface.png", surfvoi)
+    save_orthogonal(savepath + "\\Images\\" + sample + "_deep.png", deepvoi)
+    save_orthogonal(savepath + "\\Images\\" + sample + "_cc.png", ccvoi)
+    render_volume(np.flip(surfvoi, 2), savepath + "\\Images\\" + sample + "_surface_render.png")
+    render_volume(np.flip(deepvoi, 2), savepath + "\\Images\\" + sample + "_deep_render.png")
+    render_volume(np.flip(ccvoi, 2), savepath + "\\Images\\" + sample + "_cc_render.png")
+
+    # 5. Calculate mean and std
+    print('5. Save mean and std images')
+    mean_std(surfvoi, savepath, sample, deepvoi, ccvoi, otsu_thresh)
+
+
 def pipeline_subvolume(path, sample, savepath, size, sizewide, modelpath=None, individual=False, snapshots=None):
     # 1. Load sample
     print('Sample name: ' + sample)
@@ -106,15 +158,15 @@ def pipeline_subvolume(path, sample, savepath, size, sizewide, modelpath=None, i
     save_orthogonal(savepath + "\\Images\\" + sample + "_input.png", data)
     render_volume(data, savepath + "\\Images\\" + sample + "_input_render.png")
 
-    # 2. Orient array
-    print('2. Orient sample')
-    data, angles = orient(data, bounds, individual)
-    save_orthogonal(savepath + "\\Images\\" + sample + "_orient.png", data)
-    render_volume(data, savepath + "\\Images\\" + sample + "_orient_render.png")
+    # # 2. Orient array
+    # print('2. Orient sample')
+    # data, angles = orient(data, bounds, individual)
+    # save_orthogonal(savepath + "\\Images\\" + sample + "_orient.png", data)
+    # render_volume(data, savepath + "\\Images\\" + sample + "_orient_render.png")
 
     # 3. Crop and flip volume
     print('3. Crop and flip center volume:')
-    data, crop = crop_center(data, size[0], sizewide, individual, 'cm')  # crop data
+    data, crop = crop_center(data, size[0], sizewide, individual, 'mass')  # crop data
     print_orthogonal(data)
     save_orthogonal(savepath + "\\Images\\" + sample + "_orient_cropped.png", data)
     render_volume(data, savepath + "\\Images\\" + sample + "_orient_cropped_render.png")
@@ -125,9 +177,9 @@ def pipeline_subvolume(path, sample, savepath, size, sizewide, modelpath=None, i
         return
 
     # Save crop data
-    if data.shape[0] > 448:
-        Save(savepath + '\\' + sample + '_sub1', sample + '_sub1_', data[:448, :, :])
-        Save(savepath + '\\' + sample + '_sub2', sample + '_sub2_', data[-448:, :, :])
+    if data.shape[1] > 448:
+        Save(savepath + '\\' + sample + '_sub1', sample + '_sub1_', data[:, :448, :])
+        Save(savepath + '\\' + sample + '_sub2', sample + '_sub2_', data[:, -448:, :])
     else:
         Save(savepath + '\\' + sample, sample, data)
 
@@ -197,17 +249,17 @@ def orient(data, bounds, individual=False):
     xangle = pca_angle(data[dims[0] // 2, :, :], 1, 80)
     yangle = pca_angle(data[:, dims[1] // 2, :], 1, 80)
     
-    ## Gradient descent angles
-    #origrad = find_ori_grad(alpha=0.5, h=5, n_iter=60)
-    #mask = data > 70
-    #binned = zoom(mask, (0.125, 0.125, 0.125))
-    ## binned[:, :, binned.shape[2] * 1 // 2:] = 0
-    #print_orthogonal(binned)
-    #ori = origrad(binned)
+    # # Gradient descent angles
+    # origrad = find_ori_grad(alpha=0.5, h=5, n_iter=60)
+    # mask = data > 70
+    # binned = zoom(mask, (0.125, 0.125, 0.125))
+    # # binned[:, :, binned.shape[2] * 1 // 2:] = 0
+    # print_orthogonal(binned)
+    # ori = origrad(binned)
 
     print('BBox angles: {0}, {1}'.format(angle1, angle2))
     print('PCA angles: {0}, {1}'.format(xangle, yangle))
-    #print('Gradient descent angles: {0}, {1}'.format(ori[0], ori[1]))
+    # print('Gradient descent angles: {0}, {1}'.format(ori[0], ori[1]))
 
     # Ask user to choose rotation
     if individual:
@@ -219,11 +271,11 @@ def orient(data, bounds, individual=False):
             angle1 = xangle; angle2 = yangle
         elif choice == 3:
             print('Gradient descent selected.')
-            #angle1 = ori[0]; angle2 = ori[1]
+            # angle1 = ori[0]; angle2 = ori[1]
         elif choice == 4:
             print('Average selected.')
-            #angle1 = (ori[0] + xangle + angle1) / 3
-           # angle2 = (ori[1] + yangle + angle2) / 3
+            # angle1 = (ori[0] + xangle + angle1) / 3
+            # angle2 = (ori[1] + yangle + angle2) / 3
         elif choice == 0:
             print('No rotation performed.')
             return data, (0, 0)
@@ -245,12 +297,12 @@ def orient(data, bounds, individual=False):
 
     # 1st rotation
     if abs(angle1) >= 4:  # check for small angle
-        data = opencvRotate(data, 0, angle1)
+        data = opencv_rotate(data, 0, angle1)
     print_orthogonal(data)
 
     # 2nd rotation
     if abs(angle2) >= 4:  # check for small angle
-        data = opencvRotate(data, 1, angle2)
+        data = opencv_rotate(data, 1, angle2)
     print_orthogonal(data)
 
     # Rotate array (affine transform)
@@ -264,10 +316,10 @@ def orient(data, bounds, individual=False):
 
 def orient_mask(mask, angles):
     # 1st rotation
-    mask = opencvRotate(mask, 0, angles[0])
+    mask = opencv_rotate(mask, 0, angles[0])
 
     # 2nd rotation
-    mask = opencvRotate(mask, 1, angles[1])
+    mask = opencv_rotate(mask, 1, angles[1])
     print_orthogonal(mask)
     return mask
 
@@ -291,8 +343,8 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
     cx = int(M["m01"] / M["m00"])
 
     # Calculate center pixel
-    # mask, val = otsuThreshold(data[:, :, :crop])
-    mask, val = otsuThreshold(data)
+    mask, val = otsu_threshold(data[:, :, :crop])
+    # mask, val = otsuThreshold(data)
     sumarray = mask.sum(2)
     n = 0
     for i in tqdm(range(dims[0]), desc='Calculating center'):
@@ -343,25 +395,43 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
     return data[xx1:xx2, yy1:yy2, :], (xx1, xx2, yy1, yy2)
 
 
-def segmentation_kmeans(data, n_clusters=3, offset=0, limit=2, method='scikit'):
+def segmentation_kmeans(array, n_clusters=3, offset=0, limit=2, method='scikit', zoom_factor=4.0):
     # TODO Check that segmentation works for pipeline
     # Segmentation
+    dims = array.shape
+    array = zoom(array[:, :, offset:], 1/zoom_factor, order=3)  # Downscale images
     if method is 'scikit':
-        mask = Parallel(n_jobs=12)(delayed(kmeans_scikit)
-                                   (data[i, :, offset:].T, n_clusters, scale=True, limit=limit, method='loop')
-                                   for i in tqdm(range(data.shape[0]), 'Calculating mask'))
+        mask_x = Parallel(n_jobs=12)(delayed(kmeans_scikit)
+                                     (array[i, :, :].T, n_clusters, scale=True, method='loop')
+                                     for i in tqdm(range(array.shape[0]), 'Calculating mask (X)'))
+        mask_y = Parallel(n_jobs=12)(delayed(kmeans_scikit)
+                                     (array[:, i, :].T, n_clusters, scale=True, method='loop')
+                                     for i in tqdm(range(array.shape[1]), 'Calculating mask (Y)'))
+        print_orthogonal(np.array(mask_x))
+        print_orthogonal(np.array(mask_y).T)
+
+        mask = (np.array(mask_x) + np.array(mask_y).T) / 2  # Average mask
+        mask = zoom(mask, zoom_factor, order=3)  # Upscale mask
     else:  # OpenCV
-        mask = Parallel(n_jobs=12)(delayed(kmeans_opencv)
-                                   (data[i, :, offset:].T, n_clusters, scale=True, limit=limit, method='loop')
-                                   for i in tqdm(range(data.shape[0]), 'Calculating mask'))
+        mask_x = Parallel(n_jobs=12)(delayed(kmeans_opencv)
+                                     (array[i, :, :].T, n_clusters, scale=True, method='loop')
+                                     for i in tqdm(range(array.shape[0]), 'Calculating mask (X)'))
+        mask_y = Parallel(n_jobs=12)(delayed(kmeans_opencv)
+                                     (array[:, i, :].T, n_clusters, scale=True, method='loop')
+                                     for i in tqdm(range(array.shape[1]), 'Calculating mask (Y)'))
+        mask = (np.array(mask_x) + np.array(mask_y)) / 2  # Average mask
+        mask = zoom(mask, zoom_factor, order=3)  # Upscale mask
     # Reshape
-    mask = np.transpose(np.array(mask), (0, 2, 1))
+    mask = np.transpose(mask, (0, 2, 1))
 
-    # Take offset into account
-    mask_array = np.zeros(data.shape)
-    mask_array[:, :, offset:] = mask
+    # Take offset and zoom into account
+    mask_array = np.zeros(dims)
+    try:
+        mask_array[:, :, offset:mask.shape[2]-offset] = mask
+    except ValueError:
+        mask_array[:, :, offset:] = mask[:, :, :mask_array.shape[2] - offset]
 
-    return mask_array
+    return mask_array >= 0.5
 
 
 def segmentation_cntk(data, path):
@@ -445,103 +515,6 @@ def segmentation_pytorch(data, modelpath, snapshots, cropsize=512, offset=700):
     return mask
 
 
-def return_interface(data, mask):
-    """ Returns mean distance between surface and calcified cartilage interface.
-    """
-    # Threshold data
-    surfmask, val = otsuThreshold(data)
-    surf = np.argmax(surfmask * 1.0, 2)
-    _, val = otsuThreshold(data)
-    cci = np.argmax(mask, 2)
-    cci = medfilt(cci, kernel_size=5)
-    
-    return np.mean(cci - surf)
-
-
-def get_interface(data, size, choice='surface', mask=None):
-    """Give string input to interface variable as 'surface' or 'bci'.
-Input data should be a thresholded, cropped volume of the sample"""
-    dims = np.shape(data)
-    if (dims[0] != size[0]) or (dims[1] != size[0]):
-        raise Exception('Sample and voi size are incompatible!')
-    surfvoi = np.zeros((dims[0], dims[1], size[1]))
-    deepvoi = np.zeros((dims[0], dims[1], size[3]))
-    ccvoi = np.zeros((dims[0], dims[1], size[4]))
-        
-    # Threshold data
-    if choice == 'surface':
-        mask, val = otsuThreshold(data)
-        print('Global threshold: {0} (Otsu)'.format(val))
-        interface = np.argmax(mask * 1.0, 2)
-    elif choice == 'bci':
-        _, val = otsuThreshold(data)
-        interface = np.argmax(mask, 2)
-        interface = medfilt(interface, kernel_size=5)
-    else:
-        raise Exception('Select an interface to be extracted!')
-    plt.imshow(np.sum(mask, 2))  # display sum of mask
-    plt.show()
-
-    # Get coordinates and extract voi
-    deptharray = []
-    for k in tqdm(range(dims[0] * dims[1]), desc='Extracting VOI'):
-        # Indexing
-        y = k // dims[1]
-        x = k % dims[1]
-        
-        if choice == 'surface':
-            depth = np.uint(interface[x, y])
-            n = 0
-            for z in range(depth, dims[2]):
-                if n == size[1]:
-                    break
-                if data[x, y, z] > val:
-                    surfvoi[x, y, n] = data[x, y, z]
-                    n += 1
-        elif choice == 'bci':
-            # Check for sample edges
-            if interface[x, y] < size[3]:  # surface edge, deepvoi
-                depth = np.uint(size[3])
-            elif dims[2] - interface[x, y] < size[4]:  # bottom edge, ccvoi
-                depth = np.uint(dims[2] - size[4])
-            else:  # add only offset
-                depth = np.uint(interface[x, y] - size[2])
-
-            # check for void (deep voi)
-            void = False
-            for z in range(size[3]):
-                if data[x, y, depth - z] < val / 2:
-                    void = True
-
-            if void:
-                # In case of void, don't use offset
-                if depth < np.uint(dims[2] - size[4]):
-                    ccvoi[x, y, :] = data[x, y, depth + size[2]:depth + size[4] + size[2]]
-                else:
-                    ccvoi[x, y, :] = data[x, y, depth:depth + size[4]]
-
-                if depth - size[3] > size[2]:
-                    zz = size[2]  # starting index
-                else:
-                    zz = 0
-                while data[x, y, depth - zz] < val and depth - zz > size[3]:
-                    zz += 1
-                depth = depth - zz
-            else: 
-                # If void not found, calculate ccvoi normally
-                ccvoi[x, y, :] = data[x, y, depth:depth + size[4]]
-
-            deptharray.append(depth)
-            deepvoi[x, y, :] = data[x, y, depth - size[3]:depth]
-        else:
-            raise Exception('Select an interface to be extracted!')
-    if choice == 'surface':
-        return surfvoi, interface, val
-    elif choice == 'bci':
-        print('Mean interface = {0}, mean depth = {1}'.format(np.mean(interface), np.mean(np.array(deptharray))))
-        return deepvoi, ccvoi, interface
-
-
 def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=None):
     # Create save paths
     if not os.path.exists(savepath + "\\MeanStd\\"):
@@ -553,7 +526,7 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
     if otsu_thresh is not None:
         voi_mask = surfvoi > otsu_thresh
     else:
-        voi_mask, _ = otsuThreshold(surfvoi)
+        voi_mask, _ = otsu_threshold(surfvoi)
     mean = (surfvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
     centered = np.zeros(surfvoi.shape)
     for i in range(surfvoi.shape[2]):
@@ -585,7 +558,7 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
     if otsu_thresh is not None:
         voi_mask = deepvoi > otsu_thresh
     else:
-        voi_mask, _ = otsuThreshold(deepvoi)
+        voi_mask, _ = otsu_threshold(deepvoi)
     mean = (deepvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
     centered = np.zeros(deepvoi.shape)
     for i in range(deepvoi.shape[2]):
@@ -611,7 +584,7 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
     if otsu_thresh is not None:
         voi_mask = ccvoi > otsu_thresh
     else:
-        voi_mask, _ = otsuThreshold(ccvoi)
+        voi_mask, _ = otsu_threshold(ccvoi)
     mean = (ccvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
     centered = np.zeros(ccvoi.shape)
     for i in range(ccvoi.shape[2]):
@@ -650,7 +623,7 @@ def mean_std_surf(surfvoi, savepath, sample, otsu_thresh=None):
     if otsu_thresh is not None:
         voi_mask = surfvoi > otsu_thresh
     else:
-        voi_mask, _ = otsuThreshold(surfvoi)
+        voi_mask, _ = otsu_threshold(surfvoi)
     mean = (surfvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
     centered = np.zeros(surfvoi.shape)
     for i in range(surfvoi.shape[2]):

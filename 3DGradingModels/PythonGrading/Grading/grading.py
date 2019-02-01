@@ -7,57 +7,77 @@ import scipy.ndimage
 
 import sklearn.decomposition as skdec
 import sklearn.linear_model as sklin
+from sklearn.metrics import mean_squared_error, r2_score
 
 from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
 
 
 # Regression
-def regress(features, score):
+def regress_old(features, score):
     pred = []
     # Leave one out split
     loo = LeaveOneOut()	
     logo = LeaveOneGroupOut()
     for trainidx, testidx in loo.split(features):
         # Indices
-        X_train, X_test = features[trainidx], features[testidx]
-        X_test -= X_train.mean(0)
-        X_train -= X_train.mean(0)
+        x_train, x_test = features[trainidx], features[testidx]
+        x_test -= x_train.mean(0)
+        x_train -= x_train.mean(0)
 
-        Y_train, Y_test = score[trainidx], score[testidx]		
+        y_train, y_test = score[trainidx], score[testidx]
         # Linear regression
         regr = sklin.Ridge(alpha=1, normalize=True, random_state=42)
-        regr.fit(X_train, Y_train)
+        regr.fit(x_train, y_train)
         # Predicted score
-        pred.append(regr.predict(X_test))
+        pred.append(regr.predict(x_test))
 
     return np.array(pred), regr.coef_
 
 
-def regress_group(features, score, groups=None):
+def regress_loo(features, sgrades):
+    # Evaluate surface
+    loo = LeaveOneOut()
+    loo.get_n_splits(features)
+    predictions = []
+    for train_idx, test_idx in loo.split(features):
+        # Train split
+        f = features[train_idx]-features.mean(0)
+        g = sgrades[train_idx]
+
+        # Linear regression
+        ridge_model = sklin.Ridge(alpha=1, normalize=True, random_state=42)
+        ridge_model.fit(f, g.reshape(-1, 1))
+
+        # Evaluate on test sample
+        p = ridge_model.predict((features[test_idx]-features.mean(0)).reshape(1, -1))
+        predictions.append(p)
+    return np.array(predictions).squeeze(), ridge_model.coef_
+
+
+def regress_logo(features, score, groups=None):
     pred = []
     if groups is None:
-        groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 
-                           9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 
+        groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8,
+                           9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
                            15, 16, 16, 17, 17, 18, 19, 19])
     # Leave one out split
-    loo = LeaveOneOut()	
     logo = LeaveOneGroupOut()
     logo.get_n_splits(features, score, groups)
     logo.get_n_splits(groups=groups)  # 'groups' is always required
-    
+
     for trainidx, testidx in logo.split(features, score, groups):
         # Indices
-        X_train, X_test = features[trainidx], features[testidx]
-        X_test -= X_train.mean(0)
-        X_train -= X_train.mean(0)
+        x_train, x_test = features[trainidx], features[testidx]
+        x_test -= x_train.mean(0)
+        x_train -= x_train.mean(0)
 
-        Y_train, Y_test = score[trainidx], score[testidx]		
+        y_train, y_test = score[trainidx], score[testidx]
         # Linear regression
         regr = sklin.Ridge(alpha=1, normalize=True, random_state=42)
-        regr.fit(X_train, Y_train)
+        regr.fit(x_train, y_train)
         # Predicted score
-        pred.append(regr.predict(X_test))
-        
+        pred.append(regr.predict(x_test))
+
     predflat = []
     for group in pred:
         for p in group:
@@ -66,24 +86,29 @@ def regress_group(features, score, groups=None):
     return np.array(predflat), regr.coef_
 
 
-def regress_new(features, sgrades):
-    # Evaluate surface
-    loo_surf = LeaveOneOut()
-    loo_surf.get_n_splits(features)
-    surfp = []
-    for train_idx, test_idx in loo_surf.split(features):
-        # Train split
-        f = features[train_idx]-features.mean(0)
-        g = sgrades[train_idx]
+def regress_test_set(data_x, data_y, split):
+    """Calculates linear regression model by dividing data into train and test sets."""
+    pred = []
+    # Train and test split
+    data_x_train = data_x[:split]
+    data_x_test = data_x[split:]
 
-        # Linear regression
-        Rmodel = sklin.Ridge(alpha=1, normalize=True, random_state=42)
-        Rmodel.fit(f, g.reshape(-1, 1))
+    data_y_train = data_y[:split]
+    data_y_test = data_y[split:]
 
-        # Evaluate on test sample
-        p = Rmodel.predict((features[test_idx]-features.mean(0)).reshape(1, -1))
-        surfp.append(p)
-    return np.array(surfp).squeeze(), Rmodel.coef_
+    # Linear regression
+    regr = sklin.Ridge(alpha=1, normalize=True, random_state=42)
+    regr.fit(data_x_train, data_y_train)
+    # Predicted score
+    pred = regr.predict(data_x_test)
+
+    # Mean squared error
+    mse = mean_squared_error(data_y_test, pred)
+
+    # Explained variance
+    r2 = r2_score(data_y_test, pred)
+
+    return np.array(pred), regr.coef_, mse, r2
 
 
 # Logistic regression
@@ -93,17 +118,17 @@ def logreg(features, score):
     loo = LeaveOneOut()	
     for trainidx, testidx in loo.split(features):
         # Indices
-        X_train, X_test = features[trainidx], features[testidx]
-        X_test -= X_train.mean(0)
-        X_train -= X_train.mean(0)
+        x_train, x_test = features[trainidx], features[testidx]
+        x_test -= x_train.mean(0)
+        x_train -= x_train.mean(0)
 
-        Y_train, Y_test = score[trainidx], score[testidx]		
+        y_train, y_test = score[trainidx], score[testidx]
         # Linear regression
         regr = sklin.LogisticRegression(solver='newton-cg', max_iter=1000)
-        regr.fit(X_train, Y_train)
+        regr.fit(x_train, y_train)
         # Predicted score
-        P = regr.predict_proba(X_test)
-        pred.append(P)
+        p = regr.predict_proba(x_test)
+        pred.append(p)
 
     pred = np.array(pred)
     pred = pred[:, :, 1]
@@ -117,24 +142,23 @@ def logreg_group(features, score, groups=None):
                            9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 
                            15, 16, 16, 17, 17, 18, 19, 19])
     # Leave one out split
-    loo = LeaveOneOut()	
     logo = LeaveOneGroupOut()
     logo.get_n_splits(features, score, groups)
     logo.get_n_splits(groups=groups)  # 'groups' is always required
     
     for trainidx, testidx in logo.split(features, score, groups):
         # Indices
-        X_train, X_test = features[trainidx], features[testidx]
-        X_test -= X_train.mean(0)
-        X_train -= X_train.mean(0)
+        x_train, x_test = features[trainidx], features[testidx]
+        x_test -= x_train.mean(0)
+        x_train -= x_train.mean(0)
 
-        Y_train, Y_test = score[trainidx], score[testidx]		
+        y_train, y_test = score[trainidx], score[testidx]
         # Linear regression
         regr = sklin.LogisticRegression(solver='newton-cg', max_iter=1000)
-        regr.fit(X_train, Y_train)
+        regr.fit(x_train, y_train)
         # Predicted score
-        P = regr.predict_proba(X_test)
-        pred.append(P)
+        p = regr.predict_proba(x_test)
+        pred.append(p)
 
     # pred = np.array(pred)
     # pred = pred[:,:,1]
@@ -287,46 +311,44 @@ def MRELBP(im, parameters):
     return hist.T, (lbp_large, lbp_small, lbp_radial)
 
 
-def getmapping(N):
+def getmapping(n):
     # Defines rotation invariant uniform mapping for lbp of N neighbours
-    newMax = N + 2
-    table = np.zeros((1, 2**N))
-    for k in range(2**N):
+    table = np.zeros((1, 2 ** n))
+    for k in range(2 ** n):
         # Binary representation of bin number
-        binrep = np.binary_repr(k, N)
+        binary_number = np.binary_repr(k, n)
         # Convert string to list of digits
-        i_bin = np.zeros((1, len(binrep)))
-        for ii in range(len(binrep)):
-            i_bin[0, ii] = int(float(binrep[ii]))
+        i_bin = np.zeros((1, len(binary_number)))
+        for ii in range(len(binary_number)):
+            i_bin[0, ii] = int(float(binary_number[ii]))
         # Rotation
         j_bin = np.roll(i_bin, -1)
         # uniformity
-        numt = np.sum(i_bin != j_bin)
+        num_difference = np.sum(i_bin != j_bin)
         # Binning
-        if numt <= 2:
-            b = np.binary_repr(k, N)
+        if num_difference <= 2:
+            b = np.binary_repr(k, n)
             c = 0
             for ii in range(len(b)):
                 c = c+int(float(b[ii]))
             table[0, k] = c
         else:
-            table[0, k] = N+1
-    #num = newMax
+            table[0, k] = n + 1
     return table
 
 
 # Apply mapping to lbp
-def maplbp(bin, mapping):
+def maplbp(bin_original, mapping):
     # Applies mapping to lbp bin
     # Number of bins in output
-    N = int(np.max(mapping))
+    n = int(np.max(mapping))
     # Empty array
-    outbin = np.zeros((1, N+1))
-    for k in range(N+1):
+    outbin = np.zeros((1, n+1))
+    for k in range(n+1):
         # RIU indices
-        M = mapping == k
+        m = mapping == k
         # Extract indices from original bin to new bin
-        outbin[0, k] = np.sum(M*bin)
+        outbin[0, k] = np.sum(m * bin_original)
     return outbin
 
 
@@ -342,75 +364,61 @@ def impadding(im, padlength):
     return im_pad
 
 
-# Scikit PCA
-def ScikitPCA(features, ncomp, whitening=False, solver='full'):
+def scikit_pca(features, ncomp, whitening=False, solver='full'):
     pca = skdec.PCA(n_components=ncomp, svd_solver=solver, whiten=whitening, random_state=42)
-    #pca = skdec.PCA(n_components=ncomp, svd_solver='full', random_state=42)
+    # pca = skdec.PCA(n_components=ncomp, svd_solver='full', random_state=42)
     score = pca.fit(features).transform(features)
     return pca, score
 
-##Principal component analysis
-#def PCA(features,ncomp):	
-#    #Feature dimension, x=num variables,N=num observations
-#    x,N = np.shape(features)
-#    #Mean feature
-#    mean_f = np.mean(features,axis=1)
-#    #Centering
-#    centrd = np.zeros((x,N))
-#    for k in range(N):
-#        centrd[:,k] = features[:,k]-mean_f
-#
-#    #PCs from covariance matrix if N>=x, svd otherwise
-#    if False:
-#        #Covariance matrix
-#        Cov = np.zeros((x,x))
-#        f = np.zeros((x,1))
-#        for k in range(N):		
-#            f[:,0] = centrd[:,k]
-#            Cov = Cov+1/N*np.matmul(f,f.T)
-#
-#        #Eigen values
-#        E,V = np.linalg.eig(Cov)		
-#        #Sort eigenvalues and vectors to descending order
-#        idx = np.argsort(E)[::-1]
-#        V = np.matrix(V[:,idx])
-#        E = E[idx]
-#
-#        for k in range(ncomp):						
-#            s = np.matmul(V[:,k].T,centrd).T			
-#            try:
-#                score = np.concatenate((score,s),axis=1)
-#            except NameError:
-#                score = s
-#            p = V[:,k]
-#            try:
-#                pcomp = np.concatenate((pcomp,p),axis=1)
-#            except NameError:
-#                pcomp = p
-#    else:
-#        #PCA with SVD
-#        u,s,v = np.linalg.svd(centrd,compute_uv=1)
-#        pcomp = v[:,:ncomp]
-#        # Save results
-#        writer = pd.ExcelWriter(r'C:\Users\sarytky\Desktop\trials' + r'\PCA_test.xlsx')
-#        df1 = pd.DataFrame(centrd)
-#        df1.to_excel(writer, sheet_name='dataAdjust')
-#        df2 = pd.DataFrame(u)
-#        df2.to_excel(writer, sheet_name='u')
-#        df3 = pd.DataFrame(s)
-#        df3.to_excel(writer, sheet_name='s')
-#        df4 = pd.DataFrame(v)
-#        df4.to_excel(writer, sheet_name='v')        
-#        writer.save()
-#        np.savetxt(r'C:\Users\sarytky\Desktop\trials' + '\\''dataAdjust_python.csv', centrd, delimiter=',')
-#
-#        score = np.matmul(u,s).T[:,1:ncomp]
-#    return pcomp,score
+
+def get_pca(features, ncomp):
+    # Feature dimension, x=num variables,n=num observations
+    x, n = np.shape(features)
+    # Mean feature
+    mean_f = np.mean(features, axis=1)
+    # Centering
+    centered = np.zeros((x, n))
+    for k in range(n):
+        centered[:, k] = features[:, k]-mean_f
+
+    # PCs from covariance matrix if n>=x, svd otherwise
+    n_components = None
+    if n >= x:
+        # Covariance matrix
+        cov = np.zeros((x, x))
+        f = np.zeros((x, 1))
+        for k in range(n):
+            f[:, 0] = centered[:, k]
+            cov = cov+1/n*np.matmul(f, f.T)
+
+        # Eigenvalues
+        e, v = np.linalg.eig(cov)
+        # Sort eigenvalues and vectors to descending order
+        idx = np.argsort(e)[::-1]
+        v = np.matrix(v[:, idx])
+        e = e[idx]
+
+        for k in range(ncomp):
+            s = np.matmul(v[:, k].T, centered).T
+            try:
+                score = np.concatenate((score, s), axis=1)
+            except NameError:
+                score = s
+            p = v[:, k]
+            try:
+                n_components = np.concatenate((n_components, p), axis=1)
+            except NameError:
+                n_components = p
+    else:
+        # PCA with SVD
+        u, s, v = np.linalg.svd(centered, compute_uv=1)
+        n_components = v[:, :ncomp]
+        score = np.matmul(u, s).T[:, 1:ncomp]
+    return n_components, score
 
 
-# Local grayscale standardization
-def localstandard(im, parameters):
-    """Centers grayscales with Gaussian weighted mean"""
+def local_standard(im, parameters):
+    """Centers local grayscales with Gaussian weighted mean"""
     # Unpack parameters
     w1 = parameters['ks1']
     w2 = parameters['ks2']
@@ -418,8 +426,8 @@ def localstandard(im, parameters):
     sigma2 = parameters['sigma2']
 
     # Gaussian kernels
-    kernel1 = Gauss2D(w1, sigma1)
-    kernel2 = Gauss2D(w2, sigma2)
+    kernel1 = gauss_kernel(w1, sigma1)
+    kernel2 = gauss_kernel(w2, sigma2)
     # Blurring
     blurred1 = scipy.ndimage.convolve(im, kernel1)
     blurred2 = scipy.ndimage.convolve(im, kernel2)
@@ -431,9 +439,8 @@ def localstandard(im, parameters):
     return new_im
 
 
-# Gaussian kernel
-def Gauss2D(w, sigma):
-    # Generates 2d gaussian kernel
+def gauss_kernel(w, sigma):
+    """Generates 2d gaussian kernel"""
     kernel = np.zeros((w, w))
     # Constant for centering
     r = (w-1)/2
@@ -446,21 +453,21 @@ def Gauss2D(w, sigma):
     return kernel
 
 
-def loadbinary(path, datatype = np.int32):
+def load_binary(path, datatype=np.int32):
     if datatype == np.float64:
-        bytesarray = np.fromfile(path, dtype=np.int64)  # read everything as int32
+        byte_array = np.fromfile(path, dtype=np.int64)  # read everything as int32
     else:
-        bytesarray = np.fromfile(path, dtype=np.int32)  # read everything as int32
-    w = bytesarray[0]
-    l = int((bytesarray.size - 1) / w)
+        byte_array = np.fromfile(path, dtype=np.int32)  # read everything as int32
+    w = byte_array[0]
+    h = int((byte_array.size - 1) / w)
     with open(path, "rb") as f:  # open to read binary file
         if datatype == np.float64:
             f.seek(8)  # skip first integer (width)
         else:
             f.seek(4)  # skip first integer (width)
-        features = np.zeros((w, l))
+        features = np.zeros((w, h))
         for i in range(w):
-            for j in range(l):
+            for j in range(h):
                 if datatype == np.int32:
                     features[i, j] = struct.unpack('<i', f.read(4))[0]  
                     # when reading byte by byte (struct), 
