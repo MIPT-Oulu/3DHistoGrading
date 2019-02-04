@@ -1,26 +1,20 @@
 import numpy as np
-import os
-import h5py
-import cv2
-import gc
 from time import time
-import pandas as pd
 import gc
 
 from joblib import Parallel,delayed
 from tqdm import tqdm
 
-from scipy.signal import medfilt
-from scipy.ndimage import correlate, zoom
+from scipy.ndimage import correlate
 
 from sklearn.model_selection import LeaveOneOut
 from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor
 
 
-from LBP_components import Conv_MRELBP
-from grading_old import MRELBP
+from Old.LBP_components import Conv_MRELBP
+from Old.grading_old import MRELBP
 
 
 def make_pars(n_pars):

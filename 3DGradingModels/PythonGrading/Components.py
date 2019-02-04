@@ -12,7 +12,7 @@ from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor
 
 
-from Grading.LBP_components import Conv_MRELBP
+from Old.LBP_components import Conv_MRELBP
 
 
 

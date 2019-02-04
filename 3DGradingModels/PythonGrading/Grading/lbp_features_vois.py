@@ -92,6 +92,7 @@ def pipeline_lbp(impath, save, pars_surf, pars_deep, pars_calc):
 
 
 def load_dataset_h5(pth, file_list):
+    """Loads list of h5 datasets with single sum image."""
     # List for images
     images = []
 

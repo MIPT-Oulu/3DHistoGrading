@@ -45,7 +45,7 @@ def calculate_multiple(impath, savepath, size, selection=None, mask=False, model
 
 if __name__ == '__main__':
     # Pipeline variables
-    path = r"Y:\3DHistoData\Subvolumes_Insaf"
+    path = r"Y:\3DHistoData\Subvolumes_Isokerays"
     size = [448, 25, 10, 150, 50]  # width, surf depth, offset, deep depth, cc depth
     modelpath = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/"
     snapshots = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/"

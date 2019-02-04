@@ -266,4 +266,111 @@ Current minimum error is: 0.513045357633537
 Parameters are:
 {'ks1': 13, 'sigma1': 2, 'ks2': 11, 'sigma2': 6, 'R': 6, 'r': 5, 'wc': 7, 'wR': 15, 'wr': 5}
 Took 73 seconds
-Optimizing parameters:  69%|???????   | 58/84 [1:03:11<29:00, 66.96s/it]
+Optimizing parameters:  69%|???????   | 58/84 [1:03:11<29:00, 66.96s/it]Optimizing parameters:  70%|???????   | 59/84 [1:04:20<28:12, 67.70s/it]Current minimum error is: 0.5703827522158804
+Parameters are:
+{'ks1': 5, 'sigma1': 3, 'ks2': 23, 'sigma2': 9, 'R': 18, 'r': 2, 'wc': 5, 'wR': 3, 'wr': 5}
+Took 69 seconds
+Current minimum error is: 0.543644307722937
+Optimizing parameters:  71%|????????  | 60/84 [1:05:23<26:26, 66.11s/it]Parameters are:
+{'ks1': 15, 'sigma1': 12, 'ks2': 5, 'sigma2': 1, 'R': 21, 'r': 4, 'wc': 13, 'wR': 7, 'wr': 5}
+Took 62 seconds
+Optimizing parameters:  73%|????????  | 61/84 [1:06:30<25:25, 66.34s/it]Current minimum error is: 0.4996788192541703
+Parameters are:
+{'ks1': 13, 'sigma1': 4, 'ks2': 13, 'sigma2': 1, 'R': 12, 'r': 1, 'wc': 7, 'wR': 7, 'wr': 9}
+Took 66 seconds
+Optimizing parameters:  74%|????????  | 62/84 [1:07:30<23:40, 64.57s/it]Current minimum error is: 0.503612686300381
+Parameters are:
+{'ks1': 9, 'sigma1': 1, 'ks2': 9, 'sigma2': 6, 'R': 6, 'r': 1, 'wc': 15, 'wR': 13, 'wr': 5}
+Took 60 seconds
+Optimizing parameters:  75%|????????  | 63/84 [1:08:33<22:26, 64.14s/it]Current minimum error is: 0.5243704550938749
+Parameters are:
+{'ks1': 21, 'sigma1': 11, 'ks2': 9, 'sigma2': 2, 'R': 6, 'r': 1, 'wc': 5, 'wR': 11, 'wr': 13}
+Took 63 seconds
+Current minimum error is: 0.5136323070649602
+Parameters are:
+{'ks1': 13, 'sigma1': 13, 'ks2': 25, 'sigma2': 24, 'R': 11, 'r': 1, 'wc': 7, 'wR': 7, 'wr': 15}
+Optimizing parameters:  76%|????????  | 64/84 [1:09:32<20:54, 62.70s/it]Took 59 seconds
+Optimizing parameters:  77%|????????  | 65/84 [1:10:34<19:44, 62.33s/it]Current minimum error is: 0.5609626489414331
+Parameters are:
+{'ks1': 19, 'sigma1': 6, 'ks2': 23, 'sigma2': 6, 'R': 8, 'r': 5, 'wc': 7, 'wR': 13, 'wr': 5}
+Took 61 seconds
+Current minimum error is: 0.5271269959226278
+Optimizing parameters:  79%|????????  | 66/84 [1:11:40<19:01, 63.41s/it]Parameters are:
+{'ks1': 19, 'sigma1': 8, 'ks2': 7, 'sigma2': 7, 'R': 16, 'r': 9, 'wc': 13, 'wR': 11, 'wr': 7}
+Took 65 seconds
+Current minimum error is: 0.5342103426103995
+Optimizing parameters:  80%|????????  | 67/84 [1:12:51<18:37, 65.76s/it]Parameters are:
+{'ks1': 7, 'sigma1': 6, 'ks2': 17, 'sigma2': 9, 'R': 6, 'r': 1, 'wc': 9, 'wR': 15, 'wr': 7}
+Took 71 seconds
+Current minimum error is: 0.5580512767994857
+Parameters are:
+Optimizing parameters:  81%|????????  | 68/84 [1:13:57<17:32, 65.77s/it]{'ks1': 19, 'sigma1': 6, 'ks2': 17, 'sigma2': 2, 'R': 19, 'r': 5, 'wc': 13, 'wR': 3, 'wr': 13}
+Took 65 seconds
+Current minimum error is: 0.5221480300921731
+Parameters are:
+{'ks1': 21, 'sigma1': 19, 'ks2': 17, 'sigma2': 6, 'R': 22, 'r': 6, 'wc': 3, 'wR': 13, 'wr': 3}
+Took 63 seconds
+Optimizing parameters:  82%|????????? | 69/84 [1:15:00<16:16, 65.07s/it]Optimizing parameters:  83%|????????? | 70/84 [1:16:05<15:07, 64.84s/it]Current minimum error is: 0.5154556505319824
+Parameters are:
+{'ks1': 5, 'sigma1': 5, 'ks2': 9, 'sigma2': 7, 'R': 21, 'r': 2, 'wc': 5, 'wR': 5, 'wr': 11}
+Took 64 seconds
+Current minimum error is: 0.5316052092747036
+Optimizing parameters:  85%|????????? | 71/84 [1:17:08<13:55, 64.27s/it]Parameters are:
+{'ks1': 25, 'sigma1': 17, 'ks2': 23, 'sigma2': 18, 'R': 4, 'r': 3, 'wc': 9, 'wR': 5, 'wr': 15}
+Took 62 seconds
+Optimizing parameters:  86%|????????? | 72/84 [1:18:10<12:42, 63.57s/it]Current minimum error is: 0.5053467176056374
+Parameters are:
+{'ks1': 9, 'sigma1': 4, 'ks2': 21, 'sigma2': 11, 'R': 4, 'r': 2, 'wc': 9, 'wR': 13, 'wr': 3}
+Took 61 seconds
+Current minimum error is: 0.5189746227878812
+Parameters are:
+{'ks1': 13, 'sigma1': 1, 'ks2': 7, 'sigma2': 2, 'R': 8, 'r': 3, 'wc': 5, 'wR': 11, 'wr': 13}
+Took 61 seconds
+Optimizing parameters:  87%|????????? | 73/84 [1:19:11<11:32, 62.93s/it]Current minimum error is: 0.4990734547205078
+Optimizing parameters:  88%|????????? | 74/84 [1:20:16<10:37, 63.71s/it]Parameters are:
+{'ks1': 17, 'sigma1': 7, 'ks2': 17, 'sigma2': 1, 'R': 23, 'r': 2, 'wc': 5, 'wR': 15, 'wr': 3}
+Took 65 seconds
+Optimizing parameters:  89%|????????? | 75/84 [1:21:24<09:44, 64.96s/it]Current minimum error is: 0.5266079479947817
+Parameters are:
+{'ks1': 23, 'sigma1': 10, 'ks2': 13, 'sigma2': 4, 'R': 23, 'r': 1, 'wc': 15, 'wR': 3, 'wr': 11}
+Took 67 seconds
+Current minimum error is: 0.5606305687660227
+Parameters are:
+Optimizing parameters:  90%|????????? | 76/84 [1:22:27<08:33, 64.19s/it]{'ks1': 23, 'sigma1': 9, 'ks2': 9, 'sigma2': 7, 'R': 25, 'r': 2, 'wc': 3, 'wR': 15, 'wr': 13}
+Took 62 seconds
+Optimizing parameters:  92%|??????????| 77/84 [1:23:31<07:30, 64.32s/it]Current minimum error is: 0.49913134491087036
+Parameters are:
+{'ks1': 9, 'sigma1': 3, 'ks2': 3, 'sigma2': 1, 'R': 9, 'r': 2, 'wc': 11, 'wR': 13, 'wr': 7}
+Took 64 seconds
+Optimizing parameters:  93%|??????????| 78/84 [1:24:39<06:32, 65.45s/it]Current minimum error is: 0.5759244167037437
+Parameters are:
+{'ks1': 21, 'sigma1': 19, 'ks2': 25, 'sigma2': 18, 'R': 19, 'r': 11, 'wc': 7, 'wR': 15, 'wr': 3}
+Took 68 seconds
+Current minimum error is: 0.5042686482221929
+Optimizing parameters:  94%|??????????| 79/84 [1:25:34<05:11, 62.27s/it]Parameters are:
+{'ks1': 5, 'sigma1': 2, 'ks2': 21, 'sigma2': 15, 'R': 14, 'r': 10, 'wc': 3, 'wR': 9, 'wr': 15}
+Took 54 seconds
+Current minimum error is: 0.528517869539808
+Optimizing parameters:  95%|??????????| 80/84 [1:26:34<04:06, 61.57s/it]Parameters are:
+{'ks1': 19, 'sigma1': 2, 'ks2': 5, 'sigma2': 1, 'R': 14, 'r': 7, 'wc': 15, 'wR': 3, 'wr': 11}
+Took 59 seconds
+Optimizing parameters:  96%|??????????| 81/84 [1:27:46<03:13, 64.65s/it]Current minimum error is: 0.49747616722932997
+Parameters are:
+{'ks1': 13, 'sigma1': 1, 'ks2': 7, 'sigma2': 2, 'R': 7, 'r': 6, 'wc': 5, 'wR': 11, 'wr': 11}
+Took 71 seconds
+Current minimum error is: 0.5414268114410333
+Optimizing parameters:  98%|??????????| 82/84 [1:28:45<02:05, 62.98s/it]Parameters are:
+{'ks1': 13, 'sigma1': 9, 'ks2': 5, 'sigma2': 3, 'R': 3, 'r': 1, 'wc': 5, 'wR': 7, 'wr': 9}
+Took 59 seconds
+Optimizing parameters:  99%|??????????| 83/84 [1:29:44<01:01, 61.87s/it]Current minimum error is: 0.5114162622773984
+Parameters are:
+{'ks1': 9, 'sigma1': 9, 'ks2': 15, 'sigma2': 9, 'R': 18, 'r': 1, 'wc': 11, 'wR': 7, 'wr': 13}
+Took 59 seconds
+Current minimum error is: 0.491396760419741
+Parameters are:
+{'ks1': 13, 'sigma1': 8, 'ks2': 21, 'sigma2': 15, 'R': 6, 'r': 2, 'wc': 5, 'wR': 3, 'wr': 3}
+Optimizing parameters: 100%|??????????| 84/84 [1:30:28<00:00, 56.36s/it]
+Took 43 seconds
+Minimum error is : 0.46403210056654204
+Parameters are:
+{'ks1': 25, 'sigma1': 19, 'ks2': 21, 'sigma2': 9, 'R': 7, 'r': 6, 'wc': 9, 'wR': 5, 'wr': 5}
