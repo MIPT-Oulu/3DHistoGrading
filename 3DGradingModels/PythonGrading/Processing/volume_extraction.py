@@ -427,9 +427,9 @@ def segmentation_kmeans(array, n_clusters=3, offset=0, limit=2, method='scikit',
     # Take offset and zoom into account
     mask_array = np.zeros(dims)
     try:
-        mask_array[:, :, offset:mask.shape[2]-offset] = mask
+        mask_array[:, :, offset:mask.shape[2] + offset] = mask  # Squeeze mask array to fit calculated mask
     except ValueError:
-        mask_array[:, :, offset:] = mask[:, :, :mask_array.shape[2] - offset]
+        mask_array[:, :, offset:] = mask[:, :, :mask_array.shape[2] - offset]  # Squeeze calculated mask to fit array
 
     return mask_array >= 0.5
 

@@ -2,23 +2,58 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1807f0cf-5aea-425d-a657-1bf8ddb332b9" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Processing/extract_voi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/PythonGrading.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PythonGrading.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ERCGrades.xlsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/Components.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/DEBUGGINGNEW.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/LBP_components.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/MRELBPDebugging.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/Components.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/DEBUGGINGNEW.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/Evaluation/.ipynb_checkpoints/LBPEvaluation-checkpoint.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/Evaluation/Components.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/Evaluation/LBPEvaluation.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/Evaluation/LBP_components.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/LBP_components.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/MRELBPDebugging.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/OLD_LBP_components.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/TrainLBP.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/Untitled.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/calc_search.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/calcpars.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/deep_search.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/deeppars.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/surf_search.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/NewLBPTraining/surfpars.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/OLD_LBP_components.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/TrainLBP.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/Untitled.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/calc_search.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/calcpars.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/deep_search.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/deeppars.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/surf_search.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NewLBPTraining/surfpars.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Clustering/kmean_scikit.py" beforeDir="false" afterPath="$PROJECT_DIR$/Clustering/kmean_scikit.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/create_regression_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Grading/create_regression_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/display_meanstd.py" beforeDir="false" afterPath="$PROJECT_DIR$/Grading/display_meanstd.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/grading.py" beforeDir="false" afterPath="$PROJECT_DIR$/Grading/grading.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/lbp_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/Grading/lbp_features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grading/lbp_features_vois.py" beforeDir="false" afterPath="$PROJECT_DIR$/Grading/lbp_features_vois.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/CreateMeanStd.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/CreateMeanStd.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/CreateSubvolume.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/CreateSubvolume.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/GradDesOrient.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/GradDesOrient.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/clustering.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/clustering.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/segmentation.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/segmentation_torch.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processing/utilities.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/utilities.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Processing/volume_extraction.py" beforeDir="false" afterPath="$PROJECT_DIR$/Processing/volume_extraction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/.ipynb_checkpoints/LBPTest-checkpoint.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/.ipynb_checkpoints/PCA_regression-checkpoint.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/.ipynb_checkpoints/Reference_python-checkpoint.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/ConvGrade.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/ConvGrade.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/ConvMRELBP.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/ConvMRELBP.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/ImageProcessing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/ImageProcessing2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/LBPTest.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/LBPTest.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/PCA_regression.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/PCA_regression.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/PCA_test.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/PCA_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/Reference_python.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/Reference_python.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/RegressTest.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SurfaceGrading/SurfaceGrading.pyproj" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -32,11 +67,12 @@
     <SUITE FILE_PATH="coverage/PythonGrading$lbp_features_vois.coverage" NAME="lbp_features_vois Coverage Results" MODIFIED="1548921891318" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Grading" />
     <SUITE FILE_PATH="coverage/PythonGrading$easy_listbox.coverage" NAME="easy_listbox Coverage Results" MODIFIED="1548844835743" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
     <SUITE FILE_PATH="coverage/PythonGrading$kmeans.coverage" NAME="kmeans Coverage Results" MODIFIED="1548252701416" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Clustering" />
+    <SUITE FILE_PATH="coverage/PythonGrading$TrainLBP.coverage" NAME="TrainLBP Coverage Results" MODIFIED="1549268450368" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/LBPTraining" />
     <SUITE FILE_PATH="coverage/PythonGrading$zoom.coverage" NAME="zoom Coverage Results" MODIFIED="1548927586041" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
     <SUITE FILE_PATH="coverage/PythonGrading$kmeans__1_.coverage" NAME="kmeans (1) Coverage Results" MODIFIED="1547546580464" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Clustering" />
-    <SUITE FILE_PATH="coverage/PythonGrading$CreateMeanStd.coverage" NAME="CreateMeanStd Coverage Results" MODIFIED="1549017841743" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
     <SUITE FILE_PATH="coverage/PythonGrading$kmean_scikit.coverage" NAME="kmean_scikit Coverage Results" MODIFIED="1549019415051" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Clustering" />
-    <SUITE FILE_PATH="coverage/PythonGrading$CreateSubvolume.coverage" NAME="CreateSubvolume Coverage Results" MODIFIED="1549023131788" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
+    <SUITE FILE_PATH="coverage/PythonGrading$CreateMeanStd.coverage" NAME="CreateMeanStd Coverage Results" MODIFIED="1549194947136" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
+    <SUITE FILE_PATH="coverage/PythonGrading$CreateSubvolume.coverage" NAME="CreateSubvolume Coverage Results" MODIFIED="1549271546633" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
     <SUITE FILE_PATH="coverage/PythonGrading$listbox.coverage" NAME="listbox Coverage Results" MODIFIED="1548851808695" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Processing" />
   </component>
   <component name="DatabaseView">
@@ -58,8 +94,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Processing/CreateMeanStd.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="351">
-              <caret line="37" column="96" selection-start-line="37" selection-start-column="96" selection-end-line="37" selection-end-column="96" />
+            <state relative-caret-position="221">
+              <caret line="13" column="4" lean-forward="true" selection-start-line="13" selection-start-column="4" selection-end-line="16" selection-end-column="13" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
               </folding>
@@ -67,11 +103,23 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Grading/grading.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/LBPTraining/TrainLBP.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="340">
-              <caret line="92" column="33" lean-forward="true" selection-start-line="92" selection-start-column="33" selection-end-line="92" selection-end-column="33" />
+            <state relative-caret-position="971">
+              <caret line="71" column="20" selection-start-line="71" selection-start-column="20" selection-end-line="71" selection-end-column="20" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/LBPTraining/Components.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="81" column="28" lean-forward="true" selection-start-line="81" selection-start-column="28" selection-end-line="81" selection-end-column="28" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -80,24 +128,12 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Processing/CreateSubvolume.py">
+        <entry file="file://$PROJECT_DIR$/Grading/grading.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="87">
-              <caret line="42" column="96" selection-start-line="42" selection-start-column="96" selection-end-line="42" selection-end-column="96" />
+            <state relative-caret-position="327">
+              <caret line="436" column="12" lean-forward="true" selection-start-line="436" selection-start-column="12" selection-end-line="436" selection-end-column="12" />
               <folding>
-                <element signature="e#0#31#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Grading/lbp_features_vois.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="199">
-              <caret line="121" lean-forward="true" selection-start-line="121" selection-end-line="121" />
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
+                <element signature="e#0#18#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -106,7 +142,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Grading/create_regression_model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-238">
+            <state relative-caret-position="-68">
               <caret line="11" column="59" selection-start-line="11" selection-start-column="59" selection-end-line="11" selection-end-column="59" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
@@ -116,10 +152,22 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Grading/lbp_features_vois.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2178">
+              <caret line="156" lean-forward="true" selection-start-line="156" selection-end-line="156" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Processing/volume_extraction.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-75">
-              <caret line="433" column="24" selection-start-line="433" selection-start-column="24" selection-end-line="433" selection-end-column="24" />
+            <state relative-caret-position="-705">
+              <caret line="431" column="117" selection-start-line="431" selection-start-column="117" selection-end-line="431" selection-end-column="117" />
               <folding>
                 <element signature="e#0#36#0" expanded="true" />
               </folding>
@@ -183,15 +231,18 @@
         <option value="$PROJECT_DIR$/Processing/utilities.py" />
         <option value="$PROJECT_DIR$/Processing/extract_voi.py" />
         <option value="$PROJECT_DIR$/Clustering/kmean_scikit.py" />
-        <option value="$PROJECT_DIR$/Processing/CreateMeanStd.py" />
         <option value="$PROJECT_DIR$/Processing/CreateSubvolume.py" />
-        <option value="$PROJECT_DIR$/Processing/volume_extraction.py" />
         <option value="$PROJECT_DIR$/Grading/grading.py" />
+        <option value="$PROJECT_DIR$/Processing/volume_extraction.py" />
+        <option value="$PROJECT_DIR$/Processing/CreateMeanStd.py" />
+        <option value="$PROJECT_DIR$/LBPTraining/TrainLBP.py" />
+        <option value="$PROJECT_DIR$/LBPTraining/Components.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="33" />
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
     <option name="width" value="1195" />
     <option name="height" value="988" />
   </component>
@@ -220,6 +271,11 @@
               <item name="PythonGrading" type="b2602c69:ProjectViewProjectNode" />
               <item name="PythonGrading" type="462c0819:PsiDirectoryNode" />
               <item name="Grading" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="PythonGrading" type="b2602c69:ProjectViewProjectNode" />
+              <item name="PythonGrading" type="462c0819:PsiDirectoryNode" />
+              <item name="LBPTraining" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="PythonGrading" type="b2602c69:ProjectViewProjectNode" />
@@ -263,7 +319,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.CreateSubvolume">
+  <component name="RunManager" selected="Python.TrainLBP">
     <configuration name="CreateMeanStd" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="PythonGrading" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -319,6 +375,29 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Processing/CreateSubvolume.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TrainLBP" type="PythonConfigurationType" factoryName="Python">
+      <output_file path="$PROJECT_DIR$/LBPTraining/parameters.txt" is_save="true" />
+      <module name="PythonGrading" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/LBPTraining" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/LBPTraining/TrainLBP.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -397,6 +476,7 @@
       <item itemvalue="Python.CreateSubvolume" />
       <item itemvalue="Python.lbp_features_vois" />
       <item itemvalue="Python.kmean_scikit" />
+      <item itemvalue="Python.TrainLBP" />
       <item itemvalue="Python.CreateMeanStd" />
     </list>
     <recent_temporary>
@@ -435,12 +515,12 @@
       <workItem from="1548836634642" duration="9814000" />
       <workItem from="1548846639698" duration="11629000" />
       <workItem from="1548939420621" duration="4728000" />
-      <workItem from="1548960947606" duration="21882000" />
+      <workItem from="1548960947606" duration="32006000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="239339000" />
+    <option name="totallyTimeSpent" value="249463000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -460,7 +540,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32936078" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49867842" weight="0.30119178" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49867842" visible="true" weight="0.30119178" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.38678223" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -474,7 +554,7 @@
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info active="true" anchor="right" id="SciView" order="3" visible="true" weight="0.3326226" />
+      <window_info anchor="right" id="SciView" order="3" visible="true" weight="0.2196162" />
       <window_info anchor="right" id="R Graphics" order="4" />
       <window_info anchor="right" id="R Packages" order="5" />
       <window_info anchor="right" id="Database" order="6" weight="0.32995737" />
@@ -585,77 +665,6 @@ plt.show()</expression-string>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Notebooks/GradDesOrient.ipynb">
-      <provider selected="true" editor-type-id="ipnb-editor">
-        <state>
-          <selected id="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Notebooks/Examples and debugging.ipynb">
-      <provider selected="true" editor-type-id="ipnb-editor">
-        <state>
-          <selected id="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Components.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1275">
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Notebooks/Segmentation.ipynb">
-      <provider selected="true" editor-type-id="ipnb-editor">
-        <state>
-          <selected id="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Notebooks/CreateMeanStd.ipynb">
-      <provider selected="true" editor-type-id="ipnb-editor">
-        <state>
-          <selected id="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2018.3/system/python_stubs/931779050/cv2/cv2/__init__.py" />
-    <entry file="file://C:/pyenv/Lib/site-packages/numpy/core/fromnumeric.py" />
-    <entry file="file://$PROJECT_DIR$/Grading/ImageProcessing.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="3" lean-forward="true" selection-start-line="3" selection-end-line="3" />
-          <folding>
-            <element signature="e#114#132#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Notebooks/Conversions.ipynb">
-      <provider selected="true" editor-type-id="ipnb-editor">
-        <state>
-          <selected id="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Grading/roc_curve.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="462">
-          <caret line="230" selection-start-line="230" selection-end-line="230" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Notebooks/LBP features.ipynb">
-      <provider selected="true" editor-type-id="ipnb-editor">
-        <state>
-          <selected id="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/pyenv/Lib/site-packages/scipy/misc/pilutil.py" />
     <entry file="file://$PROJECT_DIR$/Processing/rotations.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="540">
@@ -689,16 +698,6 @@ plt.show()</expression-string>
       <provider selected="true" editor-type-id="ipnb-editor">
         <state>
           <selected id="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Grading/lbp_features.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-204">
-          <caret line="12" selection-start-line="12" selection-end-line="12" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -842,26 +841,6 @@ plt.show()</expression-string>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Grading/lbp_features_vois.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="199">
-          <caret line="121" lean-forward="true" selection-start-line="121" selection-end-line="121" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Processing/CreateMeanStd.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="351">
-          <caret line="37" column="96" selection-start-line="37" selection-start-column="96" selection-end-line="37" selection-end-column="96" />
-          <folding>
-            <element signature="e#0#31#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Grading/grading_old.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-5803">
@@ -880,26 +859,6 @@ plt.show()</expression-string>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Grading/create_regression_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-238">
-          <caret line="11" column="59" selection-start-line="11" selection-start-column="59" selection-end-line="11" selection-end-column="59" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Processing/volume_extraction.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-75">
-          <caret line="433" column="24" selection-start-line="433" selection-start-column="24" selection-end-line="433" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#36#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Processing/extract_voi.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="365">
@@ -910,10 +869,162 @@ plt.show()</expression-string>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Processing/volume_extraction.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-705">
+          <caret line="431" column="117" selection-start-line="431" selection-start-column="117" selection-end-line="431" selection-end-column="117" />
+          <folding>
+            <element signature="e#0#36#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/calcpars.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/DEBUGGINGNEW.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/OLD_LBP_components.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2091">
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/Untitled.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/LBP_components.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1018">
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/MRELBPDebugging.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/NewLBPTraining/Evaluation/LBPEvaluation.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/NewLBPTraining/Evaluation/Components.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/surfpars.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/calc_search.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/deep_search.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/surf_search.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/NewLBPTraining/deep_search.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/NewLBPTraining/Components.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-357">
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Processing/CreateMeanStd.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="13" column="4" lean-forward="true" selection-start-line="13" selection-start-column="4" selection-end-line="16" selection-end-column="13" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/TrainLBP.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="971">
+          <caret line="71" column="20" selection-start-line="71" selection-start-column="20" selection-end-line="71" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Grading/create_regression_model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-68">
+          <caret line="11" column="59" selection-start-line="11" selection-start-column="59" selection-end-line="11" selection-end-column="59" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Grading/lbp_features.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="76" column="14" lean-forward="true" selection-start-line="76" selection-start-column="14" selection-end-line="76" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Grading/lbp_features_vois.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2178">
+          <caret line="156" lean-forward="true" selection-start-line="156" selection-end-line="156" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Grading/grading.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="92" column="33" lean-forward="true" selection-start-line="92" selection-start-column="33" selection-end-line="92" selection-end-column="33" />
+        <state relative-caret-position="327">
+          <caret line="436" column="12" lean-forward="true" selection-start-line="436" selection-start-column="12" selection-end-line="436" selection-end-column="12" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LBPTraining/Components.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="81" column="28" lean-forward="true" selection-start-line="81" selection-start-column="28" selection-end-line="81" selection-end-column="28" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
