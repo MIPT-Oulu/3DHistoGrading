@@ -4,12 +4,12 @@ import os
 import pickle
 import cntk as C
 
-from segmentation_torch import get_split, inference
+from Segmentation.torch_segmentation import get_split, inference
 from Clustering.clustering import kmeans_opencv, kmeans_scikit
 from scipy.ndimage import zoom
 from tqdm.auto import tqdm
 from joblib import Parallel, delayed
-from Utilities.utilities import print_orthogonal
+from Utilities.misc import print_orthogonal
 
 
 def segmentation_kmeans(array, n_clusters=3, offset=0, limit=2, method='scikit', zoom_factor=4.0):

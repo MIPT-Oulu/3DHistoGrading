@@ -1,10 +1,11 @@
-from volume_extraction import *
-from Utilities.utilities import *
-from Utilities import listbox
+import os
+
 from time import time
+from voi_extraction_pipelines import pipeline
+from Utilities import listbox
 
 
-def calculate_multiple(image_path, save_path, size, selection=None, modelpath=None, snapshots=None):
+def calculate_multiple(image_path, save_path, size, selection=None, model_path=None, model_snapshots=None):
     # List directories
     files = os.listdir(image_path)
     files.sort()
@@ -33,7 +34,7 @@ def calculate_multiple(image_path, save_path, size, selection=None, modelpath=No
                 continue
 
         try:
-            pipeline(pth, files[k], save_path, size, None, modelpath, False, snapshots)
+            pipeline(pth, files[k], save_path, size, None, model_path, model_snapshots)
             end = time()
             print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
         except Exception:
@@ -50,7 +51,7 @@ if __name__ == '__main__':
     size_parameters = dict(width=448, surface=25, deep=150, calcified=50, offset=10)
     modelpath = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/"
     snapshots = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/"
-    selection = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    selection_list = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
     # Use listbox (Result is saved in listbox.file_list)
     listbox.GetFileSelection(path)

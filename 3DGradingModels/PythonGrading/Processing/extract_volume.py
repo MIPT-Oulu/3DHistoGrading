@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Utilities.utilities import otsu_threshold
+from Utilities.misc import otsu_threshold
 from joblib import Parallel, delayed
 from tqdm import tqdm
 from scipy.signal import medfilt

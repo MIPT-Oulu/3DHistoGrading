@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import cv2
 
 from sklearn.decomposition import PCA
-from Utilities.utilities import opencv_rotate, print_orthogonal
+from Utilities.misc import opencv_rotate, print_orthogonal
 
 
 def orient(data, bounds, individual=False):

@@ -1,52 +1,50 @@
-import time
+import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 
-from Grading.lbp_pca import *
-from Grading.roc_curve import *
-# from grading_old import regress
+from Grading.pca_regression import scikit_pca, regress_logo, logistic_logo
+from Grading.roc_curve import mse_bootstrap, roc_curve_bootstrap, roc_multi
+from Utilities.load_write import load_binary_weights, write_binary_weights
 
 from scipy.stats import spearmanr, wilcoxon
+from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score
 
 
-def pipeline_load(featurepath, gpath, save, choice, comps, modelpath):
+def pipeline_load(feature_path, grades_path, save_path, choice, comps, model_path):
     # TODO implement grading for Insaf and Isokerays series
-    # Start time
-    start_time = time.time()
+
     # Load grades to array
-    grades = pd.read_excel(gpath, 'Sheet1')
-    grades = pd.DataFrame(grades).values
-    fnames = grades[:, 0].astype('str')
-    g = list(grades[:, choice].astype('int'))
-    g = np.array(g)
-    # print('Max grade: {0}, min grade: {1}'.format(max(g), min(g)))
+    grades_array = pd.read_excel(grades_path, 'Sheet1')
+    grades_array = pd.DataFrame(grades_array).values
+    fnames = grades_array[:, 0].astype('str')
+    grades = list(grades_array[:, choice].astype('int'))
+    grades = np.array(grades)
 
     # Load features
-    features = pd.read_excel(featurepath, 'LBP_features')
+    features = pd.read_excel(feature_path, 'LBP_features')
     features = pd.DataFrame(features).values.astype('int')
     mean = np.mean(features, 1)  # mean feature
     # if features.shape[1] != 36:
     #    features = features.T
 
     # PCA
-    # PCA parameters: whitening, svd solver (auto/full)
-    # pca, score = ScikitPCA(features.T, comps, True, 'auto')
-    pca, score = scikit_pca(features.T, comps, True, 'auto')
+    pca, score = scikit_pca(features.T, comps, whitening=True, solver='auto')
     # pca, score = PCA(features,10)
 
     # Regression
-    pred1, weights = regress_logo(score, g)
-    # pred1 = regress_new(score, g)
-    pred2 = logreg_logo(score, g > 1)
-    for p in range(len(pred1)):
-        if pred1[p] < 0:
-            pred1[p] = 0
-        if pred1[p] > max(g):
-            pred1[p] = max(g)
+    pred_linear, weights = regress_logo(score, grades)
+    # pred_linear = regress_new(score, g)
+    pred_logistic = logistic_logo(score, grades > 1)
+    for p in range(len(pred_linear)):
+        if pred_linear[p] < 0:
+            pred_linear[p] = 0
+        if pred_linear[p] > max(grades):
+            pred_linear[p] = max(grades)
     # Plotting PCA
-    b = np.round(pred1).astype('int')
+    b = np.round(pred_linear).astype('int')
 
     # Reference for pretrained PCA
-    _, _, eigenvec, _, weightref, m = load_binary_weights(save + modelpath)
+    _, _, eigenvec, _, weightref, m = load_binary_weights(save_path + model_path)
     dataadjust = features.T - mean
     print('Mean vector')
     print(mean)
@@ -67,54 +65,57 @@ def pipeline_load(featurepath, gpath, save, choice, comps, modelpath):
     print('prediction')
     print(reference)
     print('Sum of differences to actual grades (pretrained)')
-    print(np.sum(np.abs((reference + 1.5).flatten() - g)))
+    print(np.sum(np.abs((reference + 1.5).flatten() - grades)))
     # print(reference)
 
     # ROC curve
-    C1 = skmet.confusion_matrix(g, b)
-    MSE1 = skmet.mean_squared_error(g, pred1)
-    fpr, tpr, thresholds = skmet.roc_curve(g > 0, np.round(pred1) > 0, pos_label=1)
-    AUC1 = skmet.auc(fpr, tpr)
-    AUC2 = skmet.roc_auc_score(g > 1, pred2)
-    m, b = np.polyfit(g, pred1.flatten(), 1)
-    R2 = skmet.r2_score(g, pred1.flatten())
+    # c1 = confusion_matrix(g, b)
+    mse1 = mean_squared_error(grades, pred_linear)
+    fpr, tpr, thresholds = roc_curve(grades > 0, np.round(pred_linear) > 0, pos_label=1)
+    auc1 = auc(fpr, tpr)
+    auc2 = roc_auc_score(grades > 1, pred_logistic)
+    m, b = np.polyfit(grades, pred_linear.flatten(), 1)
+    # r2 = r2_score(g, pred_linear.flatten())
     # fig0  = plt.figure(figsize=(6,6))
     # ax0 = fig0.add_subplot(111)
     # ax0.plot(fpr,tpr)
-    mse_bootstrap(g, pred1)
+    mse_bootstrap(grades, pred_linear)
 
     # Save prediction
-    stats = np.zeros(len(g))
-    stats[0] = MSE1
-    stats[1] = AUC1
-    stats[2] = AUC2
-    tuples = list(zip(fnames, g, pred1, abs(g - pred1), pred2, stats))
-    writer = pd.ExcelWriter(save + r'\prediction_python.xlsx')
+    stats = np.zeros(len(grades))
+    stats[0] = mse1
+    stats[1] = auc1
+    stats[2] = auc2
+    tuples = list(zip(fnames, grades, pred_linear, abs(grades - pred_linear), pred_logistic, stats))
+    writer = pd.ExcelWriter(save_path + r'\prediction_python.xlsx')
     df1 = pd.DataFrame(tuples, columns=['Sample', 'Actual grade', 'Prediction', 'Difference', 'Logistic prediction',
-                                        'MSE, AUC1, AUC2'])
+                                        'MSE, auc1, auc2'])
     df1.to_excel(writer, sheet_name='Prediction')
     writer.save()
 
     # Save calculated weights
-    write_binary_weights(save + '\\' + featurepath[-12:-8] + '_weights.dat'
-                         , comps, pca.components_, pca.singular_values_ / np.sqrt(dataadjust.shape[0] - 1)
-                         , weights, mean)
+    write_binary_weights(save_path + '\\' + feature_path[-12:-8] + '_weights.dat',
+                         comps,
+                         pca.components_,
+                         pca.singular_values_ / np.sqrt(dataadjust.shape[0] - 1),
+                         weights,
+                         mean)
 
     # Spearman corr
-    rho = spearmanr(g, pred1)
+    rho = spearmanr(grades, pred_linear)
     # Wilcoxon p
-    wilc = wilcoxon(g, pred1)
+    wilc = wilcoxon(grades, pred_linear)
     print('Spearman: {0}, p: {1}, Wilcoxon p: {2}'.format(rho[0], rho[1], wilc[1]))
 
     # print('Confusion matrix')
-    # print(C1)
+    # print(c1)
     print('Mean squared error, Area under curve 1 and 2')
-    print(MSE1, AUC1, AUC2)  # ,MSE2,MSE3,MSE4)
-    # print('R2 score')
-    # print(R2)
+    print(mse1, auc1, auc2)  # ,MSE2,MSE3,MSE4)
+    # print('r2 score')
+    # print(r2)
     # print('Sample, grade, prediction')
     # for k in range(len(fnames)):
-    #    print(fnames[k],a[k],pred1[k])#,pred3[k])
+    #    print(fnames[k],a[k],pred_linear[k])#,pred3[k])
 
     # x = score[:,0]
     # y = score[:,1]
@@ -132,16 +133,16 @@ def pipeline_load(featurepath, gpath, save, choice, comps, modelpath):
     # Scatter plot actual vs prediction
     fig = plt.figure(figsize=(6, 6))
     ax2 = fig.add_subplot(111)
-    ax2.scatter(g, pred1.flatten())
-    ax2.plot(g, m * g, '-', color='r')
+    ax2.scatter(grades, pred_linear.flatten())
+    ax2.plot(grades, m * grades, '-', color='r')
     ax2.set_xlabel('Actual grade')
     ax2.set_ylabel('Predicted')
-    for k in range(len(g)):
+    for k in range(len(grades)):
         txt = fnames[k]
-        txt = txt + str(g[k])
-        ax2.annotate(txt, xy=(g[k], pred1[k]), color='r')
+        txt = txt + str(grades[k])
+        ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
     plt.show()
-    return g, pred2, MSE1
+    return grades, pred_logistic, mse1
 
 
 if __name__ == '__main__':

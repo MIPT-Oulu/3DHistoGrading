@@ -1,11 +1,12 @@
 import numpy as np
 from struct import pack, unpack  # Binary writing
+import pandas as pd
 import os
 import cv2
 import h5py
 from tqdm import tqdm
 from joblib import Parallel, delayed
-from Utilities.utilities import bounding_box
+from Utilities.misc import bounding_box
 
 
 def load(path, axis=(1, 2, 0)):
@@ -96,6 +97,7 @@ def save(path, fname, data, parallel=True):
     :param path: Directory for dataset.
     :param fname: Prefix for the image filenames.
     :param data: Volumetric data to be saved (as numpy array).
+    :param parallel: Choose whether to apply parallelization for saving.
     """
     if not os.path.exists(path):
         os.makedirs(path)
@@ -210,9 +212,38 @@ def load_h5(impath, file):
     return ims
 
 
+def load_dataset_h5(pth, flist):
+    # Image loading
+    images = []
+
+    for file in flist:
+        h5 = h5py.File(os.path.join(pth, file), 'r')
+        ims = h5['sum'][:]
+        h5.close()
+        images.append(ims)
+    return images
+
+
+def load_vois_h5(pth, sample):
+    # Image loading
+    h5 = h5py.File(os.path.join(pth, sample), 'r')
+    surf = h5['surf'][:]
+    deep = h5['deep'][:]
+    calc = h5['calc'][:]
+    h5.close()
+    return surf, deep, calc
+
+
 def save_h5(impath, flist, dsetname="dataset"):
     if not os.path.exists(impath.rsplit('\\', 1)[0]):
         os.makedirs(impath.rsplit('\\', 1)[0])
     f = h5py.File(impath, "w")
     f.create_dataset(dsetname, data=flist)
     f.close()
+
+
+def save_excel(array, save_path):
+    writer = pd.ExcelWriter(save_path)
+    df1 = pd.DataFrame(array, index=[0])
+    df1.to_excel(writer)
+    writer.save()

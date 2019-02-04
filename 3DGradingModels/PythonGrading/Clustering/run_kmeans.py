@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from Utilities.utilities import read_image, load, print_orthogonal
+from Utilities.misc import read_image, load, print_orthogonal
 from Utilities.VTKFunctions import render_volume
 from Clustering.clustering import kmeans_opencv
 from joblib import Parallel, delayed

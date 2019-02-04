@@ -1,4 +1,4 @@
-from tkinter import Listbox, Frame, Tk, Scrollbar, Button, Entry
+from tkinter import Listbox, Frame, Tk, Button
 import os
 
 
@@ -7,7 +7,7 @@ class GetFileSelection:
     Returns list onf indices corresponding to selection.
     Obtained list is saved in global variable 'file_list'. """
 
-    def __init__(self, path):
+    def __init__(self, list_path):
         self.master = Tk()
         self.master.title('Select samples to be processed.')
         frame = Frame(self.master)
@@ -16,7 +16,7 @@ class GetFileSelection:
         self.list_box = Listbox(frame, width=40, height=30, selectmode='extended')
         self.list_box.pack(side='left')
 
-        self.insert_list(path)
+        self.insert_list(list_path)
 
         self.quit = Button(frame, text='Exit and run program', command=self.exit, width=15)
         self.quit.pack(side='bottom')
@@ -26,8 +26,8 @@ class GetFileSelection:
 
         self.master.mainloop()
 
-    def insert_list(self, path):
-        files = os.listdir(path)
+    def insert_list(self, list_path):
+        files = os.listdir(list_path)
         files.sort()
         for k in range(len(files)):
             self.list_box.insert('end', files[k])
@@ -45,9 +45,8 @@ class GetFileSelection:
 
 if __name__ == '__main__':
     # Pipeline variables
-    impath = r"Y:\3DHistoData\Subvolumes_Isokerays"
-    impath = r"Y:\3DHistoData\Subvolumes_Insaf"
+    path = r"Y:\3DHistoData\Subvolumes_Insaf"
 
     # Run application
-    GetFileSelection(impath)
+    GetFileSelection(path)
     print(file_list)

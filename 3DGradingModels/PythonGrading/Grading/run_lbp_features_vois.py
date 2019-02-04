@@ -1,10 +1,12 @@
+import numpy as np
+import matplotlib.pyplot as plt
 import os
 import time
-import h5py
-import pandas as pd
 
-from Grading.lbp_pca import *
-from Grading.roc_curve import *
+from tqdm import tqdm
+
+from Grading.local_binary_pattern import local_standard, MRELBP
+from Utilities.load_write import save_excel, load_vois_h5
 
 
 def pipeline_lbp(impath, save, pars_surf, pars_deep, pars_calc):
@@ -89,37 +91,6 @@ def pipeline_lbp(impath, save, pars_surf, pars_deep, pars_calc):
     # Display spent time
     t = time.time() - start_time
     print('Elapsed time: {0}s'.format(t))
-
-
-def load_dataset_h5(pth, file_list):
-    """Loads list of h5 datasets with single sum image."""
-    # List for images
-    images = []
-
-    # Loop for each image
-    for file in file_list:
-        h5 = h5py.File(os.path.join(pth, file), 'r')
-        ims = h5['sum'][:]
-        h5.close()
-        images.append(ims)
-    return images
-
-
-def load_vois_h5(pth, sample):
-    # Image loading
-    h5 = h5py.File(os.path.join(pth, sample), 'r')
-    surf = h5['surf'][:]
-    deep = h5['deep'][:]
-    calc = h5['calc'][:]
-    h5.close()
-    return surf, deep, calc
-
-
-def save_excel(array, save_path):
-    writer = pd.ExcelWriter(save_path)
-    df1 = pd.DataFrame(array, index=[0])
-    df1.to_excel(writer)
-    writer.save()
 
 
 def print_images(images, title=None, subtitles=None, save_path=None, sample=None):

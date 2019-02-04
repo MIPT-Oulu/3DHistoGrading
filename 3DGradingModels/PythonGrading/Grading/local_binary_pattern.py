@@ -2,7 +2,6 @@ import numpy as np
 
 from scipy.signal import medfilt, medfilt2d
 from scipy.ndimage import convolve
-from sklearn.decomposition import PCA
 
 
 def image_bilinear(im, col, x, row, y, eps=1e-12):
@@ -200,60 +199,6 @@ def image_padding(im, padlength):
     # Center
     im_pad[padlength:-padlength, padlength:-padlength] = im
     return im_pad
-
-
-def scikit_pca(features, ncomp, whitening=False, solver='full'):
-    """Calculates PCA components using Scikit implementation."""
-    pca = PCA(n_components=ncomp, svd_solver=solver, whiten=whitening, random_state=42)
-    score = pca.fit(features).transform(features)
-    return pca, score
-
-
-def get_pca(features, ncomp):
-    """Calculates principal components using covariance matrix or singular value decomposition."""
-    # Feature dimension, x=num variables,n=num observations
-    x, n = np.shape(features)
-    # Mean feature
-    mean_f = np.mean(features, axis=1)
-    # Centering
-    centered = np.zeros((x, n))
-    for k in range(n):
-        centered[:, k] = features[:, k]-mean_f
-
-    # PCs from covariance matrix if n>=x, svd otherwise
-    n_components = None
-    if n >= x:
-        # Covariance matrix
-        cov = np.zeros((x, x))
-        f = np.zeros((x, 1))
-        for k in range(n):
-            f[:, 0] = centered[:, k]
-            cov = cov+1/n*np.matmul(f, f.T)
-
-        # Eigenvalues
-        e, v = np.linalg.eig(cov)
-        # Sort eigenvalues and vectors to descending order
-        idx = np.argsort(e)[::-1]
-        v = np.matrix(v[:, idx])
-        e = e[idx]
-
-        for k in range(ncomp):
-            s = np.matmul(v[:, k].T, centered).T
-            try:
-                score = np.concatenate((score, s), axis=1)
-            except NameError:
-                score = s
-            p = v[:, k]
-            try:
-                n_components = np.concatenate((n_components, p), axis=1)
-            except NameError:
-                n_components = p
-    else:
-        # PCA with SVD
-        u, s, v = np.linalg.svd(centered, compute_uv=1)
-        n_components = v[:, :ncomp]
-        score = np.matmul(u, s).T[:, 1:ncomp]
-    return n_components, score
 
 
 def local_standard(image, parameters, eps=1e-08):

@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 
 from scipy import interp
 from scipy.stats import spearmanr, wilcoxon
-from sklearn.metrics import roc_auc_score, roc_curve
-import sklearn.metrics as skmet
+from sklearn.metrics import roc_auc_score, roc_curve, mean_squared_error
 from tqdm.auto import tqdm
 
 
@@ -86,7 +85,7 @@ def mse_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42):
             continue
         rho = spearmanr(y[ind], preds[ind])
         wilc = wilcoxon(y[ind], preds[ind])
-        MSE1 = skmet.mean_squared_error(y[ind], preds[ind])
+        MSE1 = mean_squared_error(y[ind], preds[ind])
         mses.append(MSE1)
         rhos.append(rho[0])
         wilcs.append(wilc[1])

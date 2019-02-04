@@ -7,47 +7,46 @@ import h5py
 
 from tqdm.auto import tqdm
 
-from Utilities.utilities import print_orthogonal, save_orthogonal, otsu_threshold
+from Utilities.misc import print_orthogonal, save_orthogonal, otsu_threshold
 from Utilities.load_write import load_bbox, save
 from Utilities.VTKFunctions import render_volume
 from rotations import orient
-from segmentation_pipelines import segmentation_cntk, segmentation_kmeans, segmentation_pytorch
-from extract_voi import get_interface, deep_depth
+from segmentation_pipelines import segmentation_cntk, segmentation_kmeans  # , segmentation_pytorch
+from extract_volume import get_interface, deep_depth
 
 
-def pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
+def pipeline(path, sample, save_path, size, mask_path=None, model_path=None, snapshots=None):
     # 1. Load sample
     print('Sample name: ' + sample)
     print('1. Load sample')
     data, bounds = load_bbox(path)
     print_orthogonal(data)
-    save_orthogonal(savepath + "\\Images\\" + sample + "_input.png", data)
-    render_volume(data, savepath + "\\Images\\" + sample + "_input_render.png")
-    if maskpath is not None and modelpath is None:
-        print(maskpath)
-        mask, _ = load_bbox(maskpath)
+    save_orthogonal(save_path + "\\Images\\" + sample + "_input.png", data)
+    render_volume(data, save_path + "\\Images\\" + sample + "_input_render.png")
+    if mask_path is not None and model_path is None:
+        print(mask_path)
+        mask, _ = load_bbox(mask_path)
         print_orthogonal(mask)
 
     # 2. Segment BCI mask
-    if modelpath is not None and maskpath is None:
-        if snapshots is not None:
-            cropsize = 512
-            if data.shape[2] < 1000:
-                offset = 0
-            elif 1000 <= data.shape[2] < 1600:
-                offset = 20
-            elif 1600 <= data.shape[2]:
-                offset = 50
-            # Pytorch segmentation
-            # mask = segmentation_pytorch(data, modelpath, snapshots, cropsize, offset)  # generate mask from crop data
-            # K-means segmentation
-            mask = segmentation_kmeans(data, n_clusters=3, offset=offset)
+    if snapshots is not None:
+        if data.shape[2] < 1000:
+            offset = 0
+        elif 1000 <= data.shape[2] < 1600:
+            offset = 20
         else:
-            mask = segmentation_cntk(data, modelpath)  # generate mask from crop data
-        print_orthogonal(mask)
-        save_orthogonal(savepath + "\\Images\\" + sample + "_mask.png", mask * data)
-        render_volume((mask > 0.7) * data, savepath + "\\Images\\" + sample + "_mask_render.png")
-        save(savepath + '\\' + sample + '\\Mask', sample, mask)
+            offset = 50
+        # Pytorch segmentation
+        # cropsize = 512
+        # mask = segmentation_pytorch(data, modelpath, snapshots, cropsize, offset)  # generate mask from crop data
+        # K-means segmentation
+        mask = segmentation_kmeans(data, n_clusters=3, offset=offset)
+    else:
+        mask = segmentation_cntk(data, model_path)  # generate mask from crop data
+    print_orthogonal(mask)
+    save_orthogonal(save_path + "\\Images\\" + sample + "_mask.png", mask * data)
+    render_volume((mask > 0.7) * data, save_path + "\\Images\\" + sample + "_mask_render.png")
+    save(save_path + '\\' + sample + '\\Mask', sample, mask)
 
     # Crop
     data = data[24:-24, 24:-24, :]
@@ -56,31 +55,32 @@ def pipeline(path, sample, savepath, size, maskpath=None, modelpath=None, indivi
     size_temp['width'] = 400
 
     # Calculate cartilage depth
-    data = np.flip(data, 2); mask = np.flip(mask, 2)  # flip to begin indexing from surface
+    data = np.flip(data, 2)
+    mask = np.flip(mask, 2)  # flip to begin indexing from surface
     dist = deep_depth(data, mask)
     size_temp['deep'] = (0.6 * dist).astype('int')
     print('Automatically setting deep voi depth to {0}'.format((0.6 * dist).astype('int')))
 #
     # 4. Get VOIs
     print('4. Get interface coordinates:')
-    surfvoi, deepvoi, ccvoi, otsu_thresh = get_interface(data, size_temp, (mask > 0.7))
+    surf_voi, deep_voi, calc_voi, otsu_thresh = get_interface(data, size_temp, (mask > 0.7))
     # Show and save results
-    print_orthogonal(surfvoi)
-    print_orthogonal(deepvoi)
-    print_orthogonal(ccvoi)
-    save_orthogonal(savepath + "\\Images\\" + sample + "_surface.png", surfvoi)
-    save_orthogonal(savepath + "\\Images\\" + sample + "_deep.png", deepvoi)
-    save_orthogonal(savepath + "\\Images\\" + sample + "_cc.png", ccvoi)
-    render_volume(np.flip(surfvoi, 2), savepath + "\\Images\\" + sample + "_surface_render.png")
-    render_volume(np.flip(deepvoi, 2), savepath + "\\Images\\" + sample + "_deep_render.png")
-    render_volume(np.flip(ccvoi, 2), savepath + "\\Images\\" + sample + "_cc_render.png")
+    print_orthogonal(surf_voi)
+    print_orthogonal(deep_voi)
+    print_orthogonal(calc_voi)
+    save_orthogonal(save_path + "\\Images\\" + sample + "_surface.png", surf_voi)
+    save_orthogonal(save_path + "\\Images\\" + sample + "_deep.png", deep_voi)
+    save_orthogonal(save_path + "\\Images\\" + sample + "_cc.png", calc_voi)
+    render_volume(np.flip(surf_voi, 2), save_path + "\\Images\\" + sample + "_surface_render.png")
+    render_volume(np.flip(deep_voi, 2), save_path + "\\Images\\" + sample + "_deep_render.png")
+    render_volume(np.flip(calc_voi, 2), save_path + "\\Images\\" + sample + "_cc_render.png")
 
     # 5. Calculate mean and std
     print('5. Save mean and std images')
-    mean_std(surfvoi, savepath, sample, deepvoi, ccvoi, otsu_thresh)
+    mean_std(surf_voi, save_path, sample, deep_voi, calc_voi, otsu_thresh)
 
 
-def pipeline_subvolume(path, sample, savepath, size, sizewide, modelpath=None, individual=False, snapshots=None):
+def pipeline_subvolume(path, sample, savepath, size, sizewide, individual=False):
     # 1. Load sample
     print('Sample name: ' + sample)
     print('1. Load sample')
@@ -104,7 +104,7 @@ def pipeline_subvolume(path, sample, savepath, size, sizewide, modelpath=None, i
 
     # Different pipeline for large dataset
     if data.shape[0] > 799 and data.shape[1] > 799:
-        large_pipeline(data, sample, savepath, size, modelpath, snapshots)
+        large_subvolumes_pipeline(data, sample, savepath)
         return
 
     # Save crop data
@@ -115,7 +115,7 @@ def pipeline_subvolume(path, sample, savepath, size, sizewide, modelpath=None, i
         save(savepath + '\\' + sample, sample, data)
 
 
-def large_pipeline(data, sample, savepath, size, modelpath=None, snapshots=None):
+def large_subvolumes_pipeline(data, sample, save_path):
     dims = [448, data.shape[2] // 2]
     print_orthogonal(data)
 
@@ -137,78 +137,9 @@ def large_pipeline(data, sample, savepath, size, modelpath=None, snapshots=None)
             subdata = data[x1:x1 + dims[0], y1:y1 + dims[0], :]
             
             # Save data
-            subpath = savepath + r'\Data\\' + sample + "_sub" + str(n) + str(nn)
+            subpath = save_path + r'\Data\\' + sample + "_sub" + str(n) + str(nn)
             subsample = sample + "_sub" + str(n) + str(nn) + '_'
             save(subpath, subsample, subdata)
-    return True
-
-
-def pipeline_old(path, sample, savepath, size, maskpath=None, modelpath=None, individual=False, snapshots=None):
-    # 1. Load sample
-    print('Sample name: ' + sample)
-    print('1. Load sample')
-    data, bounds = load_bbox(path)
-    print_orthogonal(data)
-    save_orthogonal(savepath + "\\Images\\" + sample + "_input.png", data)
-    render_volume(data, savepath + "\\Images\\" + sample + "_input_render.png")
-    if maskpath is not None and modelpath is None:
-        print(maskpath)
-        mask, _ = load_bbox(maskpath)
-        print_orthogonal(mask)
-
-    # 2. Segment BCI mask
-    if modelpath is not None and maskpath is None:
-        if snapshots is not None:
-            cropsize = 512
-            if data.shape[2] < 1000:
-                offset = 0
-            elif 1000 <= data.shape[2] < 1600:
-                offset = 20
-            elif 1600 <= data.shape[2]:
-                offset = 50
-            # Pytorch segmentation
-            # mask = segmentation_pytorch(data, modelpath, snapshots, cropsize, offset)  # generate mask from crop data
-            # K-means segmentation
-            mask = segmentation_kmeans(data, n_clusters=3, offset=offset)
-        else:
-            mask = segmentation_cntk(data, modelpath)  # generate mask from crop data
-        print_orthogonal(mask)
-        save_orthogonal(savepath + "\\Images\\" + sample + "_mask.png", mask * data)
-        render_volume((mask > 0.7) * data, savepath + "\\Images\\" + sample + "_mask_render.png")
-        save(savepath + '\\' + sample + '\\Mask', sample, mask)
-
-    # Crop
-    data = data[24:-24, 24:-24, :]
-    mask = mask[24:-24, 24:-24, :]
-    size_temp = size[:]
-    size_temp[0] = 400
-
-    # Calculate cartilage depth
-    data = np.flip(data, 2); mask = np.flip(mask, 2)  # flip to begin indexing from surface
-    dist = deep_depth(data, mask)
-    size_temp[3] = (0.6 * dist).astype('int')
-    print('Automatically setting deep voi depth to {0}'.format((0.6 * dist).astype('int')))
-#
-    # 4. Get VOIs
-    print('4. Get interface coordinates:')
-    surfvoi, interface, otsu_thresh = get_interface(data, size_temp, 'surface', None)
-    print_orthogonal(surfvoi)
-    save_orthogonal(savepath + "\\Images\\" + sample + "_surface.png", surfvoi)
-    render_volume(np.flip(surfvoi, 2), savepath + "\\Images\\" + sample + "_surface_render.png")
-    if maskpath is not None or modelpath is not None:  # Input offset for size[2] to give voi offset from mask interface
-        deepvoi, ccvoi, interface = get_interface(data, size_temp, 'bci', (mask > 0.7))
-        print_orthogonal(deepvoi); print_orthogonal(ccvoi)
-        save_orthogonal(savepath + "\\Images\\" + sample + "_deep.png", deepvoi)
-        save_orthogonal(savepath + "\\Images\\" + sample + "_cc.png", ccvoi)
-        render_volume(np.flip(deepvoi, 2), savepath + "\\Images\\" + sample + "_deep_render.png")
-        render_volume(np.flip(ccvoi, 2), savepath + "\\Images\\" + sample + "_cc_render.png")
-
-    # 5. Calculate mean and std
-    print('5. Save mean and std images')
-    if 'deepvoi' in locals() or 'ccvoi'in locals():
-        mean_std(surfvoi, savepath, sample, deepvoi, ccvoi, otsu_thresh)
-    else:
-        mean_std_surf(surfvoi, savepath, sample, otsu_thresh)
 
 
 def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
@@ -225,9 +156,9 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
     sumarray = sumarray.astype(np.uint8) * 255
     cnts, _ = cv2.findContours(sumarray, 1, 2)
     cnts.sort(key=cv2.contourArea)
-    M = cv2.moments(cnts[-1])
-    cy = int(M["m10"] / M["m00"])
-    cx = int(M["m01"] / M["m00"])
+    center_moment = cv2.moments(cnts[-1])
+    cy = int(center_moment["m10"] / center_moment["m00"])
+    cx = int(center_moment["m01"] / center_moment["m00"])
 
     # Calculate center pixel
     mask, val = otsu_threshold(data[:, :, :crop])

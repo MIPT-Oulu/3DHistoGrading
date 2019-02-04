@@ -1,15 +1,17 @@
+import numpy as np
+import matplotlib.pyplot as plt
 import os
 import time
 import h5py
 import pandas as pd
 import scipy.io as sio
+from tqdm import tqdm
 
-from Grading.lbp_pca import *
-from Grading.roc_curve import *
-# from grading_old import regress
+from Grading.local_binary_pattern import local_standard, MRELBP
+from Utilities.load_write import load_binary, load_vois_h5
 
 
-def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
+def pipeline_lbp(image_path, savepath, save, pars, data_type='dat'):
     # Start time
     start_time = time.time()
     # Calculate MRELBP from dataset
@@ -22,42 +24,42 @@ def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
     df1.to_excel(writer)
     writer.save()
 
-    files = os.listdir(impath)
+    files = os.listdir(image_path)
     files.sort()
-    if dtype == 'h5':
-        images = load_dataset_h5(impath, files)
+    if data_type == 'h5':
+        images = load_dataset_h5(image_path, files)
 
     features = None  # Reset feature array
 
     for k in tqdm(range(len(files)), desc='Calculating LBP features'):
         # Load file
-        if dtype == 'dat':
+        if data_type == 'dat':
             if k > len(files) / 2 - 1:
                 break
-            file = os.path.join(impath, files[2 * k])
+            file = os.path.join(image_path, files[2 * k])
             try:
-                Mz = load_binary(file, np.float64)
+                mu = load_binary(file, np.float64)
             except FileNotFoundError:
                 continue
-            file = os.path.join(impath, files[2 * k + 1])
+            file = os.path.join(image_path, files[2 * k + 1])
             try:
-                sz = load_binary(file, np.float64)
+                sd = load_binary(file, np.float64)
             except FileNotFoundError:
                 continue
-        elif dtype == 'mat':
-            file = os.path.join(impath, files[k])
+        elif data_type == 'mat':
+            file = os.path.join(image_path, files[k])
             try:
                 file = sio.loadmat(file)
-                Mz = file['Mz']
-                sz = file['sz']
+                mu = file['Mz']
+                sd = file['sz']
             except NotImplementedError:
                 file = h5py.File(file)
-                Mz = file['Mz'][()]
-                sz = file['sz'][()]
+                mu = file['Mz'][()]
+                sd = file['sz'][()]
 
         # Combine mean and sd images
-        if dtype == 'h5':
-            image_surf, image_deep, image_calc = load_vois_h5(impath, files[k])
+        if data_type == 'h5':
+            image_surf, image_deep, image_calc = load_vois_h5(image_path, files[k])
             # image = images[k]
             if np.shape(image)[0] != 400:
                 crop = (np.shape(image)[0] - 400) // 2
@@ -66,7 +68,7 @@ def pipeline_lbp(impath, savepath, save, pars, dtype='dat'):
                 image_deep = image_deep[crop:-crop, crop:-crop]
                 image_calc = image_calc[crop:-crop, crop:-crop]
         else:
-            image = Mz + sz
+            image = mu + sd
         # Grayscale normalization
         # image = local_normalize(image,dict['ks1'],dict['sigma1'],dict['ks2'],dict['sigma2'])
         image = local_standard(image, pars['ks1'], pars['sigma1'], pars['ks2'], pars['sigma2'])
@@ -113,16 +115,6 @@ def load_dataset_h5(pth, flist):
         h5.close()
         images.append(ims)
     return images
-
-
-def load_vois_h5(pth, sample):
-    # Image loading
-    h5 = h5py.File(os.path.join(pth, sample), 'r')
-    surf = h5['surf'][:]
-    deep = h5['deep'][:]
-    calc = h5['calc'][:]
-    h5.close()
-    return surf, deep, calc
 
 
 if __name__ == '__main__':
