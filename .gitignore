@@ -1,2 +1,8 @@
 snapshots/
 2018_12_03_15_25/
+*.xml
+*.iml
+*.pyproj
+.ipynb_checkpoints/
+.idea/
+__pycache__/
