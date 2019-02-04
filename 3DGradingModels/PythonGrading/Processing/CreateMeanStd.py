@@ -1,12 +1,12 @@
 from volume_extraction import *
-from utilities import *
-import listbox
+from Utilities.utilities import *
+from Utilities import listbox
 from time import time
 
 
-def calculate_multiple(impath, savepath, size, selection=None, mask=False, modelpath=None, snapshots=None):
+def calculate_multiple(image_path, save_path, size, selection=None, modelpath=None, snapshots=None):
     # List directories
-    files = os.listdir(impath)
+    files = os.listdir(image_path)
     files.sort()
 
     # Print selection
@@ -21,19 +21,19 @@ def calculate_multiple(impath, savepath, size, selection=None, mask=False, model
         start = time()
         # Data path
         try:
-            os.listdir(impath + "\\" + files[k])  # + "\\" + files[k] + "_Rec")
-            pth = impath + "\\" + files[k]  # + "\\" + files[k] + "_Rec"
+            os.listdir(image_path + "\\" + files[k])  # + "\\" + files[k] + "_Rec")
+            pth = image_path + "\\" + files[k]  # + "\\" + files[k] + "_Rec"
         except FileNotFoundError:  # Case: sample name folder twice
             print('Could not find images for sample {0}'.format(files[k]))
             try:
-                os.listdir(impath + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration")
-                pth = impath + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration"
+                os.listdir(image_path + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration")
+                pth = image_path + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration"
                 print(pth)
             except FileNotFoundError:  # Case: Unusable folder
                 continue
 
         try:
-            pipeline(pth, files[k], savepath, size, None, modelpath, False, snapshots)
+            pipeline(pth, files[k], save_path, size, None, modelpath, False, snapshots)
             end = time()
             print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
         except Exception:
@@ -46,7 +46,8 @@ def calculate_multiple(impath, savepath, size, selection=None, mask=False, model
 if __name__ == '__main__':
     # Pipeline variables
     path = r"Y:\3DHistoData\Subvolumes_Isokerays"
-    size = [448, 25, 10, 150, 50]  # width, surf depth, offset, deep depth, cc depth
+    # size = [448, 25, 10, 150, 50]  # width, surf depth, offset, deep depth, cc depth
+    size_parameters = dict(width=448, surface=25, deep=150, calcified=50, offset=10)
     modelpath = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/"
     snapshots = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/"
     selection = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
@@ -56,4 +57,4 @@ if __name__ == '__main__':
 
     # Call pipeline
     # calculate_batch(impath, savepath, size, False, modelpath, snapshots)
-    calculate_multiple(path, path, size, listbox.file_list, False, modelpath, snapshots)
+    calculate_multiple(path, path, size_parameters, listbox.file_list, modelpath, snapshots)

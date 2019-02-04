@@ -1,7 +1,7 @@
 import time
 import pandas as pd
 
-from Grading.grading import *
+from Grading.lbp_pca import *
 from Grading.roc_curve import *
 # from grading_old import regress
 
@@ -36,7 +36,7 @@ def pipeline_load(featurepath, gpath, save, choice, comps, modelpath):
     # Regression
     pred1, weights = regress_logo(score, g)
     # pred1 = regress_new(score, g)
-    pred2 = logreg_group(score, g > 1)
+    pred2 = logreg_logo(score, g > 1)
     for p in range(len(pred1)):
         if pred1[p] < 0:
             pred1[p] = 0
@@ -46,7 +46,7 @@ def pipeline_load(featurepath, gpath, save, choice, comps, modelpath):
     b = np.round(pred1).astype('int')
 
     # Reference for pretrained PCA
-    _, _, eigenvec, _, weightref, m = loadbinaryweights(save + modelpath)
+    _, _, eigenvec, _, weightref, m = load_binary_weights(save + modelpath)
     dataadjust = features.T - mean
     print('Mean vector')
     print(mean)
@@ -96,9 +96,9 @@ def pipeline_load(featurepath, gpath, save, choice, comps, modelpath):
     writer.save()
 
     # Save calculated weights
-    writebinaryweights(save + '\\' + featurepath[-12:-8] + '_weights.dat'
-                       , comps, pca.components_, pca.singular_values_ / np.sqrt(dataadjust.shape[0] - 1)
-                       , weights, mean)
+    write_binary_weights(save + '\\' + featurepath[-12:-8] + '_weights.dat'
+                         , comps, pca.components_, pca.singular_values_ / np.sqrt(dataadjust.shape[0] - 1)
+                         , weights, mean)
 
     # Spearman corr
     rho = spearmanr(g, pred1)

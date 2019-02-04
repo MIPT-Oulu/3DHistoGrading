@@ -3,7 +3,7 @@ import time
 import h5py
 import pandas as pd
 
-from Grading.grading import *
+from Grading.lbp_pca import *
 from Grading.roc_curve import *
 
 

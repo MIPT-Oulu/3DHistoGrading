@@ -4,7 +4,7 @@ import h5py
 import pandas as pd
 import scipy.io as sio
 
-from Grading.grading import *
+from Grading.lbp_pca import *
 from Grading.roc_curve import *
 # from grading_old import regress
 

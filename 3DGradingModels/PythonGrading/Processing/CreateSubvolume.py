@@ -1,6 +1,6 @@
 from volume_extraction import *
-from utilities import *
-import listbox
+from Utilities.utilities import *
+from Utilities import listbox
 from time import time
 
 
@@ -52,7 +52,8 @@ if __name__ == '__main__':
     impath = r"Y:\3DHistoData\rekisteroidyt_2mm"
     impath = r'D:\PTA1272\Insaf_PTA\REC'
     savepath = r"Y:\3DHistoData\Subvolumes_Insaf"
-    size = [448, 25, 10, 150, 50]  # width, surf depth, offset, deep depth, cc depth
+    # size = [448, 25, 10, 150, 50]  # width, surf depth, offset, deep depth, cc depth
+    size_parameters = dict(width=448, surface=25, deep=150, calcified=50, offset=10)
     sizewide = 640
     modelpath = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/"
     snapshots = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/"
@@ -62,5 +63,5 @@ if __name__ == '__main__':
 
     # Call pipeline
     # calculate_batch(impath, savepath, size, False, modelpath, snapshots)
-    calculate_multiple(impath, savepath, size, sizewide, listbox.file_list, False, modelpath, snapshots)
+    calculate_multiple(impath, savepath, size_parameters, sizewide, listbox.file_list, False, modelpath, snapshots)
     # calculate_individual(impath, savepath, size, False, modelpath)

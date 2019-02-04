@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from utilities import otsu_threshold
+from Utilities.utilities import otsu_threshold
 from joblib import Parallel, delayed
 from tqdm import tqdm
 from scipy.signal import medfilt
@@ -10,7 +10,7 @@ def get_interface(data, size, mask=None):
     """Give string input to interface variable as 'surface' or 'bci'.
     Input data should be a thresholded, cropped volume of the sample"""
     dims = np.shape(data)
-    if (dims[0] != size[0]) or (dims[1] != size[0]):
+    if (dims[0] != size['width']) or (dims[1] != size['width']):
         raise Exception('Sample and voi size are incompatible!')
 
     # Threshold data
@@ -25,17 +25,17 @@ def get_interface(data, size, mask=None):
 
     # Get surface VOI
     surfvoi = Parallel(n_jobs=12)(delayed(calculate_surf)
-                                  (data[x, :, :], interface_surface[x, :], size[1], val)
+                                  (data[x, :, :], interface_surface[x, :], size['surface'], val)
                                   for x in tqdm(range(dims[0]), 'Extracting surface'))
     surfvoi = np.array(surfvoi)
 
     # Get coordinates and extract deep and calcified voi
     vois = Parallel(n_jobs=12)(delayed(calculate_bci)
-                               (data[x, :, :], interface_bci[x, :], size[3], size[4], size[2], val)
+                               (data[x, :, :], interface_bci[x, :], size['deep'], size['calcified'], size['offset'], val)
                                for x in tqdm(range(dims[0]), 'Extracting deep and calcified zones'))
     vois = np.array(vois)
-    deepvoi = vois[:, :, :size[3]]
-    ccvoi = vois[:, :, -size[4]:]
+    deepvoi = vois[:, :, :size['deep']]
+    ccvoi = vois[:, :, -size['calcified']:]
 
     print('Mean BCI interface = {0}'.format(np.mean(interface_bci)))
     return surfvoi, deepvoi, ccvoi, val

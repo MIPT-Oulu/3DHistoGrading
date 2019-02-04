@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utilities import read_image, load, print_orthogonal
-from VTKFunctions import render_volume
-from clustering import kmeans_opencv
+from Utilities.utilities import read_image, load, print_orthogonal
+from Utilities.VTKFunctions import render_volume
+from Clustering.clustering import kmeans_opencv
 from joblib import Parallel, delayed
 from tqdm import tqdm
 

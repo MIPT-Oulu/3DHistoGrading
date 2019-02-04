@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utilities import read_image, load, print_orthogonal
-from VTKFunctions import render_volume
-from clustering import kmeans_scikit, spectral_clusters_scikit, segment_clusters
+from Utilities.utilities import read_image, load, print_orthogonal
+from Utilities.VTKFunctions import render_volume
+from Clustering.clustering import kmeans_scikit, segment_clusters
 from joblib import Parallel, delayed
 from tqdm import tqdm
 from scipy.ndimage import zoom

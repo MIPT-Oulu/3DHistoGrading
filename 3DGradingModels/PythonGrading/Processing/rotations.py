@@ -1,6 +1,126 @@
 import numpy as np
-from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 import cv2
+
+from sklearn.decomposition import PCA
+from Utilities.utilities import opencv_rotate, print_orthogonal
+
+
+def orient(data, bounds, individual=False):
+    # Sample dimensions
+    dims = np.array(np.shape(data))
+
+    # Skip large sample
+    if dims[0] > 1200 and dims[1] > 1200 or dims[2] > 2000:
+        print('Skipping orientation for large sample')
+        return data, (0, 0)
+
+    # Ignore edges of sample
+    cut1 = int((1 / 4) * len(bounds[0]))
+    cut2 = int((1 / 2) * len(bounds[0]))
+
+    # Get bounding box angles
+    theta_x1, line_x1 = get_angle(bounds[0][cut1:cut2], bool(0))
+    theta_x2, line_x2 = get_angle(bounds[1][cut1:cut2], bool(0))
+    theta_y1, line_y1 = get_angle(bounds[2][cut1:cut2], bool(0))
+    theta_y2, line_y2 = get_angle(bounds[3][cut1:cut2], bool(0))
+    angle1 = 0.5 * (theta_x1 + theta_x2)
+    angle2 = 0.5 * (theta_y1 + theta_y2)
+
+    # Plot bbox fits
+    xpoints = np.linspace(-len(bounds[0]) / 2, len(bounds[0]) / 2, len(bounds[0]))
+    plt.subplot(141)
+    plt.plot(xpoints, bounds[0])
+    plt.plot(xpoints, (xpoints - line_x1[2]) * (line_x1[1] / line_x1[0]) + line_x1[3], 'r--')
+    plt.subplot(142)
+    plt.plot(xpoints, bounds[1])
+    plt.plot(xpoints, (xpoints - line_x2[2]) * (line_x2[1] / line_x2[0]) + line_x2[3], 'r--')
+    plt.subplot(143)
+    plt.plot(xpoints, bounds[2])
+    plt.plot(xpoints, (xpoints - line_y1[2]) * (line_y1[1] / line_y1[0]) + line_y1[3], 'r--')
+    plt.subplot(144)
+    plt.plot(xpoints, bounds[3])
+    plt.plot(xpoints, (xpoints - line_y2[2]) * (line_y2[1] / line_y2[0]) + line_y2[3], 'r--')
+    plt.show()
+
+    # PCA angles
+    xangle = pca_angle(data[dims[0] // 2, :, :], 1, 80)
+    yangle = pca_angle(data[:, dims[1] // 2, :], 1, 80)
+
+    # # Gradient descent angles
+    # origrad = find_ori_grad(alpha=0.5, h=5, n_iter=60)
+    # mask = data > 70
+    # binned = zoom(mask, (0.125, 0.125, 0.125))
+    # # binned[:, :, binned.shape[2] * 1 // 2:] = 0
+    # print_orthogonal(binned)
+    # ori = origrad(binned)
+
+    print('BBox angles: {0}, {1}'.format(angle1, angle2))
+    print('PCA angles: {0}, {1}'.format(xangle, yangle))
+    # print('Gradient descent angles: {0}, {1}'.format(ori[0], ori[1]))
+
+    # Ask user to choose rotation
+    if individual:
+        choice = int(input('Select bounding box (1), PCA (2), Gradient descent (3), average (4) or no rotation (0): '))
+        if choice == 1:
+            print('Bounding box selected.')
+        elif choice == 2:
+            print('PCA selected.')
+            angle1 = xangle
+            angle2 = yangle
+        elif choice == 3:
+            print('Gradient descent selected.')
+            # angle1 = ori[0]; angle2 = ori[1]
+        elif choice == 4:
+            print('Average selected.')
+            # angle1 = (ori[0] + xangle + angle1) / 3
+            # angle2 = (ori[1] + yangle + angle2) / 3
+        elif choice == 0:
+            print('No rotation performed.')
+            return data, (0, 0)
+        else:
+            print('Invalid selection! Bounding box is used.')
+    else:
+        print('Selected angles: {0}, {1}'.format(angle1, angle2))
+        # Calculate average angle
+        # print('Average angles selected.')
+        # if abs(xangle) > 20:
+        #    angle1 = (ori[0] + angle1) / 2
+        # else:
+        #    angle1 = (ori[0] + xangle + angle1) / 3
+        # if abs(yangle) > 20:
+        #    angle2 = (ori[1] + angle2) / 2
+        # else:
+        #    angle2 = (ori[1] + yangle + angle2) / 3
+        # angle1 = ori[0]; angle2 = ori[1]
+
+    # 1st rotation
+    if abs(angle1) >= 4:  # check for small angle
+        data = opencv_rotate(data, 0, angle1)
+    print_orthogonal(data)
+
+    # 2nd rotation
+    if abs(angle2) >= 4:  # check for small angle
+        data = opencv_rotate(data, 1, angle2)
+    print_orthogonal(data)
+
+    # Rotate array (affine transform)
+    # xangle = RotationMatrix(0.5 * (theta_x1 + theta_x2), 1)
+    # yangle = RotationMatrix(-0.5 * (theta_y1 + theta_y2), 0)
+    # data = affine_transform(data, xangle)
+    # data = affine_transform(data, yangle)
+
+    return data, (angle1, angle2)
+
+
+def orient_mask(mask, angles):
+    # 1st rotation
+    mask = opencv_rotate(mask, 0, angles[0])
+
+    # 2nd rotation
+    mask = opencv_rotate(mask, 1, angles[1])
+    print_orthogonal(mask)
+    return mask
 
 
 def pca_angle(image, axis, threshold=80, radians=bool(0)):

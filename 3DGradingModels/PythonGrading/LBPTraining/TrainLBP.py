@@ -1,25 +1,10 @@
 import numpy as np
 import os
 import h5py
-import cv2
-import gc
-from time import time
 import pandas as pd
-import gc
-
 
 from argparse import ArgumentParser
-
-from joblib import Parallel,delayed
-
-from scipy.signal import medfilt
-from scipy.ndimage import correlate, zoom
-
-from sklearn.model_selection import LeaveOneOut
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression, Ridge
-
-from Components import find_pars_bforce, make_pred
+from LBPTraining.Components import find_pars_bforce, make_pred
 
 
 if __name__ == '__main__':
@@ -39,7 +24,6 @@ if __name__ == '__main__':
     # Load images
     files = os.listdir(args.path)
     files.sort()
-
     images = []
     for file in files:
         h5 = h5py.File(os.path.join(args.path, file), 'r')
@@ -68,7 +52,6 @@ if __name__ == '__main__':
     files.pop(13)
     grades = np.delete(grades, 32)
     grades = np.delete(grades, 13)
-
     print('Selected files')
     for k in range(len(files)):
         print(files[k], grades[k])
