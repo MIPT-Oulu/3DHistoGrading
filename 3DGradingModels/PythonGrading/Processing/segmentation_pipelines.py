@@ -12,30 +12,30 @@ from joblib import Parallel, delayed
 from Utilities.misc import print_orthogonal
 
 
-def segmentation_kmeans(array, n_clusters=3, offset=0, limit=2, method='scikit', zoom_factor=4.0):
+def segmentation_kmeans(array, n_clusters=3, offset=0, method='scikit', zoom_factor=4.0, n_jobs=12):
     # TODO Check that segmentation works for pipeline
     # Segmentation
     dims = array.shape
     array = zoom(array[:, :, offset:], 1 / zoom_factor, order=3)  # Downscale images
     if method is 'scikit':
-        mask_x = Parallel(n_jobs=12)(delayed(kmeans_scikit)
-                                     (array[i, :, :].T, n_clusters, scale=True, method='loop')
-                                     for i in tqdm(range(array.shape[0]), 'Calculating mask (X)'))
-        mask_y = Parallel(n_jobs=12)(delayed(kmeans_scikit)
-                                     (array[:, i, :].T, n_clusters, scale=True, method='loop')
-                                     for i in tqdm(range(array.shape[1]), 'Calculating mask (Y)'))
+        mask_x = Parallel(n_jobs=n_jobs)(delayed(kmeans_scikit)
+                                         (array[i, :, :].T, n_clusters, scale=True, method='loop')
+                                         for i in tqdm(range(array.shape[0]), 'Calculating mask (X)'))
+        mask_y = Parallel(n_jobs=n_jobs)(delayed(kmeans_scikit)
+                                         (array[:, i, :].T, n_clusters, scale=True, method='loop')
+                                         for i in tqdm(range(array.shape[1]), 'Calculating mask (Y)'))
         print_orthogonal(np.array(mask_x))
         print_orthogonal(np.array(mask_y).T)
 
         mask = (np.array(mask_x) + np.array(mask_y).T) / 2  # Average mask
         mask = zoom(mask, zoom_factor, order=3)  # Upscale mask
     else:  # OpenCV
-        mask_x = Parallel(n_jobs=12)(delayed(kmeans_opencv)
-                                     (array[i, :, :].T, n_clusters, scale=True, method='loop')
-                                     for i in tqdm(range(array.shape[0]), 'Calculating mask (X)'))
-        mask_y = Parallel(n_jobs=12)(delayed(kmeans_opencv)
-                                     (array[:, i, :].T, n_clusters, scale=True, method='loop')
-                                     for i in tqdm(range(array.shape[1]), 'Calculating mask (Y)'))
+        mask_x = Parallel(n_jobs=n_jobs)(delayed(kmeans_opencv)
+                                         (array[i, :, :].T, n_clusters, scale=True, method='loop')
+                                         for i in tqdm(range(array.shape[0]), 'Calculating mask (X)'))
+        mask_y = Parallel(n_jobs=n_jobs)(delayed(kmeans_opencv)
+                                         (array[:, i, :].T, n_clusters, scale=True, method='loop')
+                                         for i in tqdm(range(array.shape[1]), 'Calculating mask (Y)'))
         mask = (np.array(mask_x) + np.array(mask_y)) / 2  # Average mask
         mask = zoom(mask, zoom_factor, order=3)  # Upscale mask
     # Reshape

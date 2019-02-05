@@ -1,12 +1,14 @@
 import os
 
+from argparse import ArgumentParser
 from time import time
 from voi_extraction_pipelines import pipeline
 from Utilities import listbox
 
 
-def calculate_multiple(image_path, save_path, size, selection=None, model_path=None, model_snapshots=None):
+def calculate_multiple(arguments, selection=None):
     # List directories
+    image_path = arguments.path
     files = os.listdir(image_path)
     files.sort()
 
@@ -34,7 +36,8 @@ def calculate_multiple(image_path, save_path, size, selection=None, model_path=N
                 continue
 
         try:
-            pipeline(pth, files[k], save_path, size, None, model_path, model_snapshots)
+            # pipeline(pth, files[k], save_path, size, None, model_path, model_snapshots)
+            pipeline(arguments, files[k], None)
             end = time()
             print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
         except Exception:
@@ -45,17 +48,19 @@ def calculate_multiple(image_path, save_path, size, selection=None, model_path=N
 
 
 if __name__ == '__main__':
-    # Pipeline variables
-    path = r"Y:\3DHistoData\Subvolumes_Isokerays"
-    # size = [448, 25, 10, 150, 50]  # width, surf depth, offset, deep depth, cc depth
-    size_parameters = dict(width=448, surface=25, deep=150, calcified=50, offset=10)
-    modelpath = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/"
-    snapshots = "Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/"
-    selection_list = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    # Arguments
+    parser = ArgumentParser()
+    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\Subvolumes_Isokerays')
+    parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10))
+    parser.add_argument('--model_path', type=str, default='Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/')
+    parser.add_argument('--snapshots', type=str,
+                        default='Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/')
+    parser.add_argument('--n_jobs', type=int, default=12)
+    args = parser.parse_args()
 
     # Use listbox (Result is saved in listbox.file_list)
-    listbox.GetFileSelection(path)
+    listbox.GetFileSelection(args.path)
 
     # Call pipeline
     # calculate_batch(impath, savepath, size, False, modelpath, snapshots)
-    calculate_multiple(path, path, size_parameters, listbox.file_list, modelpath, snapshots)
+    calculate_multiple(args, listbox.file_list)

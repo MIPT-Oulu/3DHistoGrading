@@ -9,7 +9,7 @@ from joblib import Parallel, delayed
 from Utilities.misc import bounding_box
 
 
-def load(path, axis=(1, 2, 0)):
+def load(path, axis=(1, 2, 0), n_jobs=12):
     """
     Loads an image stack as numpy array.
 
@@ -34,14 +34,14 @@ def load(path, axis=(1, 2, 0)):
                 continue
     files = newlist[:]  # replace list
     # Load data and get bounding box
-    data = Parallel(n_jobs=12)(delayed(read_image)(path, file) for file in tqdm(files, 'Loading'))
+    data = Parallel(n_jobs=n_jobs)(delayed(read_image)(path, file) for file in tqdm(files, 'Loading'))
     if axis != (0, 1, 2):
         return np.transpose(np.array(data), axis)
 
     return np.array(data)
 
 
-def load_bbox(path):
+def load_bbox(path, n_jobs=12):
     """
     Loads an image stack as numpy array. Calculates bounding box (rectangle) for each loaded image.
 
@@ -50,6 +50,7 @@ def load_bbox(path):
 
     Keyword arguments:
     :param path: Path to image stack.
+    :param n_jobs: Number of parallel workers. Check N of CPU cores.
     :return: Loaded stack as 3D numpy array. Coordinates of image bounding boxes.
     """
     files = os.listdir(path)
@@ -65,9 +66,9 @@ def load_bbox(path):
                 continue
     files = newlist[:]  # replace list
     # Load data and get bounding box
-    data = Parallel(n_jobs=12)(delayed(read_image)(path, file) for file in files)
+    data = Parallel(n_jobs=n_jobs)(delayed(read_image)(path, file) for file in files)
     data = np.transpose(np.array(data), (1, 2, 0))
-    angles = Parallel(n_jobs=12)(delayed(read_image_bbox)(path, file) for file in files)
+    angles = Parallel(n_jobs=n_jobs)(delayed(read_image_bbox)(path, file) for file in files)
     angles = np.array(angles)
 
     return data, (angles[:, 0], angles[:, 1], angles[:, 2], angles[:, 3])
@@ -90,14 +91,14 @@ def read_image_bbox(path, file):
     return [x1, x2, y1, y2]
 
 
-def save(path, fname, data, parallel=True):
+def save(path, file_name, data, n_jobs=12):
     """
     Save a volumetric 3D dataset in given directory.
 
     :param path: Directory for dataset.
-    :param fname: Prefix for the image filenames.
+    :param file_name: Prefix for the image filenames.
     :param data: Volumetric data to be saved (as numpy array).
-    :param parallel: Choose whether to apply parallelization for saving.
+    :param n_jobs: Number of parallel workers. Check N of CPU cores.
     """
     if not os.path.exists(path):
         os.makedirs(path)
@@ -106,15 +107,10 @@ def save(path, fname, data, parallel=True):
     if data[0, 0, 0].dtype is bool:
         data = data * 255
 
-    if parallel:
-        # Parallelized saving
-        Parallel(n_jobs=12)(delayed(cv2.imwrite)
-                            (path + '\\' + fname + str(k).zfill(8) + '.png', data[:, :, k].astype(np.uint8))
+    # Parallel saving (nonparallel if n_jobs = 1)
+    Parallel(n_jobs=n_jobs)(delayed(cv2.imwrite)
+                            (path + '\\' + file_name + str(k).zfill(8) + '.png', data[:, :, k].astype(np.uint8))
                             for k in tqdm(range(nfiles), 'Saving dataset'))
-    else:
-        # Nonparallel
-        for k in tqdm(range(nfiles), desc='Saving dataset'):
-            cv2.imwrite(path + '\\' + fname + str(k).zfill(8) + '.png', data[:, :, k])
 
 
 def load_binary(path, datatype=np.int32):

@@ -6,7 +6,7 @@ from tqdm import tqdm
 from scipy.signal import medfilt
 
 
-def get_interface(data, size, mask=None):
+def get_interface(data, size, mask=None, n_jobs=12):
     """Give string input to interface variable as 'surface' or 'bci'.
     Input data should be a thresholded, cropped volume of the sample"""
     dims = np.shape(data)
@@ -24,13 +24,13 @@ def get_interface(data, size, mask=None):
     plt.show()
 
     # Get surface VOI
-    surfvoi = Parallel(n_jobs=12)(delayed(calculate_surf)
+    surfvoi = Parallel(n_jobs=n_jobs)(delayed(calculate_surf)
                                   (data[x, :, :], interface_surface[x, :], size['surface'], val)
                                   for x in tqdm(range(dims[0]), 'Extracting surface'))
     surfvoi = np.array(surfvoi)
 
     # Get coordinates and extract deep and calcified voi
-    vois = Parallel(n_jobs=12)(delayed(calculate_bci)
+    vois = Parallel(n_jobs=n_jobs)(delayed(calculate_bci)
                                (data[x, :, :], interface_bci[x, :], size['deep'], size['calcified'], size['offset'], val)
                                for x in tqdm(range(dims[0]), 'Extracting deep and calcified zones'))
     vois = np.array(vois)
@@ -113,87 +113,3 @@ def deep_depth(data, mask):
     cci = medfilt(cci, kernel_size=5)
 
     return np.mean(cci - surf)
-
-
-def get_interface_old(data, size, choice='surface', mask=None):
-    """Give string input to interface variable as 'surface' or 'bci'.
-Input data should be a thresholded, cropped volume of the sample"""
-    dims = np.shape(data)
-    if (dims[0] != size[0]) or (dims[1] != size[0]):
-        raise Exception('Sample and voi size are incompatible!')
-    surfvoi = np.zeros((dims[0], dims[1], size[1]))
-    deepvoi = np.zeros((dims[0], dims[1], size[3]))
-    ccvoi = np.zeros((dims[0], dims[1], size[4]))
-
-    # Threshold data
-    if choice == 'surface':
-        mask, val = otsu_threshold(data)
-        print('Global threshold: {0} (Otsu)'.format(val))
-        interface = np.argmax(mask * 1.0, 2)
-    elif choice == 'bci':
-        _, val = otsu_threshold(data)
-        interface = np.argmax(mask, 2)
-        interface = medfilt(interface, kernel_size=5)
-    else:
-        raise Exception('Select an interface to be extracted!')
-    plt.imshow(np.sum(mask, 2))  # display sum of mask
-    plt.show()
-
-    # Get coordinates and extract voi
-    deptharray = []
-    for k in tqdm(range(dims[0] * dims[1]), desc='Extracting VOI'):
-        # Indexing
-        y = k // dims[1]
-        x = k % dims[1]
-
-        if choice == 'surface':
-            depth = np.uint(interface[x, y])
-            n = 0
-            for z in range(depth, dims[2]):
-                if n == size[1]:
-                    break
-                if data[x, y, z] > val:
-                    surfvoi[x, y, n] = data[x, y, z]
-                    n += 1
-        elif choice == 'bci':
-            # Check for sample edges
-            if interface[x, y] < size[3]:  # surface edge, deepvoi
-                depth = np.uint(size[3])
-            elif dims[2] - interface[x, y] < size[4]:  # bottom edge, ccvoi
-                depth = np.uint(dims[2] - size[4])
-            else:  # add only offset
-                depth = np.uint(interface[x, y] - size[2])
-
-            # check for void (deep voi)
-            void = False
-            for z in range(size[3]):
-                if data[x, y, depth - z] < val / 2:
-                    void = True
-
-            if void:
-                # In case of void, don't use offset
-                if depth < np.uint(dims[2] - size[4]):
-                    ccvoi[x, y, :] = data[x, y, depth + size[2]:depth + size[4] + size[2]]
-                else:
-                    ccvoi[x, y, :] = data[x, y, depth:depth + size[4]]
-
-                if depth - size[3] > size[2]:
-                    zz = size[2]  # starting index
-                else:
-                    zz = 0
-                while data[x, y, depth - zz] < val and depth - zz > size[3]:
-                    zz += 1
-                depth = depth - zz
-            else:
-                # If void not found, calculate ccvoi normally
-                ccvoi[x, y, :] = data[x, y, depth:depth + size[4]]
-
-            deptharray.append(depth)
-            deepvoi[x, y, :] = data[x, y, depth - size[3]:depth]
-        else:
-            raise Exception('Select an interface to be extracted!')
-    if choice == 'surface':
-        return surfvoi, interface, val
-    elif choice == 'bci':
-        print('Mean interface = {0}, mean depth = {1}'.format(np.mean(interface), np.mean(np.array(deptharray))))
-        return deepvoi, ccvoi, interface
