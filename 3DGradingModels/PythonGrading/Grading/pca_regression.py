@@ -27,13 +27,9 @@ def regress_loo(features, sgrades):
     return np.array(predictions).squeeze(), model.coef_
 
 
-def regress_logo(features, score, groups=None):
+def regress_logo(features, score, groups):
     """Calculates linear regression with leave-one-group-out split."""
     predictions = []
-    if groups is None:
-        groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8,
-                           9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
-                           15, 16, 16, 17, 17, 18, 19, 19])
     # Leave one out split
     logo = LeaveOneGroupOut()
     logo.get_n_splits(features, score, groups)
@@ -109,13 +105,9 @@ def logistic_loo(features, score):
     return predictions.flatten()
 
 
-def logistic_logo(features, score, groups=None):
+def logistic_logo(features, score, groups):
     """Calculates logistic regression with leave-one-group-out split."""
     predictions = []
-    if groups is None:
-        groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8,
-                           9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
-                           15, 16, 16, 17, 17, 18, 19, 19])
     # Leave one out split
     logo = LeaveOneGroupOut()
     logo.get_n_splits(features, score, groups)

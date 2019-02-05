@@ -238,8 +238,40 @@ def save_h5(impath, flist, dsetname="dataset"):
     f.close()
 
 
-def save_excel(array, save_path):
+def load_excel(path, titles=None):
+    # Load array and header
+    array = []
+    if titles is not None:
+        file = pd.read_excel(path)
+        for key in titles:
+            if array is None:
+                array = np.array(file[key])
+            else:
+                col = np.array(file[key])
+                array.append(col)
+        df = pd.DataFrame(file)
+        header = df.values[:, 0].astype('str')
+    else:
+        file = pd.read_excel(path, skiprows=0)
+        df = pd.DataFrame(file)
+        header = df.columns.values.astype('str')
+        array = df.values.astype('float')
+
+    return np.array(array), header
+
+
+def save_excel(array, save_path, files=None):
+    if not os.path.exists(save_path.rsplit('\\', 1)[0]):
+        os.makedirs(save_path.rsplit('\\', 1)[0])
     writer = pd.ExcelWriter(save_path)
-    df1 = pd.DataFrame(array, index=[0])
+    if files is not None:
+        try:
+            df1 = pd.DataFrame(array, columns=files)
+        except ValueError:
+            df1 = pd.DataFrame(array, rows=files)
+    elif isinstance(array, dict):
+        df1 = pd.DataFrame(array, index=[0])
+    else:
+        df1 = pd.DataFrame(array)
     df1.to_excel(writer)
     writer.save()

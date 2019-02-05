@@ -12,9 +12,7 @@ from sklearn.decomposition import PCA
 from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor
 
-
 from LBPTraining.LBP_components import Conv_MRELBP
-from LBPTraining.OLD_LBP_components import MRELBP
 
 
 def make_pars(n_pars):
@@ -129,29 +127,6 @@ def get_error(imgs, grades, args, mode='ridge'):
     mse = get_mse(preds, grades)
     
     return mse
-
-
-def get_feature(img, args, old=False):
-    # Normalization
-    img = local_normalize(img, args['ks1'], args['sigma1'], args['ks2'], args['sigma2'])
-    # LBP
-    if old:
-        feature = MRELBP(img, 8, args['R'], args['r'], args['wc'], (args['wR'], args['wr']))
-    else:
-        feature = Conv_MRELBP(img, 8, args['R'], args['r'], args['wR'], args['wr'], args['wc'])
-
-    return feature
-
-
-def make_pred(imgs, grades, args, old, n_jobs=12):
-    features = Parallel(n_jobs=n_jobs)(delayed(get_feature)(img, args, old) for img in imgs)
-    features = np.array(features).squeeze()
-    pc = PCA(10, whiten=True, random_state=42)
-    pcfeatures = pc.fit(features).transform(features)
-        
-    preds = loo_lr(pcfeatures, grades)
-    
-    return preds
 
 
 def find_pars_bforce(imgs, grades, n_pars, mode, n_jobs):
