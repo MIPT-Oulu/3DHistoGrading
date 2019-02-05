@@ -678,6 +678,7 @@ namespace HistoGrading
                         
             segmentButton.Enabled = true;
             predict.Enabled = true;
+            saveButton.Enabled = true;
             tip = "Cropped to " + size.ToString() + " | " + size.ToString() + " size";
             gradeLabel.Text = tip;
             GC.Collect();
@@ -765,6 +766,11 @@ namespace HistoGrading
                     volume.save_data(fname, savedir);
                     //Save segmentation mask
                     volume.save_masks(new string[] { fname + "_UNET" }, savedir);
+                }
+                else
+                {
+                    //Save sample
+                    volume.save_data(fname, savedir);
                 }
                 if (save_vois == 1)
                 {
