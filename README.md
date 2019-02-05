@@ -1,8 +1,8 @@
 # 3D-Histo-Grading
 
 ## About
-Software for 3D grading osteochondral tissue samples. We currently support only Windows.
-
+Software for 3D grading osteochondral Phosphotungstic acid -stained tissue samples. We currently support only Windows.
+<!---
 Current build status and code coverage:
 
 [![Build status](https://ci.appveyor.com/api/projects/status/6lbb2719xekk5rrx?svg=true "Build status")](https://ci.appveyor.com/project/sarytky/3dhistograding)
@@ -11,7 +11,7 @@ Current build status and code coverage:
 
 User interface components are removed from code coverage analysis.
 Unit testing is focused on software functionalities only.
-
+ --->
 ## Prerequisites
 To avoid memory issues, the software runs on 64-bit systems only. 
 
