@@ -10,9 +10,9 @@ from tqdm.auto import tqdm
 from Utilities.misc import print_orthogonal, save_orthogonal, otsu_threshold
 from Utilities.load_write import load_bbox, save
 from Utilities.VTKFunctions import render_volume
-from rotations import orient
-from segmentation_pipelines import segmentation_cntk, segmentation_kmeans  # , segmentation_pytorch
-from extract_volume import get_interface, deep_depth
+from Processing.rotations import orient
+from Processing.segmentation_pipelines import segmentation_cntk, segmentation_kmeans  # , segmentation_pytorch
+from Processing.extract_volume import get_interface, deep_depth
 
 
 def pipeline(args, sample, mask_path=None):

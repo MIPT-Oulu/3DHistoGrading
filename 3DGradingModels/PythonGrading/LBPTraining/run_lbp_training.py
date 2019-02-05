@@ -4,7 +4,7 @@ import h5py
 import pandas as pd
 
 from argparse import ArgumentParser
-from LBPTraining.Components import find_pars_bforce, make_pred
+from LBPTraining.Components import find_pars_bforce
 
 
 if __name__ == '__main__':
@@ -34,8 +34,9 @@ if __name__ == '__main__':
         h5.close()
     
     # Load grades
+    grades = []
     df = pd.read_excel(args.path_grades)
-    if type(args.grade_keys) == type('abc'):
+    if isinstance(args.grade_keys, type('abc')):
         grades = np.array(df[args.grade_keys])
     else:
         for key in args.grade_keys:

@@ -2,6 +2,7 @@ import numpy as np
 
 from scipy.signal import medfilt, medfilt2d
 from scipy.ndimage import convolve
+from LBPTraining.Components import make_2d_gauss
 
 
 def image_bilinear(im, col, x, row, y, eps=1e-12):
@@ -210,8 +211,10 @@ def local_standard(image, parameters, eps=1e-08):
     sigma2 = parameters['sigma2']
 
     # Gaussian kernels
-    kernel1 = gauss_kernel(w1, sigma1)
-    kernel2 = gauss_kernel(w2, sigma2)
+    # kernel1 = gauss_kernel(w1, sigma1)
+    # kernel2 = gauss_kernel(w2, sigma2)
+    kernel1 = make_2d_gauss(w1, sigma1)
+    kernel2 = make_2d_gauss(w2, sigma2)
     # Calculate mean and standard deviation images
     mean = convolve(image, kernel1)
     std = convolve(image ** 2, kernel2) ** 0.5

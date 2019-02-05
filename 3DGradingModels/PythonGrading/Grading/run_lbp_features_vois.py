@@ -128,16 +128,13 @@ if __name__ == '__main__':
     savepath = r'Y:\3DHistoData\Grading\LBP\2mm'
 
     # LBP parameters
-    # sparamold = {'ks1': 23, 'sigma1': 5, 'ks2': 5, 'sigma2': 1, 'N':8, 'R':9,'r':3,'wc':5, 'wl':5, 'ws':5}
     # sparam = {'ks1': 9, 'sigma1': 3, 'ks2': 21, 'sigma2': 15, 'N':8, 'R':18,'r':5,'wc':7, 'wl':9, 'ws':3}
-    # sparamnew = {'ks1': 17, 'sigma1': 7, 'ks2': 17, 'sigma2': 1, 'N':8, 'R': 23, 'r': 2, 'wc': 5, 'wl':15, 'ws':3}
     sparamnew = {'ks1': 13, 'sigma1': 9, 'ks2': 9, 'sigma2': 5, 'N': 8, 'R': 26, 'r': 14, 'wc': 15, 'wl': 13, 'ws': 11}
-    # dparam = {'ks1': 25, 'sigma1': 12, 'ks2': 9, 'sigma2': 7, 'N':8, 'R':27,'r':7,'wc':13,'wl':3, 'ws':3}
-    # dparamnew = {'ks1': 15, 'sigma1': 3, 'ks2': 23, 'sigma2': 13, 'N':8, 'R': 16, 'r': 12, 'wc': 13, 'wl':15, 'ws':9}
-    dparamnew = {'ks1': 19, 'sigma1': 17, 'ks2': 17, 'sigma2': 5, 'N': 8, 'R': 17, 'r': 6, 'wc': 15, 'wl': 3, 'ws': 3}
-    # cparam = {'ks1': 11, 'sigma1': 11, 'ks2': 23, 'sigma2': 3, 'N':8, 'R':3,'r':2,'wc':11, 'wl':5, 'ws':5}
-    # cparamnew = {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N':8, 'R': 19, 'r': 18, 'wc': 3, 'wl':3, 'ws':11}
-    cparamnew = {'ks1': 25, 'sigma1': 25, 'ks2': 25, 'sigma2': 15, 'N': 8, 'R': 21, 'r': 13, 'wc': 3, 'wl': 13, 'ws': 5}
+    sparamnew = {'ks1': 25, 'sigma1': 19, 'ks2': 21, 'sigma2': 9, 'N': 8, 'R': 7, 'r': 6, 'wc': 9, 'wl': 5, 'ws': 5}
 
+    dparamnew = {'ks1': 19, 'sigma1': 17, 'ks2': 17, 'sigma2': 5, 'N': 8, 'R': 17, 'r': 6, 'wc': 15, 'wl': 3, 'ws': 3}
+    # dparamnew = {'ks1': 3, 'sigma1': 2, 'ks2': 19, 'sigma2': 3, 'N': 8, 'R': 3, 'r': 1, 'wc': 15, 'wl': 13, 'ws': 9}
+    cparamnew = {'ks1': 25, 'sigma1': 25, 'ks2': 25, 'sigma2': 15, 'N': 8, 'R': 21, 'r': 13, 'wc': 3, 'wl': 13, 'ws': 5}
+    # cparamnew = {'ks1': 23, 'sigma1': 1, 'ks2': 7, 'sigma2': 2, 'N': 8, 'R': 9, 'r': 2, 'wc': 15, 'wl': 7, 'ws': 9}
     # Call pipeline
     pipeline_lbp(imagepath, savepath, sparamnew, dparamnew, cparamnew)

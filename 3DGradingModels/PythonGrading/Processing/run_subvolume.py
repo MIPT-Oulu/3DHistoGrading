@@ -1,14 +1,14 @@
 import os
 
 from argparse import ArgumentParser
-from voi_extraction_pipelines import pipeline_subvolume
+from Processing.voi_extraction_pipelines import pipeline_subvolume
 from Utilities import listbox
 from time import time
 
 
 def calculate_multiple(arguments, selection=None):
     # List directories
-    image_path = arguments.path
+    image_path = arguments.path[:]
     files = os.listdir(image_path)
     files.sort()
 
@@ -24,8 +24,8 @@ def calculate_multiple(arguments, selection=None):
         start = time()
         # Data path
         try:
-            os.listdir(image_path + "\\" + files[k])
-            pth = image_path + "\\" + files[k]
+            os.listdir(image_path + "\\" + files[k] + '\\' + files[k] + '_Rec')
+            pth = image_path + "\\" + files[k] + '\\' + files[k] + '_Rec'
         except FileNotFoundError:
             try:
                 os.listdir(image_path + "\\" + files[k] + "\\" + "Registration")
@@ -41,6 +41,7 @@ def calculate_multiple(arguments, selection=None):
 
         # Initiate pipeline
         try:
+            args.path = pth
             pipeline_subvolume(arguments, files[k], False)
             end = time()
             print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
@@ -53,8 +54,8 @@ def calculate_multiple(arguments, selection=None):
 if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
-    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\Subvolumes_Isokerays')
-    parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Subvolumes_Insaf')
+    parser.add_argument('--path', type=str, default=r'D:\PTA1272\Isokerays_PTA')
+    parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Subvolumes_Isokerays')
     parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10))
     parser.add_argument('--size_wide', type=int, default=640)
     parser.add_argument('--n_jobs', type=int, default=12)

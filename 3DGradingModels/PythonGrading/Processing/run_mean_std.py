@@ -2,13 +2,13 @@ import os
 
 from argparse import ArgumentParser
 from time import time
-from voi_extraction_pipelines import pipeline
+from Processing.voi_extraction_pipelines import pipeline
 from Utilities import listbox
 
 
 def calculate_multiple(arguments, selection=None):
     # List directories
-    image_path = arguments.path
+    image_path = arguments.path[:]
     files = os.listdir(image_path)
     files.sort()
 
@@ -36,7 +36,7 @@ def calculate_multiple(arguments, selection=None):
                 continue
 
         try:
-            # pipeline(pth, files[k], save_path, size, None, model_path, model_snapshots)
+            args.path = pth
             pipeline(arguments, files[k], None)
             end = time()
             print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))

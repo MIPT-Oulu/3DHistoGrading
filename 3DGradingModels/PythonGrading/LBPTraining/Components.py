@@ -2,7 +2,7 @@ import numpy as np
 from time import time
 import gc
 
-from joblib import Parallel,delayed
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from scipy.ndimage import correlate
@@ -13,8 +13,8 @@ from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor
 
 
-from Old.LBP_components import Conv_MRELBP
-from Old.grading_old import MRELBP
+from LBPTraining.LBP_components import Conv_MRELBP
+from LBPTraining.OLD_LBP_components import MRELBP
 
 
 def make_pars(n_pars):
@@ -48,8 +48,8 @@ def make_2d_gauss(ks, sigma):
     denom = np.sqrt(2*np.pi*sigma**2)
     
     # Evaluate gaussians
-    ex = 1/denom*np.exp(-0.5*x/sigma**2)
-    ey = 1/denom*np.exp(-0.5*y/sigma**2)
+    ex = np.exp(-0.5*x/sigma**2) / denom
+    ey = np.exp(-0.5*y/sigma**2) / denom
     
     # Iterate over kernel size
     kernel = np.zeros((ks, ks))
@@ -62,7 +62,7 @@ def make_2d_gauss(ks, sigma):
     return kernel
 
 
-def local_normalize(image, ks1, sigma1, ks2, sigma2):
+def local_normalize(image, ks1, sigma1, ks2, sigma2, eps=1e-09):
     # Generate gaussian kernel
     kernel1 = make_2d_gauss(ks1, sigma1)
     kernel2 = make_2d_gauss(ks2, sigma2)
@@ -73,7 +73,7 @@ def local_normalize(image, ks1, sigma1, ks2, sigma2):
     
     sd = correlate(centered**2, kernel2)**0.5
     
-    return centered/(sd+1e-9)
+    return centered / (sd + eps)
 
 
 def loo_lr(features, grades, n_splits=-1, mode='ridge'):
@@ -94,7 +94,7 @@ def loo_lr(features, grades, n_splits=-1, mode='ridge'):
         # Regression
         if mode == 'ridge':
             model = Ridge(alpha=1, normalize=True, random_state=42)
-        elif mode == 'random_forest':
+        else:  # Random forest
             model = RandomForestRegressor(n_estimators=500, n_jobs=16, max_depth=7, random_state=42)
         model.fit(f, g.reshape(-1, 1))
         
@@ -102,14 +102,13 @@ def loo_lr(features, grades, n_splits=-1, mode='ridge'):
         output.append(model.predict((features[test_idx]-features.mean(0)).reshape(1, -1)))
         
     gc.collect()
-
     return np.array(output)
 
 
-def MSE(preds, targets):
-    N = len(preds)
-    errors = preds.flatten()-targets.flatten()
-    return (errors**2).sum()/N
+def get_mse(preds, targets):
+    n = len(preds)
+    errors = preds.flatten() - targets.flatten()
+    return (errors ** 2).sum() / n
 
 
 def get_error(imgs, grades, args, mode='ridge'):
@@ -127,22 +126,25 @@ def get_error(imgs, grades, args, mode='ridge'):
         
     preds = loo_lr(pcfeatures, grades, mode)
     
-    mse = MSE(preds, grades)
+    mse = get_mse(preds, grades)
     
     return mse
 
 
 def get_feature(img, args, old=False):
+    # Normalization
     img = local_normalize(img, args['ks1'], args['sigma1'], args['ks2'], args['sigma2'])
-    if not old:
-        feature = Conv_MRELBP(img, 8, args['R'], args['r'], args['wR'], args['wr'], args['wc'])
-    else:
+    # LBP
+    if old:
         feature = MRELBP(img, 8, args['R'], args['r'], args['wc'], (args['wR'], args['wr']))
+    else:
+        feature = Conv_MRELBP(img, 8, args['R'], args['r'], args['wR'], args['wr'], args['wc'])
+
     return feature
 
 
-def make_pred(imgs, grades, args, old):
-    features = Parallel(n_jobs=16)(delayed(get_feature)(img, args, old) for img in imgs)
+def make_pred(imgs, grades, args, old, n_jobs=12):
+    features = Parallel(n_jobs=n_jobs)(delayed(get_feature)(img, args, old) for img in imgs)
     features = np.array(features).squeeze()
     pc = PCA(10, whiten=True, random_state=42)
     pcfeatures = pc.fit(features).transform(features)
