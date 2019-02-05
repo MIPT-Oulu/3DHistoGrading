@@ -126,5 +126,10 @@ namespace HistoGrading
         {
 
         }
+
+        private void progressLabel_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
