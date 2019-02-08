@@ -32,17 +32,22 @@ def roc_curve_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42):
     aucs = []
     tprs = []
     base_fpr = np.linspace(0, 1, 1001)
-    for _ in tqdm(range(n_bootstrap), total=n_bootstrap, desc='Bootstrap:'):
+    k = 0
+    for _ in tqdm(range(n_bootstrap), total=n_bootstrap, desc='Bootstrap'):
         ind = np.random.choice(y.shape[0], y.shape[0])
         if y[ind].sum() == 0:
             continue
-
-        aucs.append(roc_auc_score(y[ind], preds[ind]))
+        try:
+            aucs.append(roc_auc_score(y[ind], preds[ind]))
+        except ValueError:
+            k += 1
+            continue
         fpr, tpr, _ = roc_curve(y[ind], preds[ind])
         tpr = interp(base_fpr, fpr, tpr)
         tpr[0] = 0.0
         tprs.append(tpr)
-
+    if k > 0:
+        print('{0} exceptions occurred. Check grade distribution'.format(k))
     auc = np.mean(aucs)
     print('Bootstrapping: auc = {0}'.format(auc))
     tprs = np.array(tprs)

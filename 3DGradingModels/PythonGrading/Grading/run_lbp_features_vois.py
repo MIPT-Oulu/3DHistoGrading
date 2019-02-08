@@ -34,13 +34,13 @@ def pipeline_lbp(arg, selection, parameters, grade_used):
     # Calculate features
     if arg.convolution:
         features = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)  # Initialize
-                    (images_norm, parameters,  # LBP parameters
+                    (images_norm[i], parameters,  # LBP parameters
                     normalize=args.normalize_hist,
                     savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used)  # Save paths
                     for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
     else:
         features = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)  # Initialize
-                    (images_norm, parameters,  # LBP parameters
+                    (images_norm[i], parameters,  # LBP parameters
                     normalize=args.normalize_hist,
                     savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used)  # Save paths
                     for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
@@ -85,7 +85,7 @@ def load_voi(path, save, file, grade, par):
         titles_norm = ['Mean + Std', '', 'Normalized']
         print_images((image, image, image_norm),
                      subtitles=titles_norm, title=file + ' Input',
-                     save_path=save + r'\Images\\Input\\', sample=file[:-3] + '_Input.png')
+                     save_path=save + r'\Images\Input\\', sample=file[:-3] + '_' + grade + '.png')
         return image_norm
 
 
@@ -99,23 +99,30 @@ if __name__ == '__main__':
     dparam_abs = {'ks1': 15, 'sigma1': 3, 'ks2': 23, 'sigma2': 13, 'N': 8, 'R': 16, 'r': 12, 'wc': 13, 'wl': 15, 'ws': 9}
     dparam_val = {'ks1': 3, 'sigma1': 2, 'ks2': 19, 'sigma2': 3, 'N': 8, 'R': 3, 'r': 1, 'wc': 15, 'wl': 13, 'ws': 9}
     deep_mat_10n = {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5}
+    deep_cell_10n = {'ks1': 3, 'sigma1': 3, 'ks2': 21, 'sigma2': 3, 'N': 8, 'R': 26, 'r': 4, 'wc': 7, 'wl': 3, 'ws': 7}
     cparam_abs = {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 19, 'r': 18, 'wc': 3, 'wl': 3, 'ws': 11}
+    calc_mat_n10 = {'ks1': 23, 'sigma1': 16, 'ks2': 15, 'sigma2': 6, 'N': 8, 'R': 16, 'r': 2, 'wc': 9, 'wl': 7, 'ws': 7}
+    calc_vasc_n10 = {'ks1': 23, 'sigma1': 20, 'ks2': 7, 'sigma2': 7, 'N': 8, 'R': 26, 'r': 11, 'wc': 13, 'wl': 5, 'ws': 15}
     cparam_val = {'ks1': 25, 'sigma1': 25, 'ks2': 25, 'sigma2': 15, 'N': 8, 'R': 21, 'r': 13, 'wc': 3, 'wl': 13, 'ws': 5}
     cparam_val2 = {'ks1': 23, 'sigma1': 1, 'ks2': 7, 'sigma2': 2, 'N': 8, 'R': 9, 'r': 2, 'wc': 15, 'wl': 7, 'ws': 9}
 
     # Arguments
     parser = ArgumentParser()
-    choice = '2mm'
-    parser.add_argument('--image_path', type=str, default=r'Y:\3DHistoData\MeanStd_' + choice + '_Python')
+    choice = 'Isokerays'
+    parser.add_argument('--image_path', type=str, default=r'Y:\3DHistoData\MeanStd_' + choice)# + '_Python')
     parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice)
     parser.add_argument('--grades_used', type=str,
-                        default=['surf_sub', 'deep_mat', 'deep_cell', 'calc_mat', 'calc_vasc'])
+                        default=['surf_sub',
+                                 'deep_mat',
+                                 'deep_cell',
+                                 'calc_mat',
+                                 'calc_vasc'])
     parser.add_argument('--pars', type=dict, default=
     [{'ks1': 21, 'sigma1': 17, 'ks2': 25, 'sigma2': 20, 'N': 8, 'R': 26, 'r': 5, 'wc': 5, 'wl': 13, 'ws': 11},
     {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5},
-    {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5},
-    {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 19, 'r': 18, 'wc': 3, 'wl': 3, 'ws': 11},
-    {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 19, 'r': 18, 'wc': 3, 'wl': 3, 'ws': 11}])
+    {'ks1': 3, 'sigma1': 3, 'ks2': 21, 'sigma2': 3, 'N': 8, 'R': 26, 'r': 4, 'wc': 7, 'wl': 3, 'ws': 7},
+    {'ks1': 23, 'sigma1': 16, 'ks2': 15, 'sigma2': 6, 'N': 8, 'R': 16, 'r': 2, 'wc': 9, 'wl': 7, 'ws': 7},
+    {'ks1': 23, 'sigma1': 20, 'ks2': 7, 'sigma2': 7, 'N': 8, 'R': 26, 'r': 11, 'wc': 13, 'wl': 5, 'ws': 15}])
     parser.add_argument('--n_jobs', type=int, default=12)
     parser.add_argument('--convolution', type=bool, default=False)
     parser.add_argument('--normalize_hist', type=bool, default=True)
@@ -128,4 +135,5 @@ if __name__ == '__main__':
     for k in range(len(args.grades_used)):
         pars = args.pars[k]
         grade_selection = args.grades_used[k]
+        print('Processing with parameters: {0}'.format(grade_selection))
         pipeline_lbp(args, listbox.file_list, pars, grade_selection)
