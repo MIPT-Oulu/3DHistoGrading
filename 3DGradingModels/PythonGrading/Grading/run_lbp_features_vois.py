@@ -13,25 +13,53 @@ from Utilities import listbox
 from Utilities.misc import print_images
 
 
-def pipeline_lbp(arg, selection):
+def pipeline_lbp(arg, selection, parameters, grade_used):
+    """Calculates LBP features from mean and standard deviation images.
+    Supports parallelization for increased processing times."""
     # Start time
     start_time = time()
 
     # List datasets
-    impath = arg.image_path
-    files = os.listdir(impath)
+    files = os.listdir(arg.image_path)
     files.sort()
     # Exclude samples
     if selection is not None:
         files = [files[i] for i in selection]
 
-    # Load images
-    images_surf = []
-    images_deep = []
-    images_calc = []
-    for k in tqdm(range(len(files)), desc='Loading images'):
+    # Load and normalize images
+    images_norm = (Parallel(n_jobs=args.n_jobs)(delayed(load_voi)  # Initialize
+                   (arg.image_path, arg.save_path, files[i], grade_used, parameters)
+                   for i in tqdm(range(len(files)), desc='Loading and normalizing')))  # Iterable
+
+    # Calculate features
+    if arg.convolution:
+        features = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)  # Initialize
+                    (images_norm, parameters,  # LBP parameters
+                    normalize=args.normalize_hist,
+                    savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used)  # Save paths
+                    for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
+    else:
+        features = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)  # Initialize
+                    (images_norm, parameters,  # LBP parameters
+                    normalize=args.normalize_hist,
+                    savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used)  # Save paths
+                    for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
+
+    # Convert to array
+    features = np.array(features).squeeze()
+
+    # Save features
+    save = arg.save_path
+    save_excel(features.T, save + r'\Features_' + grade_used + '.xlsx', files)
+
+    # Display spent time
+    t = time() - start_time
+    print('Elapsed time: {0}s'.format(t))
+
+
+def load_voi(path, save, file, grade, par):
         # Load images
-        image_surf, image_deep, image_calc = load_vois_h5(impath, files[k])
+        image_surf, image_deep, image_calc = load_vois_h5(path, file)
         # Crop
         if np.shape(image_surf)[0] != 400:
             crop = (np.shape(image_surf)[0] - 400) // 2
@@ -42,83 +70,23 @@ def pipeline_lbp(arg, selection):
         if np.shape(image_calc)[0] != 400:
             crop = (np.shape(image_calc)[0] - 400) // 2
             image_calc = image_calc[crop:-crop, crop:-crop]
-        # Append to list
-        images_surf.append(image_surf)
-        images_deep.append(image_deep)
-        images_calc.append(image_calc)
-        # Save images
-        titles_norm = ['Surface', 'Deep', 'Calcified']
-        print_images((image_surf, image_deep, image_calc), subtitles=titles_norm, title=files[k] + ' MeanStd',
-                     save_path=args.save_path + r'\Images\\MeanStd\\', sample=files[k][:-3] + '_MeanStd.png')
-        print_images((local_standard(image_surf, arg.pars_surf_sub),
-                      local_standard(image_deep, arg.pars_deep_mat),
-                      local_standard(image_calc, arg.pars_calc_mat)),
-                     subtitles=titles_norm, title=files[k] + ' Normalized',
-                     save_path=args.save_path + r'\Images\\Normalized\\', sample=files[k][:-3] + '_Normalized.png')
-
-    if arg.convolution:
-        # Calculate features in parallel
-        features_surf_sub = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)  # Initialize
-                             (local_standard(images_surf[i], arg.pars_surf_sub), arg.pars_surf_sub,  # LBP parameters
-                             args.save_path + '\\Images\\LBP\\', files[i][:-3] + '_surface')  # Save paths
-                             for i in tqdm(range(len(files)), desc='Calculating features (surface)')))  # Iterable
-        features_deep_mat = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)
-                             (local_standard(images_deep[i], arg.pars_deep_mat), arg.pars_deep_mat,
-                             args.save_path + '\\Images\\LBP\\', files[i][:-3] + '_deep')
-                             for i in tqdm(range(len(files)), desc='Calculating features (deep ECM)')))
-        features_deep_cell = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)
-                              (local_standard(images_deep[i], arg.pars_deep_cell), arg.pars_deep_cell,
-                              args.save_path + '\\Images\\LBP\\', files[i][:-3] + '_deep')
-                              for i in tqdm(range(len(files)), desc='Calculating features (deep cellularity)')))
-        features_calc_mat = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)
-                             (local_standard(images_calc[i], arg.pars_calc_mat), arg.pars_calc_mat,
-                             args.save_path + '\\Images\\LBP\\', files[i][:-3] + '_calcified')
-                             for i in tqdm(range(len(files)), desc='Calculating features (calcified ECM)')))
-        features_calc_vasc = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)
-                              (local_standard(images_calc[i], arg.pars_calc_vasc), arg.pars_calc_vasc,
-                              args.save_path + '\\Images\\LBP\\', files[i][:-3] + '_calcified')
-                              for i in tqdm(range(len(files)), desc='Calculating features (calcified vascularity)')))
-    else:
-        features_surf_sub = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)  # Initialize
-                             (local_standard(images_surf[i], arg.pars_surf_sub), arg.pars_surf_sub,  # LBP parameters
-                             normalize=args.normalize_hist,  # Histogram normalization
-                             savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_surf_sub')  # Save paths
-                             for i in tqdm(range(len(files)), desc='Calculating features (surface)')))  # Iterable
-        features_deep_mat = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)
-                             (local_standard(images_deep[i], arg.pars_deep_mat), arg.pars_deep_mat,
-                             normalize=args.normalize_hist,
-                             savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_deep_mat')
-                             for i in tqdm(range(len(files)), desc='Calculating features (deep ECM)')))
-        features_deep_cell = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)
-                              (local_standard(images_deep[i], arg.pars_deep_cell), arg.pars_deep_cell,
-                              normalize=args.normalize_hist,
-                              savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_deep_cell')
-                              for i in tqdm(range(len(files)), desc='Calculating features (deep cellularity)')))
-        features_calc_mat = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)
-                             (local_standard(images_calc[i], arg.pars_calc_mat), arg.pars_calc_mat,
-                             normalize=args.normalize_hist,
-                             savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_calc_mat')
-                             for i in tqdm(range(len(files)), desc='Calculating features (calcified ECM)')))
-        features_calc_vasc = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)
-                              (local_standard(images_calc[i], arg.pars_calc_vasc), arg.pars_calc_vasc,
-                              normalize=args.normalize_hist,
-                              savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_calc_vasc')
-                              for i in tqdm(range(len(files)), desc='Calculating features (calcified vascularity)')))
-
-    # Convert to array
-    features_surf = np.array(features_surf_sub).squeeze()
-    features_deep = np.array(features_deep_mat).squeeze()
-    features_calc = np.array(features_calc_mat).squeeze()
-
-    # Save features
-    save = arg.save_path
-    save_excel(features_surf.T, save + r'\Features_' + args.grades_used[0] + '.xlsx', files)
-    save_excel(features_deep.T, save + r'\Features_' + args.grades_used[1] + '.xlsx', files)
-    save_excel(features_calc.T, save + r'\Features_' + args.grades_used[2] + '.xlsx', files)
-
-    # Display spent time
-    t = time() - start_time
-    print('Elapsed time: {0}s'.format(t))
+        # Select VOI
+        if grade[:4] == 'surf':
+            image = image_surf[:]
+        elif grade[:4] == 'deep':
+            image = image_deep[:]
+        elif grade[:4] == 'calc':
+            image = image_calc[:]
+        else:
+            raise Exception('Check selected zone!')
+        # Normalize
+        image_norm = local_standard(image, par)
+        # Save image
+        titles_norm = ['Mean + Std', '', 'Normalized']
+        print_images((image, image, image_norm),
+                     subtitles=titles_norm, title=file + ' Input',
+                     save_path=save + r'\Images\\Input\\', sample=file[:-3] + '_Input.png')
+        return image_norm
 
 
 if __name__ == '__main__':
@@ -142,16 +110,12 @@ if __name__ == '__main__':
     parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice)
     parser.add_argument('--grades_used', type=str,
                         default=['surf_sub', 'deep_mat', 'deep_cell', 'calc_mat', 'calc_vasc'])
-    parser.add_argument('--pars_surf_sub', type=dict, default=
-    {'ks1': 21, 'sigma1': 17, 'ks2': 25, 'sigma2': 20, 'N': 8, 'R': 26, 'r': 5, 'wc': 5, 'wl': 13, 'ws': 11})
-    parser.add_argument('--pars_deep_mat', type=dict, default=
-    {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5})
-    parser.add_argument('--pars_deep_cell', type=dict, default=
-    {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5})
-    parser.add_argument('--pars_calc_mat', type=dict, default=
-    {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 19, 'r': 18, 'wc': 3, 'wl': 3, 'ws': 11})
-    parser.add_argument('--pars_calc_vasc', type=dict, default=
-    {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 19, 'r': 18, 'wc': 3, 'wl': 3, 'ws': 11})
+    parser.add_argument('--pars', type=dict, default=
+    [{'ks1': 21, 'sigma1': 17, 'ks2': 25, 'sigma2': 20, 'N': 8, 'R': 26, 'r': 5, 'wc': 5, 'wl': 13, 'ws': 11},
+    {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5},
+    {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5},
+    {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 19, 'r': 18, 'wc': 3, 'wl': 3, 'ws': 11},
+    {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 19, 'r': 18, 'wc': 3, 'wl': 3, 'ws': 11}])
     parser.add_argument('--n_jobs', type=int, default=12)
     parser.add_argument('--convolution', type=bool, default=False)
     parser.add_argument('--normalize_hist', type=bool, default=True)
@@ -161,4 +125,7 @@ if __name__ == '__main__':
     listbox.GetFileSelection(args.image_path)
 
     # Call pipeline
-    pipeline_lbp(args, listbox.file_list)
+    for k in range(len(args.grades_used)):
+        pars = args.pars[k]
+        grade_selection = args.grades_used[k]
+        pipeline_lbp(args, listbox.file_list, pars, grade_selection)
