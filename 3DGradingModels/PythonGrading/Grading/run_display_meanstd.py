@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import h5py
 
 
-def display_dataset(path, save):
+def display_dataset(path, save, dset='sum'):
     """Displays a dataset, where VOIs are saved in individual locations."""
     # List datasets
     files_surf = os.listdir(path[0])
@@ -14,17 +14,16 @@ def display_dataset(path, save):
     files_calc.sort()
 
     # Corrected names
-    files = os.listdir(r'X:\3DHistoData\Subvolumes_2mm')
+    files = os.listdir(r'Y:\3DHistoData\Subvolumes_2mm')
     files.sort()
 
     k = 0
     # Loop for displaying images
     for fsurf, fdeep, fcalc in zip(files_surf, files_deep, files_calc):
         # Load images
-        im_surf = loadh5(path[0], fsurf)
-        im_deep = loadh5(path[1], fdeep)
-        im_calc = loadh5(path[2], fcalc)
-
+        im_surf = loadh5(path[0], fsurf, dset)
+        im_deep = loadh5(path[1], fdeep, dset)
+        im_calc = loadh5(path[2], fcalc, dset)
         # Create figure
         fig = plt.figure(dpi=300)
         ax1 = fig.add_subplot(131)
@@ -61,10 +60,11 @@ def display_dataset(path, save):
         k += 1
 
 
-def loadh5(path, file):
+def loadh5(path, file, name=None):
     # Image loading
     h5 = h5py.File(os.path.join(path, file), 'r')
-    name = list(h5.keys())[0]
+    if name is None:
+        name = list(h5.keys())[0]
     ims = h5[name][:]
     h5.close()
 
@@ -73,10 +73,10 @@ def loadh5(path, file):
 
 if __name__ == '__main__':
     # Pipeline variables
-    impath = [r"X:\3DHistoData\cartvoi_surf_new",
-              r"X:\3DHistoData\cartvoi_deep_new",
-              r"X:\3DHistoData\cartvoi_calc_new"]
-    savepath = r"X:\3DHistoData\MeanStd_Images"
+    impath = [r"Y:\3DHistoData\C#_VOIS_2mm\cartvoi_surf_new",
+              r"Y:\3DHistoData\C#_VOIS_2mm\cartvoi_deep_new",
+              r"Y:\3DHistoData\C#_VOIS_2mm\cartvoi_calc_new"]
+    savepath = r"Y:\3DHistoData\C#_VOIS_2mm"
 
     # Call pipeline
     display_dataset(impath, savepath)

@@ -2,7 +2,7 @@ import os
 
 from argparse import ArgumentParser
 from time import time
-from Processing.voi_extraction_pipelines import pipeline
+from Processing.voi_extraction_pipelines import pipeline_mean_std
 from Utilities import listbox
 
 
@@ -35,14 +35,13 @@ def calculate_multiple(arguments, selection=None):
             except FileNotFoundError:  # Case: Unusable folder
                 continue
 
-        try:
-            args.path = pth
-            pipeline(arguments, files[k], None)
-            end = time()
-            print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
-        except Exception:
-            print('Sample {0} failing. Skipping to next one'.format(files[k]))
-            continue
+        #try:
+        pipeline_mean_std(pth, arguments, files[k], None)
+        end = time()
+        print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
+        #except Exception:
+        #    print('Sample {0} failing. Skipping to next one'.format(files[k]))
+        #    continue
 
     print('Done')
 
@@ -50,11 +49,12 @@ def calculate_multiple(arguments, selection=None):
 if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
-    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\Subvolumes_Isokerays')
+    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\Subvolumes_2mm')
     parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10))
     parser.add_argument('--model_path', type=str, default='Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/')
     parser.add_argument('--snapshots', type=str,
                         default='Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/')
+    parser.add_argument('--segmentation', type=str, choices=['torch', 'kmeans', 'cntk'], default='torch')
     parser.add_argument('--n_jobs', type=int, default=12)
     args = parser.parse_args()
 

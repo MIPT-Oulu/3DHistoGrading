@@ -5,21 +5,40 @@ import pandas as pd
 
 from argparse import ArgumentParser
 from LBPTraining.Components import find_pars_bforce
+from Utilities import listbox
+from Utilities.load_write import load_vois_h5
 
 
-def pipeline(arguments):
-    # Load images
+def pipeline(arguments, selection=None, pat_groups=None):
+    # File list
     files = os.listdir(arguments.path)
     files.sort()
-    images = []
-    for file in files:
-        h5 = h5py.File(os.path.join(arguments.path, file), 'r')
-        if arguments.crop == 1:
-            images.append(h5['sum'][24:-24, 24:-24])
-        elif arguments.crop == 0:
-            images.append(h5['sum'][:])
-        h5.close()
-    print(images[0].shape)
+    # Exclude samples
+    if selection is not None:
+        files = [files[i] for i in selection]
+
+    # Load images
+    images_surf = []
+    images_deep = []
+    images_calc = []
+    for k in range(len(files)):
+        # Load images
+        image_surf, image_deep, image_calc = load_vois_h5(arguments.path, files[k])
+
+        # Crop
+        if np.shape(image_surf)[0] != 400:
+            crop = (np.shape(image_surf)[0] - 400) // 2
+            image_surf = image_surf[crop:-crop, crop:-crop]
+        if np.shape(image_deep)[0] != 400:
+            crop = (np.shape(image_deep)[0] - 400) // 2
+            image_deep = image_deep[crop:-crop, crop:-crop]
+        if np.shape(image_calc)[0] != 400:
+            crop = (np.shape(image_calc)[0] - 400) // 2
+            image_calc = image_calc[crop:-crop, crop:-crop]
+        # Append to list
+        images_surf.append(image_surf)
+        images_deep.append(image_deep)
+        images_calc.append(image_calc)
 
     # Load grades
     grades = []
@@ -35,10 +54,6 @@ def pipeline(arguments):
                 grades = np.array(df[key])
 
     # Exclude samples
-    images.pop(32)
-    images.pop(13)
-    files.pop(32)
-    files.pop(13)
     grades = np.delete(grades, 32)
     grades = np.delete(grades, 13)
     print('Selected files')
@@ -46,38 +61,61 @@ def pipeline(arguments):
         print(files[k], grades[k])
     print('')
 
+    # Select VOI
+    if arguments.grade_keys[:4] == 'surf':
+        images = images_surf[:]
+    elif arguments.grade_keys[:4] == 'deep':
+        images = images_deep[:]
+    elif arguments.grade_keys[:4] == 'calc':
+        images = images_calc[:]
+    else:
+        raise Exception('Check selected zone!')
     # Optimize parameters
-    pars, error = find_pars_bforce(images, grades, arguments.n_pars, arguments.grade_mode, arguments.n_jobs)
+    pars, error = find_pars_bforce(images, grades, arguments, groups)
 
+    print('Results for grades: ' + arguments.grade_keys)
     print("Minimum error is : {0}".format(error))
     print("Parameters are:")
     print(pars)
 
 
 if __name__ == '__main__':
-    path = r'Y:\3DHistoData\C#_VOIS_2mm'
     # Arguments
     parser = ArgumentParser()
-    parser.add_argument('--path', type=str, default=path + './cartvoi_surf_new/')
-    parser.add_argument('--path_grades', type=str, default=path + './ERCGrades.xlsx')
-    parser.add_argument('--grade_keys', type=str, nargs='+', default='surf_sub')
-    parser.add_argument('--grade_mode', type=str, choices=['sum', 'mean'], default='mean')
+    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm_Python')
+    parser.add_argument('--path_grades', type=str, default=r'Y:\3DHistoData\Grading\ERCGrades.xlsx')
+    parser.add_argument('--grade_keys', type=str, default='surf_sub')
+    parser.add_argument('--grade_mode', type=str, choices=['sum', 'mean'], default='sum')
+    parser.add_argument('-hist_normalize', type=bool, default=True)
+    parser.add_argument('--n_components', type=int, default=10)
     parser.add_argument('--n_pars', type=int, default=1000)
     parser.add_argument('--classifier', type=str, choices=['ridge', 'random_forest'], default='ridge')
     parser.add_argument('--crop', type=int, default=0)
     parser.add_argument('--n_jobs', type=int, default=12)
+
     args = parser.parse_args()
+    # Patient groups
+    groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
+                       15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
+
+    # Use listbox (Result is saved in listbox.file_list)
+    listbox.GetFileSelection(args.path)
 
     # Surface
-    pipeline(args)
+    pipeline(args, listbox.file_list, groups)
 
-    # Deep
-    args.path = path + './cartvoi_deep_new/'
+    # Deep ECM
     args.grade_keys = 'deep_mat'
-    args.crop = 1
-    pipeline(args)
+    pipeline(args, listbox.file_list, groups)
 
-    # Calcified
-    args.path = path + './cartvoi_calc_new/'
+    # Deep cellularity
+    args.grade_keys = 'deep_cell'
+    pipeline(args, listbox.file_list, groups)
+
+    # Calcified ECM
     args.grade_keys = 'calc_mat'
-    pipeline(args)
+    pipeline(args, listbox.file_list, groups)
+
+    # Calcified vascularity
+    args.grade_keys = 'calc_vasc'
+    pipeline(args, listbox.file_list, groups)

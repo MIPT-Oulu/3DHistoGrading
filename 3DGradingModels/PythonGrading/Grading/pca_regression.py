@@ -6,7 +6,7 @@ from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
 from sklearn.decomposition import PCA
 
 
-def regress_loo(features, sgrades):
+def regress_loo(features, grades):
     """Calculates linear regression with leave-one-out split."""
     predictions = []
     # Get leave-one-out split
@@ -15,7 +15,7 @@ def regress_loo(features, sgrades):
     for train_idx, test_idx in loo.split(features):
         # Train split
         f = features[train_idx] - features.mean(0)
-        g = sgrades[train_idx]
+        g = grades[train_idx]
 
         # Linear regression
         model = Ridge(alpha=1, normalize=True, random_state=42)
@@ -27,21 +27,21 @@ def regress_loo(features, sgrades):
     return np.array(predictions).squeeze(), model.coef_
 
 
-def regress_logo(features, score, groups):
+def regress_logo(features, grades, groups):
     """Calculates linear regression with leave-one-group-out split."""
     predictions = []
     # Leave one out split
     logo = LeaveOneGroupOut()
-    logo.get_n_splits(features, score, groups)
+    logo.get_n_splits(features, grades, groups)
     logo.get_n_splits(groups=groups)  # 'groups' is always required
 
-    for train_idx, test_idx in logo.split(features, score, groups):
+    for train_idx, test_idx in logo.split(features, grades, groups):
         # Indices
         x_train, x_test = features[train_idx], features[test_idx]
         x_test -= x_train.mean(0)
         x_train -= x_train.mean(0)
 
-        y_train, y_test = score[train_idx], score[test_idx]
+        y_train, y_test = grades[train_idx], grades[test_idx]
         # Linear regression
         model = Ridge(alpha=1, normalize=True, random_state=42)
         model.fit(x_train, y_train)

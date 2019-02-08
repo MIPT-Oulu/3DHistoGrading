@@ -1,8 +1,8 @@
 import numpy as np
 
-from scipy.signal import medfilt, medfilt2d
-from scipy.ndimage import convolve
-from LBPTraining.Components import make_2d_gauss
+from scipy.signal import medfilt2d
+from scipy.ndimage import convolve, correlate
+from Utilities.misc import print_images
 
 
 def image_bilinear(im, col, x, row, y, eps=1e-12):
@@ -23,7 +23,7 @@ def image_bilinear(im, col, x, row, y, eps=1e-12):
     return p
 
 
-def MRELBP(image, parameters, eps=1e-06, normalize=True):
+def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=None):
     """ Takes Median Robust Extended Local Binary Pattern from image im
     Uses n neighbours from radii r_large and r_small, r_large must be larger than r_small
     Median filter uses kernel sizes weight_center for center pixels, w_r[0] for larger radius and w_r[1]
@@ -46,7 +46,7 @@ def MRELBP(image, parameters, eps=1e-06, normalize=True):
     image_scaled = (image - mean_image) / std_image
 
     # Median filtering
-    image_center = medfilt(image_scaled, weight_center)
+    image_center = medfilt2d(image_scaled.copy(), weight_center)
     # Center pixels
     dist = round(r_large + (weight_large - 1) / 2)
     image_center = image_center[dist:-dist, dist:-dist]
@@ -54,7 +54,7 @@ def MRELBP(image, parameters, eps=1e-06, normalize=True):
     image_center -= image_center.mean()
     # Binning center pixels
     center_hist = np.zeros((1, 2))
-    center_hist[0, 0] = np.sum(image_scaled >= 0)
+    center_hist[0, 0] = np.sum(image_center >= 0)
     center_hist[0, 1] = np.sum(image_center < 0)
 
     # --------------- #
@@ -63,8 +63,8 @@ def MRELBP(image, parameters, eps=1e-06, normalize=True):
     # --------------- #
     
     # Median filtered images for large and small radius
-    image_large = medfilt(image_scaled, weight_large)
-    image_small = medfilt2d(image_scaled, weight_small)
+    image_large = medfilt2d(image_scaled.copy(), weight_large)
+    image_small = medfilt2d(image_scaled.copy(), weight_small)
 
     # Neighbours
     pi = np.pi
@@ -148,8 +148,13 @@ def MRELBP(image, parameters, eps=1e-06, normalize=True):
 
     # Concatenate histograms
     hist = np.concatenate((center_hist, large_hist, small_hist, radial_hist), 1)
+
+    if savepath is not None and sample is not None:
+        print_images([lbp_large, lbp_small, lbp_radial], subtitles=['Large', 'Small', 'Radial'], title=sample,
+                     save_path=savepath, sample=sample + '.png')
     
-    return hist.T, (lbp_large, lbp_small, lbp_radial)
+    # return hist.T
+    return hist
 
 
 def get_mapping(n):
@@ -202,7 +207,7 @@ def image_padding(im, padlength):
     return im_pad
 
 
-def local_standard(image, parameters, eps=1e-08):
+def local_standard(image, parameters, eps=1e-09):
     """Centers local grayscales with Gaussian weighted mean using given kernel sizes and gaussian variances."""
     # Unpack parameters
     w1 = parameters['ks1']
@@ -211,17 +216,15 @@ def local_standard(image, parameters, eps=1e-08):
     sigma2 = parameters['sigma2']
 
     # Gaussian kernels
-    # kernel1 = gauss_kernel(w1, sigma1)
-    # kernel2 = gauss_kernel(w2, sigma2)
-    kernel1 = make_2d_gauss(w1, sigma1)
-    kernel2 = make_2d_gauss(w2, sigma2)
+    kernel1 = gauss_kernel(w1, sigma1)
+    kernel2 = gauss_kernel(w2, sigma2)
     # Calculate mean and standard deviation images
     mean = convolve(image, kernel1)
     std = convolve(image ** 2, kernel2) ** 0.5
     # Centering grayscale values
-    image -= mean
+    image_centered = image - mean
     # Standardization
-    return image / (std + eps)
+    return image_centered / (std + eps)
 
 
 def gauss_kernel(w, sigma):
@@ -235,3 +238,205 @@ def gauss_kernel(w, sigma):
             kernel[ii, jj] = np.exp(x)
     # Normalizing the kernel
     return kernel / np.sum(kernel)
+
+
+def Conv_MRELBP(image, pars, savepath=None, sample=None):
+    # Unpack parameters
+    n = pars['N']
+    r_large = pars['R']
+    r_small = pars['r']
+    w_large = pars['wl']
+    w_small = pars['ws']
+    w_center = pars['wc']
+
+    # Whiten the image
+    imu = image.mean()
+    istd = image.std()
+    im = (image - imu) / istd
+    # Get image dimensions
+    h, w = im.shape[:2]
+    # Make kernels
+    kR = []
+    kr = []
+    dtheta = np.pi * 2 / n
+    for k in range(0, n):
+        _kernel = weight_matrix_bilin(r_large, -k * dtheta, val=0)
+        kR.append(_kernel)
+
+        _kernel = weight_matrix_bilin(r_small, -k * dtheta, val=0)
+        kr.append(_kernel)
+
+    # Make median filtered images
+    imc = medfilt2d(im.copy(), w_center)
+    imR = medfilt2d(im.copy(), w_large)
+    imr = medfilt2d(im.copy(), w_small)
+
+    # Get LBP images
+    neighbR = np.zeros((h, w, n))
+    neighbr = np.zeros((h, w, n))
+    for k in range(n):
+        _neighb = correlate(imR, kR[k])
+        neighbR[:, :, k] = _neighb
+        _neighb = correlate(imr, kr[k])
+        neighbr[:, :, k] = _neighb
+
+    # Crop valid convolution region
+    d = r_large + w_large // 2
+    h -= 2 * d
+    w -= 2 * d
+
+    neighbR = neighbR[d:-d, d:-d, :]
+    neighbr = neighbr[d:-d, d:-d, :]
+    imc = imc[d:-d, d:-d]
+
+    # Subtraction
+    _muR = neighbR.mean(2).reshape(h, w, 1)
+    for k in range(n):
+        try:
+            muR = np.concatenate((muR, _muR), 2)
+        except NameError:
+            muR = _muR
+
+    _mur = neighbr.mean(2).reshape(h, w, 1)
+    for k in range(n):
+        try:
+            mur = np.concatenate((mur, _mur), 2)
+        except NameError:
+            mur = _mur
+
+    diffc = (imc - imc.mean()) >= 0
+    diffR = (neighbR - muR) >= 0
+    diffr = (neighbr - mur) >= 0
+    diffR_r = (neighbR - neighbr) >= 0
+
+    # Compute lbp images
+    lbpc = diffc
+    lbpR = np.zeros((h, w))
+    lbpr = np.zeros((h, w))
+    lbpR_r = np.zeros((h, w))
+    for k in range(n):
+        lbpR += diffR[:, :, k] * (2 ** k)
+        lbpr += diffr[:, :, k] * (2 ** k)
+        lbpR_r += diffR_r[:, :, k] * (2 ** k)
+    # Get LBP histograms
+    histc = np.zeros((1, 2))
+    histR = np.zeros((1, 2 ** n))
+    histr = np.zeros((1, 2 ** n))
+    histR_r = np.zeros((1, 2 ** n))
+
+    histc[0, 0] = (lbpc == 1).astype(np.float32).sum()
+    histc[0, 1] = (lbpc == 0).astype(np.float32).sum()
+
+    for k in range(2 ** n):
+        histR[0, k] = (lbpR == k).astype(np.float32).sum()
+        histr[0, k] = (lbpr == k).astype(np.float32).sum()
+        histR_r[0, k] = (lbpR_r == k).astype(np.float32).sum()
+
+    # Mapping
+    mapping = get_mapping(n)
+    histR = map_lbp(histR, mapping)
+    histr = map_lbp(histr, mapping)
+    histR_r = map_lbp(histR_r, mapping)
+
+    # Append histograms
+    hist = np.concatenate((histc, histR, histr, histR_r), 1)
+
+    if savepath is not None and sample is not None:
+        print_images([lbpR, lbpr, lbpR_r], subtitles=['Large', 'Small', 'Radial'], title=sample,
+                     save_path=savepath, sample=sample + '.png')
+
+    return hist
+
+
+def make_2d_gauss(ks, sigma):
+    # Mean indices
+    c = ks // 2
+
+    # Exponents
+    x = (np.linspace(0, ks - 1, ks) - c) ** 2
+    y = (np.linspace(0, ks - 1, ks) - c) ** 2
+
+    # Denominator
+    denom = np.sqrt(2 * np.pi * sigma ** 2)
+
+    # Evaluate gaussians
+    ex = np.exp(-0.5 * x / sigma ** 2) / denom
+    ey = np.exp(-0.5 * y / sigma ** 2) / denom
+
+    # Iterate over kernel size
+    kernel = np.zeros((ks, ks))
+    for k in range(ks):
+        kernel[k, :] = ey[k] * ex
+
+    # Normalize so kernel sums to 1
+    kernel /= kernel.sum()
+
+    return kernel
+
+
+def local_normalize_abs(image, parameters, eps=1e-09):
+    # Unpack
+    ks1 = parameters['ks1']
+    ks2 = parameters['ks2']
+    sigma1 = parameters['sigma1']
+    sigma2 = parameters['sigma2']
+
+    # Generate gaussian kernel
+    kernel1 = make_2d_gauss(ks1, sigma1)
+    kernel2 = make_2d_gauss(ks2, sigma2)
+
+    mu = correlate(image, kernel1)
+
+    centered = image - mu
+
+    sd = correlate(centered ** 2, kernel2) ** 0.5
+
+    return centered / (sd + eps)
+
+
+def weight_matrix_bilin(r, theta, val=-1):
+    # Center of the matrix
+    x = r + 1
+    y = r + 1
+
+    # Matrix
+    s = int(2 * (r + 1) + 1)
+    kernel = np.zeros((s, s))
+
+    # Accurate location
+    _y = y + np.sin(theta) * r
+    _x = x + np.cos(theta) * r
+    # Rounded locations
+    x1 = np.floor(_x)
+    x2 = np.ceil(_x)
+    y1 = np.floor(_y)
+    y2 = np.ceil(_y)
+
+    # Interpolation weights
+    wx2 = (_x - x1)
+    if wx2 == 0:
+        wx2 = 1
+    wx1 = (x2 - _x)
+    if wx1 == 0:
+        wx1 = 1
+    wy2 = (_y - y1)
+    if wy2 == 0:
+        wy2 = 1
+    wy1 = (y2 - _y)
+    if wy1 == 0:
+        wy1 = 1
+
+    w11 = wx1 * wy1
+    w12 = wx2 * wy1
+    w21 = wx1 * wy2
+    w22 = wx2 * wy2
+
+    kernel[int(y1), int(x1)] = w11
+    kernel[int(y1), int(x2)] = w12
+    kernel[int(y2), int(x1)] = w21
+    kernel[int(y2), int(x2)] = w22
+
+    # Set center value
+    kernel[x, y] += val
+
+    return kernel

@@ -11,25 +11,25 @@ from Utilities.misc import print_orthogonal, save_orthogonal, otsu_threshold
 from Utilities.load_write import load_bbox, save
 from Utilities.VTKFunctions import render_volume
 from Processing.rotations import orient
-from Processing.segmentation_pipelines import segmentation_cntk, segmentation_kmeans  # , segmentation_pytorch
+from Processing.segmentation_pipelines import segmentation_cntk, segmentation_kmeans, segmentation_pytorch
 from Processing.extract_volume import get_interface, deep_depth
 
 
-def pipeline(args, sample, mask_path=None):
+def pipeline_mean_std(image_path, args, sample, mask_path=None):
     # 1. Load sample
     print('Sample name: ' + sample)
     print('1. Load sample')
-    data, bounds = load_bbox(args.path, n_jobs=args.n_jobs)
+    data, bounds = load_bbox(image_path, n_jobs=args.n_jobs)
     print_orthogonal(data)
     save_orthogonal(args.path + "\\Images\\" + sample + "_input.png", data)
     render_volume(data, args.path + "\\Images\\" + sample + "_input_render.png")
-    if mask_path is not None and args.path is None:
-        print(mask_path)
+    if mask_path is not None:
         mask, _ = load_bbox(mask_path)
         print_orthogonal(mask)
 
     # 2. Segment BCI mask
-    if args.snapshots is not None:
+    if args.snapshots is not None and args.segmentation is not 'cntk':
+        # Bottom offset
         if data.shape[2] < 1000:
             offset = 0
         elif 1000 <= data.shape[2] < 1600:
@@ -37,12 +37,17 @@ def pipeline(args, sample, mask_path=None):
         else:
             offset = 50
         # Pytorch segmentation
-        # cropsize = 512
-        # mask = segmentation_pytorch(data, modelpath, snapshots, cropsize, offset)  # generate mask from crop data
+        if args.segmentation is 'torch':
+            cropsize = 512
+            mask = segmentation_pytorch(data, args.model_path, args.snapshots, cropsize, offset)
         # K-means segmentation
-        mask = segmentation_kmeans(data, n_clusters=3, offset=offset, n_jobs=args.n_jobs)
+        elif args.segmentation is 'kmeans':
+            mask = segmentation_kmeans(data, n_clusters=3, offset=offset, n_jobs=args.n_jobs)
+        else:
+            raise Exception('Invalid segmentation selection!')
+    # CNTK segmentation
     else:
-        mask = segmentation_cntk(data, args.model_path)  # generate mask from crop data
+        mask = segmentation_cntk(data, args.model_path)
     print_orthogonal(mask)
     save_orthogonal(args.path + "\\Images\\" + sample + "_mask.png", mask * data)
     render_volume((mask > 0.7) * data, args.path + "\\Images\\" + sample + "_mask_render.png")
@@ -306,43 +311,4 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
     # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_cc_std.dat', std, 'double')
     # Save .h5
     h5.create_dataset('calc', data=mean + std)
-    h5.close()
-
-
-def mean_std_surf(surfvoi, savepath, sample, otsu_thresh=None):
-    # Create save paths
-    if not os.path.exists(savepath + "\\MeanStd\\"):
-        os.makedirs(savepath + "\\MeanStd\\")
-    if not os.path.exists(savepath + "\\Images\\MeanStd\\"):
-        os.makedirs(savepath + "\\Images\\MeanStd\\")
-
-    # Surface
-    if otsu_thresh is not None:
-        voi_mask = surfvoi > otsu_thresh
-    else:
-        voi_mask, _ = otsu_threshold(surfvoi)
-    mean = (surfvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
-    centered = np.zeros(surfvoi.shape)
-    for i in range(surfvoi.shape[2]):
-        centered[:, :, i] = surfvoi[:, :, i] * voi_mask[:, :, i] - mean
-    std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
-
-    # Plot
-    fig = plt.figure(dpi=300)
-    ax1 = fig.add_subplot(321)
-    ax1.imshow(mean, cmap='gray')
-    plt.title('Mean')
-    ax2 = fig.add_subplot(322)
-    ax2.imshow(std, cmap='gray')
-    plt.title('Standard deviation')
-
-    # Save images
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_surface_mean.png",
-                ((mean - np.min(mean)) / (np.max(mean) - np.min(mean)) * 255))
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_surface_std.png",
-                ((std - np.min(std)) / (np.max(std) - np.min(std)) * 255))
-    # Save .h5
-    h5 = h5py.File(savepath + "\\MeanStd\\" + sample + '.h5', 'r+')
-    surf = h5['surf']
-    surf[...] = mean + std
     h5.close()

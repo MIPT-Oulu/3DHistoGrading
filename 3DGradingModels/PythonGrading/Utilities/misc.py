@@ -3,10 +3,18 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import os
 import cv2
-import h5py
-import struct
-from tqdm import tqdm
-from joblib import Parallel, delayed
+
+
+def duplicate_vector(vector, n):
+    new_vector = []
+    for i in range(len(vector)):
+        for j in range(n):
+            new_vector.append(vector[i])
+
+    if isinstance(vector[0], type('str')):
+        return new_vector
+    else:
+        return np.array(new_vector)
 
 
 def bounding_box(image, threshold=80, max_val=255, min_area=1600):
@@ -164,7 +172,45 @@ def otsu_threshold(data, parallel=True):
     return data > value, value
 
 
-def print_orthogonal(data, invert=True, res=3.2, title=None):
+def print_images(images, title=None, subtitles=None, save_path=None, sample=None, transparent=False):
+    # Configure plot
+    fig = plt.figure(dpi=300)
+    if title is not None:
+        fig.suptitle(title, fontsize=16)
+    ax1 = fig.add_subplot(131)
+    cax1 = ax1.imshow(images[0], cmap='gray')
+    if not isinstance(images[0][0, 0], np.bool_):  # Check for boolean image
+        cbar1 = fig.colorbar(cax1, ticks=[np.min(images[0]), np.max(images[0])], orientation='horizontal')
+        cbar1.solids.set_edgecolor("face")
+    if subtitles is not None:
+        plt.title(subtitles[0])
+    ax2 = fig.add_subplot(132)
+    cax2 = ax2.imshow(images[1], cmap='gray')
+    if not isinstance(images[1][0, 0], np.bool_):
+        cbar2 = fig.colorbar(cax2, ticks=[np.min(images[1]), np.max(images[1])], orientation='horizontal')
+        cbar2.solids.set_edgecolor("face")
+    if subtitles is not None:
+        plt.title(subtitles[1])
+    ax3 = fig.add_subplot(133)
+    cax3 = ax3.imshow(images[2], cmap='gray')
+    if not isinstance(images[2][0, 0], np.bool_):
+        cbar3 = fig.colorbar(cax3, ticks=[np.min(images[2]), np.max(images[2])], orientation='horizontal')
+        cbar3.solids.set_edgecolor("face")
+    if subtitles is not None:
+        plt.title(subtitles[2])
+
+    # Save or show
+    if save_path is not None and sample is not None:
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        plt.tight_layout()  # Make sure that axes are not overlapping
+        fig.savefig(save_path + sample, transparent=transparent)
+        plt.close(fig)
+    else:
+        plt.show()
+
+
+def print_orthogonal(data, invert=True, res=3.2, title=None, cbar=True):
     dims = np.array(np.shape(data)) // 2
     dims2 = np.array(np.shape(data))
     x = np.linspace(0, dims2[0], dims2[0])
@@ -183,17 +229,29 @@ def print_orthogonal(data, invert=True, res=3.2, title=None):
         zticks = np.arange(0, dims2[2], 500*scale)
     else:
         zticks = np.arange(0, dims2[2], 1500*scale)
-    
+
+    # Plot figure
     fig = plt.figure(dpi=300)
     ax1 = fig.add_subplot(131)
-    ax1.imshow(data[:, :, dims[2]].T, cmap='gray')
+    cax1 = ax1.imshow(data[:, :, dims[2]].T, cmap='gray')
+    if cbar and not isinstance(data[0, 0, dims[2]], np.bool_):
+        cbar1 = fig.colorbar(cax1, ticks=[np.min(data[:, :, dims[2]]), np.max(data[:, :, dims[2]])],
+                             orientation='horizontal')
+        cbar1.solids.set_edgecolor("face")
     plt.title('Transaxial (xy)')
     ax2 = fig.add_subplot(132)
-    ax2.imshow(data[:, dims[1], :].T, cmap='gray')
-    
+    cax2 = ax2.imshow(data[:, dims[1], :].T, cmap='gray')
+    if cbar and not isinstance(data[0, dims[1], 0], np.bool_):
+        cbar2 = fig.colorbar(cax2, ticks=[np.min(data[:, dims[1], :]), np.max(data[:, dims[1], :])],
+                             orientation='horizontal')
+        cbar2.solids.set_edgecolor("face")
     plt.title('Coronal (xz)')
     ax3 = fig.add_subplot(133)
-    ax3.imshow(data[dims[0], :, :].T, cmap='gray')
+    cax3 = ax3.imshow(data[dims[0], :, :].T, cmap='gray')
+    if cbar and not isinstance(data[dims[0], 0, 0], np.bool_):
+        cbar3 = fig.colorbar(cax3, ticks=[np.min(data[dims[0], :, :]), np.max(data[dims[0], :, :])],
+                             orientation='horizontal')
+        cbar3.solids.set_edgecolor("face")
     plt.title('Sagittal (yz)')
 
     # Give plot a title
@@ -224,7 +282,7 @@ def print_orthogonal(data, invert=True, res=3.2, title=None):
     plt.show()
 
 
-def save_orthogonal(path, data, invert=True, res=3.2, title=None):
+def save_orthogonal(path, data, invert=True, res=3.2, title=None, cbar=True):
     directory = path.rsplit('\\', 1)[0]
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -250,17 +308,28 @@ def save_orthogonal(path, data, invert=True, res=3.2, title=None):
     else:
         zticks = np.arange(0, dims2[2], 1500*scale)
 
-    # Create figure
+    # Plot figure
     fig = plt.figure(dpi=300)
     ax1 = fig.add_subplot(131)
-    ax1.imshow(data[:, :, dims[2]].T, cmap='gray')
+    cax1 = ax1.imshow(data[:, :, dims[2]].T, cmap='gray')
+    if cbar and not isinstance(data[0, 0, dims[2]], np.bool_):
+        cbar1 = fig.colorbar(cax1, ticks=[np.min(data[:, :, dims[2]]), np.max(data[:, :, dims[2]])],
+                             orientation='horizontal')
+        cbar1.solids.set_edgecolor("face")
     plt.title('Transaxial (xy)')
     ax2 = fig.add_subplot(132)
-    ax2.imshow(data[:, dims[1], :].T, cmap='gray')
+    cax2 = ax2.imshow(data[:, dims[1], :].T, cmap='gray')
+    if cbar and not isinstance(data[0, dims[1], 0], np.bool_):
+        cbar2 = fig.colorbar(cax2, ticks=[np.min(data[:, dims[1], :]), np.max(data[:, dims[1], :])],
+                             orientation='horizontal')
+        cbar2.solids.set_edgecolor("face")
     plt.title('Coronal (xz)')
     ax3 = fig.add_subplot(133)
-    ax3.imshow(data[dims[0], :, :].T, cmap='gray')
-    plt.title('Sagittal (yz)')
+    cax3 = ax3.imshow(data[dims[0], :, :].T, cmap='gray')
+    if cbar and not isinstance(data[dims[0], 0, 0], np.bool_):
+        cbar3 = fig.colorbar(cax3, ticks=[np.min(data[dims[0], :, :]), np.max(data[dims[0], :, :])],
+                             orientation='horizontal')
+        cbar3.solids.set_edgecolor("face")
 
     # Give plot a title
     if title is not None:
