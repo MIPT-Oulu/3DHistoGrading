@@ -14,18 +14,17 @@ from scipy.stats import spearmanr, wilcoxon
 from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score
 
 
-def pipeline_load(args, voi_idx=0, show_results=True, check_samples=False):
+def pipeline_load(args, grade_name, show_results=True, check_samples=False):
 
     # Load grades to array
-    grades, hdr_grades = load_excel(args.grade_path, titles=args.grades_used)
-    grades = grades[voi_idx, :]
+    grades, hdr_grades = load_excel(args.grade_path, titles=grade_name)
 
     # Duplicate grades for subvolumes
     grades = duplicate_vector(grades, args.n_subvolumes)
     hdr_grades = duplicate_vector(hdr_grades, args.n_subvolumes)
 
     # Load features
-    features, hdr_features = load_excel(args.voi_paths[voi_idx])
+    features, hdr_features = load_excel(args.voi_path + grade_name + '.xlsx')
     # Mean feature
     mean = np.mean(features, 1)
 
@@ -49,10 +48,10 @@ def pipeline_load(args, voi_idx=0, show_results=True, check_samples=False):
         return
     elif args.regression == 'logo':
         # Patient groups
-        # groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
-        #                   15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
-        groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
-                           15, 16, 16, 17, 17, 18, 19, 19])  # 2mm, 36 patients
+        groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
+                           15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
+        #groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
+        #                   15, 16, 16, 17, 17, 18, 19, 19])  # 2mm, 36 patients
 
         pred_linear, weights = regress_logo(score, grades, groups)
         pred_logistic = logistic_logo(score, grades > 1, groups)
@@ -71,7 +70,7 @@ def pipeline_load(args, voi_idx=0, show_results=True, check_samples=False):
 
     # Reference for pretrained PCA
     try:
-        reference_regress(features, grades, mean, args, pca, weights, args.grades_used[voi_idx] + '_weights.dat')
+        reference_regress(features, grades, mean, args, pca, weights, grade_used + '_weights.dat')
     except:
         print('Reference model not found!')
 
@@ -98,7 +97,7 @@ def pipeline_load(args, voi_idx=0, show_results=True, check_samples=False):
     stats[2] = auc_logistic
     stats[3] = r2
     tuples = list(zip(hdr_grades, grades, pred_linear, abs(grades - pred_linear), pred_logistic, stats))
-    writer = pd.ExcelWriter(args.save_path + r'\prediction_' + args.grades_used[voi_idx] + '.xlsx')
+    writer = pd.ExcelWriter(args.save_path + r'\prediction_' + grade_used + '.xlsx')
     df1 = pd.DataFrame(tuples, columns=['Sample', 'Actual grade', 'Prediction', 'Difference', 'Logistic prediction',
                                         'MSE, auc_linear, auc_logistic, r^2'])
     df1.to_excel(writer, sheet_name='Prediction')
@@ -106,7 +105,7 @@ def pipeline_load(args, voi_idx=0, show_results=True, check_samples=False):
 
     ## Save calculated weights
     #dataadjust = features.T - mean
-    #write_binary_weights(args.save_path + '\\' + args.grades_used[voi_idx] + '_weights.dat',
+    #write_binary_weights(args.save_path + '\\' + grade_used + '_weights.dat',
     #                     args.n_components,
     #                     pca.components_,
     #                     pca.singular_values_ / np.sqrt(dataadjust.shape[0] - 1),
@@ -129,10 +128,9 @@ def pipeline_load(args, voi_idx=0, show_results=True, check_samples=False):
         ax2.set_xlabel('Actual grade')
         ax2.set_ylabel('Predicted')
         for k in range(len(grades)):
-            txt = hdr_grades[k]
-            txt = txt + str(grades[k])
+            txt = hdr_grades[k] + str(grades[k])
             ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
-        plt.savefig(args.save_path + '\\linear_' + args.grades_used[voi_idx], bbox_inches='tight')
+        plt.savefig(args.save_path + '\\linear_' + grade_used, bbox_inches='tight')
         plt.show()
     return grades, pred_logistic, mse_linear
 
@@ -152,12 +150,12 @@ if __name__ == '__main__':
     choice = '2mm'
     path = r'Y:\3DHistoData\Grading\LBP\\' + choice + '\\'
     parser = ArgumentParser()
-    parser.add_argument('--voi_paths', type=str, default=
-                        [path + 'LBP_features_surface.xlsx', path + 'LBP_features_deep.xlsx', path + 'LBP_features_calcified.xlsx'])
-    parser.add_argument('--grades_used', type=dict, default=['surf_sub', 'deep_mat', 'calc_mat'])
+    parser.add_argument('--voi_paths', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice + '\\Features_')
+    parser.add_argument('--grades_used', type=str,
+                        default=['surf_sub', 'deep_mat', 'deep_cell', 'calc_mat', 'calc_vasc'])
     parser.add_argument('--regression', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='logo')
     parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice)
-    parser.add_argument('--n_components', type=int, default=20)
+    parser.add_argument('--n_components', type=int, default=10)
     parser.add_argument('--n_jobs', type=int, default=12)
 
     if choice == 'Insaf':
@@ -166,9 +164,9 @@ if __name__ == '__main__':
                             default=r'Y:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
     elif choice == '2mm':
         parser.add_argument('--n_subvolumes', type=int, default=1)
-#        parser.add_argument('--grade_path', type=str,
-#                            default=r'Y:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
-        parser.add_argument('--grade_path', type=str, default=r'Y:\3DHistoData\Grading\ERCGrades.xlsx')
+        parser.add_argument('--grade_path', type=str,
+                            default=r'Y:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
+#        parser.add_argument('--grade_path', type=str, default=r'Y:\3DHistoData\Grading\ERCGrades.xlsx')
     else:
         parser.add_argument('--n_subvolumes', type=int, default=9)
         parser.add_argument('--grade_path', type=str,
@@ -183,8 +181,8 @@ if __name__ == '__main__':
     preds = []
     mses = []
     # Loop for surface, deep and calcified analysis
-    for zone in range(len(arguments.grades_used)):
-        grade, pred, mse = pipeline_load(arguments, zone)
+    for title in arguments.grades_used:
+        grade, pred, mse = pipeline_load(arguments, title)
         gradelist.append(grade)
         preds.append(pred)
         mses.append(mse)
@@ -192,10 +190,9 @@ if __name__ == '__main__':
     # Receiver operating characteristics curve
     method = arguments.regression
     save_path = arguments.save_path
-    roc_curve_bootstrap(gradelist[0] > 1, preds[0], savepath=save_path + '\\roc_surface_' + method)
-    roc_curve_bootstrap(gradelist[1] > 1, preds[1], savepath=save_path + '\\roc_deep_' + method)
-    roc_curve_bootstrap(gradelist[2] > 1, preds[2], savepath=save_path + '\\roc_calcified_' + method)
-    # roc_multi(gradelist[0] > 1, preds[0], gradelist[1] > 1, preds[1], gradelist[2] > 1, preds[2], r'Y:\3DHistoData\Grading\ROC.png'
+    for i in range(len(arguments.grades_used)):
+        grade_used = arguments.grades_used[i]
+        roc_curve_bootstrap(gradelist[i] > 1, preds[i], savepath=save_path + '\\roc_' + grade_used + '_' + method)
 
     # Display spent time
     t = time() - start_time
