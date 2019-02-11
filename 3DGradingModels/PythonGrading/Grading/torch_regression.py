@@ -55,3 +55,7 @@ def torch_regression(x_train, x_val, y_train, y_val):
         plt.legend()
         plt.show()
         print(model.state_dict())
+
+
+if __name__ == '__main__':
+    print()
