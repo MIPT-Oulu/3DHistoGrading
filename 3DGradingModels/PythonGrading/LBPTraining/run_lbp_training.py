@@ -53,14 +53,6 @@ def pipeline(arguments, selection=None, pat_groups=None):
             except NameError:
                 grades = np.array(df[key])
 
-    # Exclude samples
-    grades = np.delete(grades, 32)
-    grades = np.delete(grades, 13)
-    print('Selected files')
-    for k in range(len(files)):
-        print(files[k], grades[k])
-    print('')
-
     # Select VOI
     if arguments.grade_keys[:4] == 'surf':
         images = images_surf[:]
@@ -82,8 +74,9 @@ def pipeline(arguments, selection=None, pat_groups=None):
 if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
+    comps = [15, 20]  # PCA components
     parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm_Python')
-    parser.add_argument('--path_grades', type=str, default=r'Y:\3DHistoData\Grading\ERCGrades.xlsx')
+    parser.add_argument('--path_grades', type=str, default=r'Y:\3DHistoData\Grading\trimmed_grades_2mm.xlsx')
     parser.add_argument('--grade_keys', type=str, default='surf_sub')
     parser.add_argument('--grade_mode', type=str, choices=['sum', 'mean'], default='sum')
     parser.add_argument('-hist_normalize', type=bool, default=True)
@@ -101,21 +94,47 @@ if __name__ == '__main__':
     # Use listbox (Result is saved in listbox.file_list)
     listbox.GetFileSelection(args.path)
 
-    # Surface
-    pipeline(args, listbox.file_list, groups)
+    # File list
+    files = os.listdir(args.path)
+    files.sort()
+    # Exclude samples
+    files = [files[i] for i in listbox.file_list]
+    print('Selected files')
+    for k in range(len(files)):
+        print(files[k])
+    print('')
 
-    # Deep ECM
-    args.grade_keys = 'deep_mat'
-    pipeline(args, listbox.file_list, groups)
+    for comp in comps:
+        # Update number of components
+        print('Number of PCA components: {0}'.format(comp))
+        args.n_components = comp
 
-    # Deep cellularity
-    args.grade_keys = 'deep_cell'
-    pipeline(args, listbox.file_list, groups)
+        # Surface subgrade
+        args.grade_keys = 'surf_sub'
+        pipeline(args, listbox.file_list, groups)
 
-    # Calcified ECM
-    args.grade_keys = 'calc_mat'
-    pipeline(args, listbox.file_list, groups)
+        # Deep ECM
+        args.grade_keys = 'deep_mat'
+        pipeline(args, listbox.file_list, groups)
 
-    # Calcified vascularity
-    args.grade_keys = 'calc_vasc'
-    pipeline(args, listbox.file_list, groups)
+        # Deep cellularity
+        args.grade_keys = 'deep_cell'
+        pipeline(args, listbox.file_list, groups)
+
+        # Deep subgrade
+        args.grade_keys = 'deep_sub'
+        pipeline(args, listbox.file_list, groups)
+
+        # Calcified ECM
+        args.grade_keys = 'calc_mat'
+        pipeline(args, listbox.file_list, groups)
+
+        # Calcified vascularity
+        args.grade_keys = 'calc_vasc'
+        pipeline(args, listbox.file_list, groups)
+
+        # Calcified subgrade
+        args.grade_keys = 'calc_sub'
+        pipeline(args, listbox.file_list, groups)
+
+

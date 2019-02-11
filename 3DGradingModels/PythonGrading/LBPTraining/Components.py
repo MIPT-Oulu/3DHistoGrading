@@ -83,11 +83,11 @@ def find_pars_bforce(imgs, grades, args, groups=None):
             min_idx = np.argmin(np.array(errors))
     
             _min_error = errors[min_idx]
-            print("Current minimum error is: {0}".format(_min_error))
-            print("Parameters are:")
-            print(_pars[min_idx])
+            #print("Current minimum error is: {0}".format(_min_error))
+            #print("Parameters are:")
+            #print(_pars[min_idx])
             stop = time()
-            print("Took {0} seconds".format(int(stop-start)))
+            #print("Took {0} seconds".format(int(stop-start)))
             if _min_error < min_error:
                 outpars = _pars[min_idx]
                 min_error = _min_error

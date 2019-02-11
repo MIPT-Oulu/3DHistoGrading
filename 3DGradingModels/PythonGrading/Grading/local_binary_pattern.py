@@ -240,7 +240,7 @@ def gauss_kernel(w, sigma):
     return kernel / np.sum(kernel)
 
 
-def Conv_MRELBP(image, pars, savepath=None, sample=None):
+def Conv_MRELBP(image, pars, savepath=None, sample=None, normalize=True):
     # Unpack parameters
     n = pars['N']
     r_large = pars['R']
@@ -337,6 +337,13 @@ def Conv_MRELBP(image, pars, savepath=None, sample=None):
     histR = map_lbp(histR, mapping)
     histr = map_lbp(histr, mapping)
     histR_r = map_lbp(histR_r, mapping)
+
+    # Histogram normalization
+    if normalize:
+        histc /= np.linalg.norm(histc)
+        histR /= np.linalg.norm(histR)
+        histr /= np.linalg.norm(histr)
+        histR_r /= np.linalg.norm(histR_r)
 
     # Append histograms
     hist = np.concatenate((histc, histR, histr, histR_r), 1)

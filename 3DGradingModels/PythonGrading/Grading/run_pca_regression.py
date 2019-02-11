@@ -141,7 +141,7 @@ def reference_regress(features, grades, mean, args, pca, weights, model):
 
 if __name__ == '__main__':
     # Arguments
-    choice = 'Isokerays'
+    choice = '2mm'
     path = r'Y:\3DHistoData\Grading\LBP\\' + choice + '\\'
     parser = ArgumentParser()
     parser.add_argument('--voi_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice + '\\Features_')
@@ -199,6 +199,7 @@ if __name__ == '__main__':
     save_path = arguments.save_path
     for i in range(len(arguments.grades_used)):
         grade_used = arguments.grades_used[i]
+        print(grade_used)
         roc_curve_bootstrap(gradelist[i] > 1, preds[i], savepath=save_path + '\\roc_' + grade_used + '_' + method)
 
     # Display spent time

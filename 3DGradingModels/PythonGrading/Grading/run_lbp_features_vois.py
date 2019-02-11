@@ -95,10 +95,13 @@ if __name__ == '__main__':
     sparam_abs = {'ks1': 17, 'sigma1': 7, 'ks2': 17, 'sigma2': 1, 'N': 8, 'R': 23, 'r': 2, 'wc': 5, 'wl': 15, 'ws': 3}
     sparam_val = {'ks1': 25, 'sigma1': 19, 'ks2': 21, 'sigma2': 9, 'N': 8, 'R': 7, 'r': 6, 'wc': 9, 'wl': 5, 'ws': 5}
     surf_10n = {'ks1': 21, 'sigma1': 17, 'ks2': 25, 'sigma2': 20, 'N': 8, 'R': 26, 'r': 5, 'wc': 5, 'wl': 13, 'ws': 11}
+    surf_5n = {'ks1': 5, 'sigma1': 2, 'ks2': 25, 'sigma2': 19, 'N': 8, 'R': 25, 'r': 18, 'wc': 13, 'wl': 3, 'ws': 13}
     dparam = {'ks1': 19, 'sigma1': 17, 'ks2': 17, 'sigma2': 5, 'N': 8, 'R': 17, 'r': 6, 'wc': 15, 'wl': 3, 'ws': 3}
     dparam_abs = {'ks1': 15, 'sigma1': 3, 'ks2': 23, 'sigma2': 13, 'N': 8, 'R': 16, 'r': 12, 'wc': 13, 'wl': 15, 'ws': 9}
     dparam_val = {'ks1': 3, 'sigma1': 2, 'ks2': 19, 'sigma2': 3, 'N': 8, 'R': 3, 'r': 1, 'wc': 15, 'wl': 13, 'ws': 9}
+    deep_mat_5n = {'ks1': 19, 'sigma1': 3, 'ks2': 5, 'sigma2': 4, 'N': 8, 'R': 27, 'r': 8, 'wc': 11, 'wl': 11, 'ws': 3}
     deep_mat_10n = {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5}
+    deep_cell_5n = {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5}
     deep_cell_10n = {'ks1': 3, 'sigma1': 3, 'ks2': 21, 'sigma2': 3, 'N': 8, 'R': 26, 'r': 4, 'wc': 7, 'wl': 3, 'ws': 7}
     cparam_abs = {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 19, 'r': 18, 'wc': 3, 'wl': 3, 'ws': 11}
     calc_mat_n10 = {'ks1': 23, 'sigma1': 16, 'ks2': 15, 'sigma2': 6, 'N': 8, 'R': 16, 'r': 2, 'wc': 9, 'wl': 7, 'ws': 7}
@@ -108,8 +111,8 @@ if __name__ == '__main__':
 
     # Arguments
     parser = ArgumentParser()
-    choice = 'Isokerays'
-    parser.add_argument('--image_path', type=str, default=r'Y:\3DHistoData\MeanStd_' + choice)# + '_Python')
+    choice = 'Insaf'
+    parser.add_argument('--image_path', type=str, default=r'Y:\3DHistoData\MeanStd_' + choice)  # + '_Python')
     parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice)
     parser.add_argument('--grades_used', type=str,
                         default=['surf_sub',
