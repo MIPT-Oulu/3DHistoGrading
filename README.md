@@ -22,19 +22,27 @@ To avoid memory issues, the software runs on 64-bit systems only.
 
 ## Application usage
 Currently available features:
-* Visualize 3D image datasets (.png, .tiff, .bmp) using 3D rendering and three orthogonal planes
-* Load Mask on top of visualized dataset (mask should be registered with the dataset)
+* Visualize 3D image datasets (.png, .tiff, .bmp)
+    * 3D rendering and three orthogonal 2D planes
+    * Load Mask on top of visualized dataset (mask should be registered with the dataset)
+    * Segmented masks are visualised on top of the sample using different colors, including grayscale dynamics
+    * Mean, standard deviation and LBP images are visualized on grading window
 * Surface artefact cropping tool for coronal and sagittal plane
-* Automatic sample alignment
-* Automatic segmentation of bone-cartilage -interface using CNTK (Microsoft Cognitive Toolkit)
-* Automatic bone (calcified tissues) and articular cartilage segmentation
+    * User can fit a line on coronal and sagittal plane to remove artefacts/parts of the sample
+    * Cropped sample can be saved as png
+* Other pre-processing methods
+    * Automatic sample alignment (based on gradient descent)
+    * Automatic edge cropping around sample's center of mass
+* Automatic segmentation of bone-cartilage -interface using U-Net deep neural network
 * Automatic extraction of different volumes-of-interest (surface cartilage, deep cartilage and calcified tissue)
-* Automatic grading from different osteochondral zones
+* Automatic grading from different osteochondral zones (based on MRELBP, PCA and linear regression)
+* All sample processing steps, volumes-of interest and grading results can be saved
 
 ## Outputs
+* Processed sample
+* Automatically segmented calcified tissue mask
+* Extracted analysis volumes
 * OA grade from analysed sample volumes-of-interest (prediction of sample degeneration)
-* Extracted analysis volumes can be saved as separate datasets
-* Automatically segmented calcified tissue mask can be saved
 
 ## Examples
 Example images from 3D rendering and 2D viewing osteochondral sample.

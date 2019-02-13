@@ -134,6 +134,7 @@
             this.progressLabel.Size = new System.Drawing.Size(138, 31);
             this.progressLabel.TabIndex = 11;
             this.progressLabel.Text = "Progress: ";
+            this.progressLabel.Click += new System.EventHandler(this.progressLabel_Click);
             // 
             // meanPicture
             // 
