@@ -202,7 +202,7 @@ namespace HistoGrading
             mainProgress.Value = 10;
             //Select a file and render volume
             if (fileDialog.ShowDialog() == DialogResult.OK)
-            {                
+            {
                 if(is_rendering == 1)
                 {
                     //Remove renderer
@@ -214,6 +214,7 @@ namespace HistoGrading
                 
                 //Initialize new volume
                 volume = new Rendering.renderPipeLine();
+
                 //Update renderwindow
                 renderWindowControl_Load(this, null);
 
@@ -275,8 +276,7 @@ namespace HistoGrading
                 maskLabel.Text = "No Mask Loaded";
                 coronalButton.Text = "Coronal, XZ";
                 sagittalButton.Text = "Sagittal, YZ";
-                TellSlice();
-                                
+                TellSlice();         
 
                 // Enable buttons
                 sagittalButton.Enabled = true;

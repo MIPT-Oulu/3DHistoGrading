@@ -62,7 +62,7 @@
             this.label1.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(109, 182);
+            this.label1.Location = new System.Drawing.Point(109, 212);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(83, 16);
             this.label1.TabIndex = 1;
@@ -73,7 +73,7 @@
             this.label2.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(352, 182);
+            this.label2.Location = new System.Drawing.Point(351, 212);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(121, 16);
             this.label2.TabIndex = 2;
@@ -85,7 +85,7 @@
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(377, 513);
+            this.label3.Location = new System.Drawing.Point(376, 526);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(71, 16);
             this.label3.TabIndex = 7;
@@ -96,7 +96,7 @@
             this.label4.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(116, 513);
+            this.label4.Location = new System.Drawing.Point(115, 526);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(70, 16);
             this.label4.TabIndex = 8;
@@ -107,7 +107,7 @@
             this.label5.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(637, 513);
+            this.label5.Location = new System.Drawing.Point(636, 526);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(76, 16);
             this.label5.TabIndex = 9;
@@ -118,19 +118,20 @@
             this.progressBar1.BackColor = System.Drawing.SystemColors.GrayText;
             this.progressBar1.Dock = System.Windows.Forms.DockStyle.Top;
             this.progressBar1.ForeColor = System.Drawing.SystemColors.ButtonShadow;
-            this.progressBar1.Location = new System.Drawing.Point(23, 23);
+            this.progressBar1.Location = new System.Drawing.Point(23, 63);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(256, 34);
+            this.progressBar1.Size = new System.Drawing.Size(255, 34);
             this.progressBar1.TabIndex = 10;
             // 
             // progressLabel
             // 
             this.progressLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.progressLabel.AutoSize = true;
-            this.progressLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.progressLabel.Location = new System.Drawing.Point(23, 2);
+            this.tableLayoutPanel1.SetColumnSpan(this.progressLabel, 3);
+            this.progressLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.progressLabel.Location = new System.Drawing.Point(23, 14);
             this.progressLabel.Name = "progressLabel";
-            this.progressLabel.Size = new System.Drawing.Size(69, 16);
+            this.progressLabel.Size = new System.Drawing.Size(138, 31);
             this.progressLabel.TabIndex = 11;
             this.progressLabel.Text = "Progress: ";
             // 
@@ -139,9 +140,9 @@
             this.meanPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.meanPicture.Location = new System.Drawing.Point(23, 201);
+            this.meanPicture.Location = new System.Drawing.Point(23, 231);
             this.meanPicture.Name = "meanPicture";
-            this.meanPicture.Size = new System.Drawing.Size(256, 249);
+            this.meanPicture.Size = new System.Drawing.Size(255, 236);
             this.meanPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.meanPicture.TabIndex = 12;
             this.meanPicture.TabStop = false;
@@ -151,9 +152,9 @@
             this.stdPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.stdPicture.Location = new System.Drawing.Point(285, 201);
+            this.stdPicture.Location = new System.Drawing.Point(284, 231);
             this.stdPicture.Name = "stdPicture";
-            this.stdPicture.Size = new System.Drawing.Size(256, 249);
+            this.stdPicture.Size = new System.Drawing.Size(256, 236);
             this.stdPicture.TabIndex = 13;
             this.stdPicture.TabStop = false;
             // 
@@ -162,9 +163,9 @@
             this.smallPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.smallPicture.Location = new System.Drawing.Point(23, 532);
+            this.smallPicture.Location = new System.Drawing.Point(23, 545);
             this.smallPicture.Name = "smallPicture";
-            this.smallPicture.Size = new System.Drawing.Size(256, 249);
+            this.smallPicture.Size = new System.Drawing.Size(255, 236);
             this.smallPicture.TabIndex = 14;
             this.smallPicture.TabStop = false;
             // 
@@ -173,9 +174,9 @@
             this.largePicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.largePicture.Location = new System.Drawing.Point(285, 532);
+            this.largePicture.Location = new System.Drawing.Point(284, 545);
             this.largePicture.Name = "largePicture";
-            this.largePicture.Size = new System.Drawing.Size(256, 249);
+            this.largePicture.Size = new System.Drawing.Size(256, 236);
             this.largePicture.TabIndex = 15;
             this.largePicture.TabStop = false;
             // 
@@ -184,9 +185,9 @@
             this.radialPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.radialPicture.Location = new System.Drawing.Point(547, 532);
+            this.radialPicture.Location = new System.Drawing.Point(546, 545);
             this.radialPicture.Name = "radialPicture";
-            this.radialPicture.Size = new System.Drawing.Size(256, 249);
+            this.radialPicture.Size = new System.Drawing.Size(256, 236);
             this.radialPicture.TabIndex = 16;
             this.radialPicture.TabStop = false;
             // 
@@ -195,7 +196,7 @@
             this.gradeLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.gradeLabel.AutoSize = true;
             this.gradeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gradeLabel.Location = new System.Drawing.Point(285, 48);
+            this.gradeLabel.Location = new System.Drawing.Point(284, 85);
             this.gradeLabel.Name = "gradeLabel";
             this.gradeLabel.Size = new System.Drawing.Size(223, 46);
             this.gradeLabel.TabIndex = 17;
@@ -205,7 +206,7 @@
             // 
             this.parameterLabel.AutoSize = true;
             this.parameterLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.parameterLabel.Location = new System.Drawing.Point(547, 20);
+            this.parameterLabel.Location = new System.Drawing.Point(546, 60);
             this.parameterLabel.Name = "parameterLabel";
             this.parameterLabel.Size = new System.Drawing.Size(197, 16);
             this.parameterLabel.TabIndex = 18;
@@ -223,7 +224,7 @@
             this.meanstdLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.meanstdLabel.AutoSize = true;
             this.meanstdLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.meanstdLabel.Location = new System.Drawing.Point(568, 182);
+            this.meanstdLabel.Location = new System.Drawing.Point(567, 212);
             this.meanstdLabel.Name = "meanstdLabel";
             this.meanstdLabel.Size = new System.Drawing.Size(214, 16);
             this.meanstdLabel.TabIndex = 19;
@@ -234,9 +235,9 @@
             this.meanstdPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.meanstdPicture.Location = new System.Drawing.Point(547, 201);
+            this.meanstdPicture.Location = new System.Drawing.Point(546, 231);
             this.meanstdPicture.Name = "meanstdPicture";
-            this.meanstdPicture.Size = new System.Drawing.Size(256, 249);
+            this.meanstdPicture.Size = new System.Drawing.Size(256, 236);
             this.meanstdPicture.TabIndex = 20;
             this.meanstdPicture.TabStop = false;
             // 
@@ -244,10 +245,10 @@
             // 
             this.tableLayoutPanel1.ColumnCount = 5;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33332F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 22F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 24F));
             this.tableLayoutPanel1.Controls.Add(this.meanstdLabel, 3, 2);
             this.tableLayoutPanel1.Controls.Add(this.meanstdPicture, 3, 3);
             this.tableLayoutPanel1.Controls.Add(this.label2, 2, 2);
@@ -268,7 +269,7 @@
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 7;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 13.33003F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10.00003F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.3349F));

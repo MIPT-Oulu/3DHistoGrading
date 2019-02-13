@@ -30,12 +30,11 @@ namespace HistoGrading.Components
             //VTKVolume
             private vtkVolume vol = vtkVolume.New();
             //Mapper
-            //private vtkFixedPointVolumeRayCastMapper mapper = vtkFixedPointVolumeRayCastMapper.New();
+            private vtkFixedPointVolumeRayCastMapper mapper = vtkFixedPointVolumeRayCastMapper.New();
             //private vtkGPUVolumeRayCastMapper mapper = vtkGPUVolumeRayCastMapper.New();
-            private vtkSmartVolumeMapper mapper = vtkSmartVolumeMapper.New();
+            private vtkSmartVolumeMapper GPUmapper = vtkSmartVolumeMapper.New();
             //private vtkOpenGLGPUVolumeRayCastMapper mapper = vtkOpenGLGPUVolumeRayCastMapper.New();
 
-            //private vtkSmartVolumeMapper mapper = vtkSmartVolumeMapper.New();
 
             //Colortransfer function for gray values
             private vtkColorTransferFunction ctf = vtkColorTransferFunction.New();
@@ -55,22 +54,21 @@ namespace HistoGrading.Components
             public vtkRenderer renderer = vtkRenderer.New();
 
             /// <summary>
-            /// Method for initializing components
+            /// Method for initializing components.
             /// </summary>
             public void Initialize()
             {                
                 //Initialize new volume components
                 vol = vtkVolume.New();
-                //mapper = vtkSmartVolumeMapper.New();
-                //mapper = vtkFixedPointVolumeRayCastMapper.New();
-                mapper = vtkSmartVolumeMapper.New();                
+                mapper = vtkFixedPointVolumeRayCastMapper.New();
+                GPUmapper = vtkSmartVolumeMapper.New();
+                GPUmapper.SetMaxMemoryInBytes((long)Math.Pow(2,31));  // 2GB limit
                 //mapper = vtkOpenGLGPUVolumeRayCastMapper.New();
-                mapper.SetMaxMemoryInBytes((long)Math.Pow(2,31));
-                
+                //mapper.SetMaxMemoryInBytes((long)4E9);
+
                 ctf = vtkColorTransferFunction.New();
                 spwf = vtkPiecewiseFunction.New();
                 renderer = vtkRenderer.New();
-
             }
 
             /// <summary>
@@ -139,15 +137,23 @@ namespace HistoGrading.Components
             /// <param name="inputRenderer">Renderer object.</param>
             /// <param name="cmin">Grayscale minimum.</param>
             /// <param name="cmax">Grayscale maximum.</param>
-            public void connectComponents(vtkImageData input, vtkRenderer inputRenderer, int cmin, int cmax)
+            public void connectComponents(vtkImageData input, vtkRenderer inputRenderer, int cmin, int cmax, bool large)
             {
                 /*Arguments: volumetric data and renderer*/
 
                 //Set renderer
                 renderer = inputRenderer;
                 //Mapper
-                mapper.SetInput(input);
-                mapper.Update();
+                if (large)
+                {
+                    mapper.SetInput(input);
+                    mapper.Update();
+                }
+                else
+                {
+                    GPUmapper.SetInput(input);
+                    GPUmapper.Update();
+                }
                 //Color
                 ctf.AddRGBPoint(cmin, 0.0, 0.0, 0.0);
                 ctf.AddRGBPoint(cmax, 0.8, 0.8, 0.8);
@@ -160,7 +166,10 @@ namespace HistoGrading.Components
                 //Volume parameters
                 vol.GetProperty().SetColor(ctf);
                 vol.GetProperty().SetScalarOpacity(spwf);
-                vol.SetMapper(mapper);
+                if (large)
+                    vol.SetMapper(mapper);
+                else
+                    vol.SetMapper(GPUmapper);
                 vol.Update();
                 //Renderer back ground
                 renderer.GradientBackgroundOn();
@@ -679,6 +688,22 @@ namespace HistoGrading.Components
                     interactor.Dispose();
                 }
 
+                // Check input Volume size
+                //Get input extent
+                int[] dims = idata.GetExtent();
+
+                //Compute dimensions
+                int h = dims[1] - dims[0] + 1;
+                int w = dims[3] - dims[2] + 1;
+                int d = dims[5] - dims[4] + 1;
+
+                bool large;
+                if (h * w * d >= (long)Math.Pow(2, 31))
+                    large = true;
+                else
+                    large = false;
+
+                // Initialize pipeline
                 volPipe.Initialize();
 
                 // Initialize renderer, dispose existing renderer and connect new renderer
@@ -687,7 +712,7 @@ namespace HistoGrading.Components
 
 
                 // Connect input data and renderer to rendering pipeline
-                volPipe.connectComponents(idata, renderer, gray[0], gray[1]);
+                volPipe.connectComponents(idata, renderer, gray[0], gray[1], large);
 
                 // Connect renderer to render window
                 renWin.AddRenderer(renderer);

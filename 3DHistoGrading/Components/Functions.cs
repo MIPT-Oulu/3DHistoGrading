@@ -48,6 +48,7 @@ namespace HistoGrading.Components
                 reader.SetFileNames(allfiles);
                 reader.Update();
                 data = reader.GetOutput();
+                reader.ReleaseDataFlagOn();
                 reader.Dispose();
             }
             if (extension == ".jpg")
@@ -56,6 +57,7 @@ namespace HistoGrading.Components
                 reader.SetFileNames(allfiles);
                 reader.Update();
                 data = reader.GetOutput();
+                reader.ReleaseDataFlagOn();
                 reader.Dispose();
             }
             if (extension == ".bmp")
@@ -64,6 +66,7 @@ namespace HistoGrading.Components
                 reader.SetFileNames(allfiles);
                 reader.Update();
                 data = reader.GetOutput();
+                reader.ReleaseDataFlagOn();
                 reader.Dispose();
             }
             data.SetScalarTypeToUnsignedChar();

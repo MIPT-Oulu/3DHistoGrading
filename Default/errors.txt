@@ -1,0 +1,4 @@
+ERROR: In ..\..\..\..\vtksource-prefix\src\vtksource\Filtering\vtkImageData.cxx, line 2158
+vtkImageData (0000022D800A4B70): Coordinate (0, 0, 0) out side of array (max = -1998275873
+
+
