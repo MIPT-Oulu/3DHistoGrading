@@ -54,10 +54,11 @@ def pipeline_mean_std(image_path, args, sample, mask_path=None):
     save(args.path + '\\' + sample + '\\Mask', sample, mask)
 
     # Crop
-    data = data[24:-24, 24:-24, :]
-    mask = mask[24:-24, 24:-24, :]
+    crop = args.size['crop']
+    data = data[crop:-crop, crop:-crop, :]
+    mask = mask[crop:-crop, crop:-crop, :]
     size_temp = args.size.copy()
-    size_temp['width'] = 400
+    size_temp['width'] = args.size['width'] - 2 * crop
 
     # Calculate cartilage depth
     data = np.flip(data, 2)
@@ -95,10 +96,10 @@ def pipeline_subvolume(args, sample, individual=False):
     render_volume(data, args.save_path + "\\Images\\" + sample + "_input_render.png")
 
     # 2. Orient array
-    print('2. Orient sample')
-    data, angles = orient(data, bounds, individual)
-    save_orthogonal(args.save_path + "\\Images\\" + sample + "_orient.png", data)
-    render_volume(data, args.save_path + "\\Images\\" + sample + "_orient_render.png")
+    #print('2. Orient sample')
+    #data, angles = orient(data, bounds, individual)
+    #save_orthogonal(args.save_path + "\\Images\\" + sample + "_orient.png", data)
+    #render_volume(data, args.save_path + "\\Images\\" + sample + "_orient_render.png")
 
     # 3. Crop and flip volume
     print('3. Crop and flip center volume:')
@@ -113,9 +114,9 @@ def pipeline_subvolume(args, sample, individual=False):
         return
 
     # Save crop data
-    if data.shape[1] > 448:
-        save(args.save_path + '\\' + sample + '_sub1', sample + '_sub1_', data[:, :448, :])
-        save(args.save_path + '\\' + sample + '_sub2', sample + '_sub2_', data[:, -448:, :])
+    if data.shape[1] > args.size['width']:
+        save(args.save_path + '\\' + sample + '_sub1', sample + '_sub1_', data[:, :args.size['width'], :])
+        save(args.save_path + '\\' + sample + '_sub2', sample + '_sub2_', data[:, -args.size['width']:, :])
     else:
         save(args.save_path + '\\' + sample, sample, data)
 

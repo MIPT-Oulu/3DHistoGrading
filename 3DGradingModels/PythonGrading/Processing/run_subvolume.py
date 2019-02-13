@@ -28,13 +28,13 @@ def calculate_multiple(arguments, selection=None):
             pth = image_path + "\\" + files[k] + '\\' + files[k] + '_Rec'
         except FileNotFoundError:
             try:
-                os.listdir(image_path + "\\" + files[k] + "\\" + "Registration")
-                pth = image_path + "\\" + files[k] + "\\" + "Registration"
+                os.listdir(image_path + '\\' + files[k])
+                pth = image_path + '\\' + files[k]
             except FileNotFoundError:  # Case: sample name folder twice
                 print('Extending sample name for {0}'.format(files[k]))
                 try:
-                    os.listdir(image_path + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration")
-                    pth = image_path + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration"
+                    os.listdir(image_path + "\\" + files[k] + "\\" + "Registration")
+                    pth = image_path + "\\" + files[k] + "\\" + "Registration"
                 except FileNotFoundError:  # Case: Unusable folder
                     print('Skipping folder {0}'.format(files[k]))
                     continue
@@ -54,10 +54,12 @@ def calculate_multiple(arguments, selection=None):
 if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
-    parser.add_argument('--path', type=str, default=r'D:\PTA1272\Isokerays_PTA')
-    parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Subvolumes_Isokerays')
-    parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10))
-    parser.add_argument('--size_wide', type=int, default=640)
+    parser.add_argument('--path', type=str, default=r'D:\PTA1272\Insaf_PTA\REC')
+    parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Subvolumes_Insaf_small')
+    #parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10))
+    parser.add_argument('--size', type=dict, default=dict(width=368, surface=25, deep=150, calcified=50, offset=10))
+    #parser.add_argument('--size_wide', type=int, default=640)
+    parser.add_argument('--size_wide', type=int, default=480)
     parser.add_argument('--n_jobs', type=int, default=12)
     args = parser.parse_args()
 
