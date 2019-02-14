@@ -836,6 +836,8 @@ namespace HistoGrading.Components
                             break;
                         }
                     }
+
+
                 });
             });
 
@@ -885,6 +887,7 @@ namespace HistoGrading.Components
             double theta1 = Math.Acos(_ypos.Dot(_x));
             double theta2 = Math.Acos(_yneg.Dot(_x));
             double theta = 0.0;
+
 
             if (theta1<theta2){ theta = theta1; }
             else { theta = -theta2; }
