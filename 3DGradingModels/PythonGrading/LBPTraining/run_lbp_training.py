@@ -25,16 +25,17 @@ def pipeline(arguments, selection=None, pat_groups=None):
         # Load images
         image_surf, image_deep, image_calc = load_vois_h5(arguments.path, files[k])
 
-        # Crop
-        if np.shape(image_surf)[0] != 400:
-            crop = (np.shape(image_surf)[0] - 400) // 2
-            image_surf = image_surf[crop:-crop, crop:-crop]
-        if np.shape(image_deep)[0] != 400:
-            crop = (np.shape(image_deep)[0] - 400) // 2
-            image_deep = image_deep[crop:-crop, crop:-crop]
-        if np.shape(image_calc)[0] != 400:
-            crop = (np.shape(image_calc)[0] - 400) // 2
-            image_calc = image_calc[crop:-crop, crop:-crop]
+        ## Crop
+        #if np.shape(image_surf)[0] > 400:
+        #    crop = (np.shape(image_surf)[0] - 400) // 2
+        #  #  image_surf = image_surf[crop:-crop, crop:-crop]
+        #if np.shape(image_deep)[0] > 400:
+        #    crop = (np.shape(image_deep)[0] - 400) // 2
+        #    image_deep = image_deep[crop:-crop, crop:-crop]
+        #if np.shape(image_calc)[0] > 400:
+        #    crop = (np.shape(image_calc)[0] - 400) // 2
+        #    image_calc = image_calc[crop:-crop, crop:-crop]
+
         # Append to list
         images_surf.append(image_surf)
         images_deep.append(image_deep)
@@ -63,9 +64,10 @@ def pipeline(arguments, selection=None, pat_groups=None):
     else:
         raise Exception('Check selected zone!')
     # Optimize parameters
-    pars, error = find_pars_bforce(images, grades, arguments, groups)
+    pars, error = find_pars_bforce(images, grades, arguments, pat_groups)
 
     print('Results for grades: ' + arguments.grade_keys)
+    print('Explained variance: ' + str(arguments.n_components))
     print("Minimum error is : {0}".format(error))
     print("Parameters are:")
     print(pars)
@@ -75,12 +77,13 @@ if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
     comps = [15, 20]  # PCA components
-    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm_Python')
+    # parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm_Python')
+    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_Insaf_combined')
     parser.add_argument('--path_grades', type=str, default=r'Y:\3DHistoData\Grading\trimmed_grades_2mm.xlsx')
     parser.add_argument('--grade_keys', type=str, default='surf_sub')
     parser.add_argument('--grade_mode', type=str, choices=['sum', 'mean'], default='sum')
     parser.add_argument('-hist_normalize', type=bool, default=True)
-    parser.add_argument('--n_components', type=int, default=10)
+    parser.add_argument('--n_components', type=int, default=0.9)
     parser.add_argument('--n_pars', type=int, default=1000)
     parser.add_argument('--classifier', type=str, choices=['ridge', 'random_forest'], default='ridge')
     parser.add_argument('--crop', type=int, default=0)
@@ -106,13 +109,18 @@ if __name__ == '__main__':
 
     for comp in comps:
         # Update number of components
-        print('Number of PCA components: {0}'.format(comp))
-        args.n_components = comp
+        #print('Number of PCA components: {0}'.format(comp))
+        #args.n_components = comp
 
         # Surface subgrade
         args.grade_keys = 'surf_sub'
-        pipeline(args, listbox.file_list, groups)
+        #pipeline(args, listbox.file_list, groups)
+        pipeline(args, listbox.file_list)
 
+        args.n_components = 0.95
+        # pipeline(args, listbox.file_list, groups)
+        pipeline(args, listbox.file_list)
+        break
         # Deep ECM
         args.grade_keys = 'deep_mat'
         pipeline(args, listbox.file_list, groups)

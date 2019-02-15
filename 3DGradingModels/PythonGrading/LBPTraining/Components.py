@@ -4,6 +4,7 @@ import gc
 
 from joblib import Parallel, delayed
 from tqdm import tqdm
+from scipy.stats import spearmanr
 
 from sklearn.model_selection import LeaveOneOut
 from sklearn.decomposition import PCA
@@ -12,7 +13,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 from LBPTraining.LBP_components import Conv_MRELBP
 from Grading.local_binary_pattern import local_normalize_abs, MRELBP
-from Grading.pca_regression import scikit_pca, regress_logo
+from Grading.pca_regression import scikit_pca, regress_logo, regress_loo
 
 
 def make_pars(n_pars):
@@ -41,6 +42,11 @@ def get_mse(preds, targets):
     return (errors ** 2).sum() / n
 
 
+def get_corr_loss(preds, targets):
+    rho = spearmanr(targets, preds)
+    return 1 - rho[0]
+
+
 def get_error(imgs, grades, parameters, args, groups=None):
     
     features = []
@@ -56,11 +62,14 @@ def get_error(imgs, grades, parameters, args, groups=None):
     _, score = scikit_pca(features, args.n_components, whitening=True, solver='auto')
 
     # Groups
-    preds, _ = regress_logo(score, grades, groups)
+    if groups is not None:
+        preds, _ = regress_logo(score, grades, groups)
+    else:
+        preds, _ = regress_loo(score, grades)
     
-    mse = get_mse(preds, grades)
-    
-    return mse
+    #return get_mse(preds, grades)
+
+    return get_corr_loss(preds, grades)
 
 
 def find_pars_bforce(imgs, grades, args, groups=None):

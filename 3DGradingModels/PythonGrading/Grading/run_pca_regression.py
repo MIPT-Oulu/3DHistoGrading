@@ -24,12 +24,10 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
     hdr_grades = duplicate_vector(hdr_grades, args.n_subvolumes)
 
     # Load features
-    features, hdr_features = load_excel(args.voi_path + grade_name + '.xlsx')
+    features, hdr_features = load_excel(args.voi_path + grade_name + '_' + str(args.n_components) + '.xlsx')
     # Mean feature
     mean = np.mean(features, 1)
 
-    print(grades.shape)
-    print(features.shape)
     # Check matching samples
     if check_samples:
         print('Loaded grades (g) and features (f)')
@@ -38,6 +36,7 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
 
     # PCA
     pca, score = scikit_pca(features.T, args.n_components, whitening=True, solver='auto')
+    print(score.shape)
 
     # Linear and logistic regression
     if args.regression == 'max_pool':
@@ -151,15 +150,15 @@ if __name__ == '__main__':
                                  'deep_cell',
                                  'calc_mat',
                                  'calc_vasc'])
-    parser.add_argument('--regression', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='logo')
+    parser.add_argument('--regression', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
     parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice)
-    parser.add_argument('--n_components', type=int, default=10)
+    parser.add_argument('--n_components', type=int, default=0.95)
     parser.add_argument('--n_jobs', type=int, default=12)
 
     if choice == 'Insaf':
-        n_samples = 28
+        n_samples = 34
         groups = duplicate_vector(np.linspace(1, n_samples, num=n_samples), 2)
-        parser.add_argument('--n_subvolumes', type=int, default=2)
+        parser.add_argument('--n_subvolumes', type=int, default=1)
         parser.add_argument('--grade_path', type=str,
                             default=r'Y:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
     elif choice == '2mm':

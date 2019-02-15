@@ -58,18 +58,18 @@ def pipeline_lbp(arg, selection, parameters, grade_used, save_images=False):
     print('Elapsed time: {0}s'.format(t))
 
 
-def load_voi(path, save, file, grade, par, save_images=False):
+def load_voi(path, save, file, grade, par, save_images=False, max_roi=400):
         # Load images
         image_surf, image_deep, image_calc = load_vois_h5(path, file)
         # Crop
-        if np.shape(image_surf)[0] != 400:
-            crop = (np.shape(image_surf)[0] - 400) // 2
+        if np.shape(image_surf)[0] > max_roi:
+            crop = (np.shape(image_surf)[0] - max_roi) // 2
             image_surf = image_surf[crop:-crop, crop:-crop]
-        if np.shape(image_deep)[0] != 400:
-            crop = (np.shape(image_deep)[0] - 400) // 2
+        if np.shape(image_deep)[0] > max_roi:
+            crop = (np.shape(image_deep)[0] - max_roi) // 2
             image_deep = image_deep[crop:-crop, crop:-crop]
-        if np.shape(image_calc)[0] != 400:
-            crop = (np.shape(image_calc)[0] - 400) // 2
+        if np.shape(image_calc)[0] > max_roi:
+            crop = (np.shape(image_calc)[0] - max_roi) // 2
             image_calc = image_calc[crop:-crop, crop:-crop]
         # Select VOI
         if grade[:4] == 'surf':
@@ -132,10 +132,17 @@ if __name__ == '__main__':
     calc_vasc_20n = {'ks1': 23, 'sigma1': 13, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 12, 'r': 5, 'wc': 7, 'wl': 13, 'ws': 11}
     calc_sub_20n = {'ks1': 11, 'sigma1': 5, 'ks2': 21, 'sigma2': 14, 'N': 8, 'R': 15, 'r': 5, 'wc': 13, 'wl': 5, 'ws': 13}
 
+    # Components based on explained variance
+    # Trained on Insaf series surface grade (34 samples)
+    surf_90p = {'ks1': 15, 'sigma1': 1, 'ks2': 25, 'sigma2': 2, 'N': 8, 'R': 22, 'r': 20, 'wc': 7, 'wl': 13, 'ws': 7}
+    surf_95p = {'ks1': 5, 'sigma1': 1, 'ks2': 15, 'sigma2': 13, 'N': 8, 'R': 20, 'r': 14, 'wc': 13, 'wl': 5, 'ws': 11}
+    # Correlation
+    surf_90p_corr = {'ks1': 15, 'sigma1': 1, 'ks2': 25, 'sigma2': 2, 'N': 8, 'R': 22, 'r': 20, 'wc': 7, 'wl': 13, 'ws': 7}
+
     # Arguments
     parser = ArgumentParser()
-    choice = 'Isokerays'
-    parser.add_argument('--image_path', type=str, default=r'Y:\3DHistoData\MeanStd_' + choice)  # + '_Python')
+    choice = '2mm'
+    parser.add_argument('--image_path', type=str, default=r'Y:\3DHistoData\MeanStd_' + choice + '_Python')
     parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice)
     parser.add_argument('--grades_used', type=str,
                         default=['surf_sub',
@@ -145,12 +152,14 @@ if __name__ == '__main__':
                                  'calc_mat',
                                  'calc_vasc',
                                  'calc_sub'])
-    parser.add_argument('--n_components', type=int, default=20)
+    parser.add_argument('--n_components', type=int, default=0.9)
     parser.add_argument('--pars', type=dict, default=
     #[surf_5n, deep_mat_5n, deep_cell_5n, deep_sub_5n, calc_mat_5n, calc_vasc_5n, calc_sub_5n])
     #[surf_10n, deep_mat_10n, deep_cell_10n, deep_sub_15n, calc_mat_10n, calc_vasc_10n, calc_sub_15n])
     #[surf_15n, deep_mat_15n, deep_cell_15n, deep_sub_15n, calc_mat_15n, calc_vasc_15n, calc_sub_15n])
-    [surf_20n, deep_mat_20n, deep_cell_20n, deep_sub_20n, calc_mat_20n, calc_vasc_20n, calc_sub_20n])
+    #[surf_20n, deep_mat_20n, deep_cell_20n, deep_sub_20n, calc_mat_20n, calc_vasc_20n, calc_sub_20n])
+    [surf_90p, surf_90p, surf_90p, surf_90p, surf_90p, surf_90p, surf_90p])
+    #[surf_95p, surf_95p, surf_95p, surf_95p, surf_95p, surf_95p, surf_95p])
     parser.add_argument('--n_jobs', type=int, default=12)
     parser.add_argument('--convolution', type=bool, default=False)
     parser.add_argument('--normalize_hist', type=bool, default=True)
