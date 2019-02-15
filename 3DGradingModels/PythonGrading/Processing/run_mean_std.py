@@ -49,8 +49,9 @@ def calculate_multiple(arguments, selection=None):
 if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
-    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\Subvolumes_2mm')
-    parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10))
+    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\Subvolumes_Insaf_small')
+    #parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10, crop=24))
+    parser.add_argument('--size', type=dict, default=dict(width=368, surface=25, deep=150, calcified=50, offset=10, crop=24))
     parser.add_argument('--model_path', type=str, default='Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/')
     parser.add_argument('--snapshots', type=str,
                         default='Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/')

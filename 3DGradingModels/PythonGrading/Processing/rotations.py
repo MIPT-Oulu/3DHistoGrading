@@ -95,12 +95,12 @@ def orient(data, bounds, individual=False):
         # angle1 = ori[0]; angle2 = ori[1]
 
     # 1st rotation
-    if abs(angle1) >= 4:  # check for small angle
+    if 4 <= abs(angle1) <= 20:  # check for small and large angle
         data = opencv_rotate(data, 0, angle1)
     print_orthogonal(data)
 
     # 2nd rotation
-    if abs(angle2) >= 4:  # check for small angle
+    if 4 <= abs(angle2) <= 20:
         data = opencv_rotate(data, 1, angle2)
     print_orthogonal(data)
 

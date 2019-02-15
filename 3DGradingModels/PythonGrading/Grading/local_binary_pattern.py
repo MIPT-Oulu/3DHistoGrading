@@ -23,7 +23,7 @@ def image_bilinear(im, col, x, row, y, eps=1e-12):
     return p
 
 
-def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=None):
+def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=None, save_images=True):
     """ Takes Median Robust Extended Local Binary Pattern from image im
     Uses n neighbours from radii r_large and r_small, r_large must be larger than r_small
     Median filter uses kernel sizes weight_center for center pixels, w_r[0] for larger radius and w_r[1]
@@ -149,7 +149,7 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=
     # Concatenate histograms
     hist = np.concatenate((center_hist, large_hist, small_hist, radial_hist), 1)
 
-    if savepath is not None and sample is not None:
+    if save_images and savepath is not None and sample is not None:
         print_images([lbp_large, lbp_small, lbp_radial], subtitles=['Large', 'Small', 'Radial'], title=sample,
                      save_path=savepath, sample=sample + '.png')
     
