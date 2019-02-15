@@ -14,7 +14,7 @@ from scipy.stats import spearmanr, wilcoxon
 from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score
 
 
-def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_samples=False):
+def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, check_samples=False):
     print(grade_name)
     # Load grades to array
     grades, hdr_grades = load_excel(args.grade_path, titles=[grade_name])
@@ -24,7 +24,7 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
     hdr_grades = duplicate_vector(hdr_grades, args.n_subvolumes)
 
     # Load features
-    features, hdr_features = load_excel(args.voi_path + grade_name + '_' + str(args.n_components) + '.xlsx')
+    features, hdr_features = load_excel(args.feature_path + grade_name + '_' + args.str_components + '.xlsx')
     # Mean feature
     mean = np.mean(features, 1)
 
@@ -131,7 +131,7 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
         for k in range(len(grades)):
             txt = hdr_grades[k] + str(grades[k])
             ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
-        plt.savefig(args.save_path + '\\linear_' + grade_name + '_' + str(args.n_components) + '_' + args.regression, bbox_inches='tight')
+        plt.savefig(args.save_path + '\\linear_' + grade_name + '_' + args.str_components + '_' + args.regression, bbox_inches='tight')
         plt.close()
     return grades, pred_logistic, mse_linear
 
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     choice = 'Insaf'
     path = r'X:\3DHistoData\Grading\LBP\\' + choice + '\\'
     parser = ArgumentParser()
-    parser.add_argument('--voi_path', type=str, default=path + '\\Features_')
+    parser.add_argument('--feature_path', type=str, default=path + '\\Features_')
     parser.add_argument('--grades_used', type=str,
                         default=['surf_sub',
                                  'deep_mat',
@@ -164,6 +164,7 @@ if __name__ == '__main__':
     parser.add_argument('--regression', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
     parser.add_argument('--save_path', type=str, default=path)
     parser.add_argument('--n_components', type=int, default=0.9)
+    parser.add_argument('--str_components', type=str, default='90')
     parser.add_argument('--n_jobs', type=int, default=12)
 
     if choice == 'Insaf':
@@ -199,7 +200,7 @@ if __name__ == '__main__':
     mses = []
     # Loop for surface, deep and calcified analysis
     for title in arguments.grades_used:
-        grade, pred, mse = pipeline_load(arguments, title, pat_groups=groups)
+        grade, pred, mse = pipeline_prediction(arguments, title, pat_groups=groups)
         gradelist.append(grade)
         preds.append(pred)
         mses.append(mse)
@@ -212,7 +213,7 @@ if __name__ == '__main__':
         grade_used = arguments.grades_used[i]
         print(grade_used)
         roc_curve_bootstrap(gradelist[i] > lim, preds[i], savepath=
-                            save_path + '\\roc_' + grade_used + '_' + str(arguments.n_components) + '_' + method,
+                            save_path + '\\roc_' + grade_used + '_' + arguments.str_components + '_' + method,
                             lim=lim)
 
     # Display spent time

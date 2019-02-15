@@ -8,19 +8,20 @@ from joblib import Parallel, delayed
 from argparse import ArgumentParser
 
 from Grading.local_binary_pattern import local_normalize_abs as local_standard, MRELBP, Conv_MRELBP
+import Grading.args_grading as arg
 from Utilities.load_write import save_excel, load_vois_h5
 from Utilities import listbox
 from Utilities.misc import print_images
 
 
-def pipeline_lbp(arg, selection, parameters, grade_used, save_images=False):
+def pipeline_lbp(args, selection, parameters, grade_used, save_images=False):
     """Calculates LBP features from mean and standard deviation images.
     Supports parallelization for decreased processing times."""
     # Start time
     start_time = time()
 
     # List datasets
-    files = os.listdir(arg.image_path)
+    files = os.listdir(args.image_path)
     files.sort()
     # Exclude samples
     if selection is not None:
@@ -28,30 +29,30 @@ def pipeline_lbp(arg, selection, parameters, grade_used, save_images=False):
 
     # Load and normalize images
     images_norm = (Parallel(n_jobs=args.n_jobs)(delayed(load_voi)  # Initialize
-                   (arg.image_path, arg.save_path, files[i], grade_used, parameters, save_images)
-                   for i in tqdm(range(len(files)), desc='Loading and normalizing')))  # Iterable
+                   (args.image_path, args.save_path, files[i], grade_used, parameters, save_images)
+                                                     for i in tqdm(range(len(files)), desc='Loading and normalizing')))  # Iterable
 
     # Calculate features
-    if arg.convolution:
+    if args.convolution:
         features = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)  # Initialize
                     (images_norm[i], parameters,  # LBP parameters
-                    normalize=args.normalize_hist,
-                    savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used)  # Save paths
-                    for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
+                     normalize=args.normalize_hist,
+                     savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used)  # Save paths
+                                                      for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
     else:
         features = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)  # Initialize
                     (images_norm[i], parameters,  # LBP parameters
-                    normalize=args.normalize_hist,
-                    savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used,  # Save paths
-                    save_images=save_images)
-                    for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
+                     normalize=args.normalize_hist,
+                     savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used,  # Save paths
+                     save_images=save_images)
+                                                      for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
 
     # Convert to array
     features = np.array(features).squeeze()
 
     # Save features
-    save = arg.save_path
-    save_excel(features.T, save + r'\Features_' + grade_used + '_' + str(arg.n_components) + '.xlsx', files)
+    save = args.save_path
+    save_excel(features.T, save + r'\Features_' + grade_used + '_' + args.str_components + '.xlsx', files)
 
     # Display spent time
     t = time() - start_time
@@ -92,84 +93,18 @@ def load_voi(path, save, file, grade, par, save_images=False, max_roi=400):
 
 
 if __name__ == '__main__':
-    # Abstract parameters
-    sparam_abs = {'ks1': 17, 'sigma1': 7, 'ks2': 17, 'sigma2': 1, 'N': 8, 'R': 23, 'r': 2, 'wc': 5, 'wl': 15, 'ws': 3}
-    dparam_abs = {'ks1': 15, 'sigma1': 3, 'ks2': 23, 'sigma2': 13, 'N': 8, 'R': 16, 'r': 12, 'wc': 13, 'wl': 15, 'ws': 9}
-    cparam_abs = {'ks1': 13, 'sigma1': 1, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 19, 'r': 18, 'wc': 3, 'wl': 3, 'ws': 11}
-
-    # 5 PCA components
-    surf_5n = {'ks1': 5, 'sigma1': 2, 'ks2': 25, 'sigma2': 19, 'N': 8, 'R': 25, 'r': 18, 'wc': 13, 'wl': 3, 'ws': 13}
-    deep_mat_5n = {'ks1': 19, 'sigma1': 3, 'ks2': 5, 'sigma2': 4, 'N': 8, 'R': 27, 'r': 8, 'wc': 11, 'wl': 11, 'ws': 3}
-    deep_cell_5n = {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5}
-    deep_sub_5n = {'ks1': 3, 'sigma1': 3, 'ks2': 19, 'sigma2': 2, 'N': 8, 'R': 5, 'r': 1, 'wc': 11, 'wl': 15, 'ws': 3}
-    calc_mat_5n = {'ks1': 23, 'sigma1': 11, 'ks2': 17, 'sigma2': 4, 'N': 8, 'R': 10, 'r': 8, 'wc': 7, 'wl': 13, 'ws': 11}
-    calc_vasc_5n = {'ks1': 21, 'sigma1': 3, 'ks2': 13, 'sigma2': 10, 'N': 8, 'R': 12, 'r': 9, 'wc': 3, 'wl': 11, 'ws': 9}
-    calc_sub_5n = {'ks1': 15, 'sigma1': 7, 'ks2': 23, 'sigma2': 22, 'N': 8, 'R': 18, 'r': 8, 'wc': 9, 'wl': 9, 'ws': 3}
-
-    # 10 PCA components (NCM)
-    surf_10n = {'ks1': 21, 'sigma1': 17, 'ks2': 25, 'sigma2': 20, 'N': 8, 'R': 26, 'r': 5, 'wc': 5, 'wl': 13, 'ws': 11}
-    deep_mat_10n = {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5}
-    deep_cell_10n = {'ks1': 3, 'sigma1': 3, 'ks2': 21, 'sigma2': 3, 'N': 8, 'R': 26, 'r': 4, 'wc': 7, 'wl': 3, 'ws': 7}
-    calc_mat_10n = {'ks1': 23, 'sigma1': 16, 'ks2': 15, 'sigma2': 6, 'N': 8, 'R': 16, 'r': 2, 'wc': 9, 'wl': 7, 'ws': 7}
-    calc_vasc_10n = {'ks1': 23, 'sigma1': 20, 'ks2': 7, 'sigma2': 7, 'N': 8, 'R': 26, 'r': 11, 'wc': 13, 'wl': 5, 'ws': 15}
-
-    # 15 PCA components
-    surf_15n = {'ks1': 15, 'sigma1': 8, 'ks2': 13, 'sigma2': 6, 'N': 8, 'R': 3, 'r': 2, 'wc': 13, 'wl': 3, 'ws': 9}
-    deep_mat_15n = {'ks1': 17, 'sigma1': 8, 'ks2': 11, 'sigma2': 1, 'N': 8, 'R': 25, 'r': 5, 'wc': 13, 'wl': 13, 'ws': 3}
-    deep_cell_15n = {'ks1': 7, 'sigma1': 4, 'ks2': 9, 'sigma2': 3, 'N': 8, 'R': 18, 'r': 12, 'wc': 11, 'wl': 11, 'ws': 3}
-    deep_sub_15n = {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5}
-    calc_mat_15n = {'ks1': 23, 'sigma1': 5, 'ks2': 7, 'sigma2': 5, 'N': 8, 'R': 12, 'r': 11, 'wc': 5, 'wl': 5, 'ws': 15}
-    calc_vasc_15n = {'ks1': 15, 'sigma1': 1, 'ks2': 25, 'sigma2': 20, 'N': 8, 'R': 6, 'r': 1, 'wc': 13, 'wl': 3, 'ws': 9}
-    calc_sub_15n = {'ks1': 19, 'sigma1': 2, 'ks2': 21, 'sigma2': 18, 'N': 8, 'R': 15, 'r': 5, 'wc': 15, 'wl': 3, 'ws': 13}
-
-    # 20 PCA components
-    surf_20n = {'ks1': 3, 'sigma1': 3, 'ks2': 19, 'sigma2': 2, 'N': 8, 'R': 5, 'r': 1, 'wc': 11, 'wl': 15, 'ws': 3}
-    deep_mat_20n = {'ks1': 17, 'sigma1': 12, 'ks2': 21, 'sigma2': 4, 'N': 8, 'R': 7, 'r': 5, 'wc': 11, 'wl': 15, 'ws': 15}
-    deep_cell_20n = {'ks1': 23, 'sigma1': 2, 'ks2': 3, 'sigma2': 1, 'N': 8, 'R': 4, 'r': 1, 'wc': 15, 'wl': 3, 'ws': 9}
-    deep_sub_20n = {'ks1': 9, 'sigma1': 7, 'ks2': 21, 'sigma2': 18, 'N': 8, 'R': 21, 'r': 4, 'wc': 5, 'wl': 3, 'ws': 15}
-    calc_mat_20n = {'ks1': 13, 'sigma1': 9, 'ks2': 3, 'sigma2': 1, 'N': 8, 'R': 10, 'r': 3, 'wc': 11, 'wl': 3, 'ws': 11}
-    calc_vasc_20n = {'ks1': 23, 'sigma1': 13, 'ks2': 23, 'sigma2': 7, 'N': 8, 'R': 12, 'r': 5, 'wc': 7, 'wl': 13, 'ws': 11}
-    calc_sub_20n = {'ks1': 11, 'sigma1': 5, 'ks2': 21, 'sigma2': 14, 'N': 8, 'R': 15, 'r': 5, 'wc': 13, 'wl': 5, 'ws': 13}
-
-    # Components based on explained variance
-    # Trained on Insaf series surface grade (34 samples)
-    surf_90p = {'ks1': 15, 'sigma1': 1, 'ks2': 25, 'sigma2': 2, 'N': 8, 'R': 22, 'r': 20, 'wc': 7, 'wl': 13, 'ws': 7}
-    surf_95p = {'ks1': 5, 'sigma1': 1, 'ks2': 15, 'sigma2': 13, 'N': 8, 'R': 20, 'r': 14, 'wc': 13, 'wl': 5, 'ws': 11}
-    # Correlation
-    surf_90p_corr = {'ks1': 15, 'sigma1': 1, 'ks2': 25, 'sigma2': 2, 'N': 8, 'R': 22, 'r': 20, 'wc': 7, 'wl': 13, 'ws': 7}
 
     # Arguments
-    parser = ArgumentParser()
-    choice = '2mm'
-    parser.add_argument('--image_path', type=str, default=r'Y:\3DHistoData\MeanStd_' + choice + '_Python')
-    parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice)
-    parser.add_argument('--grades_used', type=str,
-                        default=['surf_sub',
-                                 'deep_mat',
-                                 'deep_cell',
-                                 'deep_sub',
-                                 'calc_mat',
-                                 'calc_vasc',
-                                 'calc_sub'])
-    parser.add_argument('--n_components', type=int, default=0.9)
-    parser.add_argument('--pars', type=dict, default=
-    #[surf_5n, deep_mat_5n, deep_cell_5n, deep_sub_5n, calc_mat_5n, calc_vasc_5n, calc_sub_5n])
-    #[surf_10n, deep_mat_10n, deep_cell_10n, deep_sub_15n, calc_mat_10n, calc_vasc_10n, calc_sub_15n])
-    #[surf_15n, deep_mat_15n, deep_cell_15n, deep_sub_15n, calc_mat_15n, calc_vasc_15n, calc_sub_15n])
-    #[surf_20n, deep_mat_20n, deep_cell_20n, deep_sub_20n, calc_mat_20n, calc_vasc_20n, calc_sub_20n])
-    [surf_90p, surf_90p, surf_90p, surf_90p, surf_90p, surf_90p, surf_90p])
-    #[surf_95p, surf_95p, surf_95p, surf_95p, surf_95p, surf_95p, surf_95p])
-    parser.add_argument('--n_jobs', type=int, default=12)
-    parser.add_argument('--convolution', type=bool, default=False)
-    parser.add_argument('--normalize_hist', type=bool, default=True)
-    args = parser.parse_args()
+    choice = 'Insaf'
+    datapath = r'X:\3DHistoData'
+    arguments = arg.return_args(datapath, choice, pars=arg.set_90p, grade_list=arg.grades)
 
     # Use listbox (Result is saved in listbox.file_list)
-    listbox.GetFileSelection(args.image_path)
+    listbox.GetFileSelection(arguments.image_path)
 
     # Call pipeline
-    for k in range(len(args.grades_used)):
-        pars = args.pars[k]
-        grade_selection = args.grades_used[k]
+    for k in range(len(arguments.grades_used)):
+        pars = arguments.pars[k]
+        grade_selection = arguments.grades_used[k]
         print('Processing with parameters: {0}'.format(grade_selection))
-        pipeline_lbp(args, listbox.file_list, pars, grade_selection)
+        pipeline_lbp(arguments, listbox.file_list, pars, grade_selection)
