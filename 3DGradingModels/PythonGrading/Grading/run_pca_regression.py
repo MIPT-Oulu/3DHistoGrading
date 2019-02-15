@@ -24,7 +24,7 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
     hdr_grades = duplicate_vector(hdr_grades, args.n_subvolumes)
 
     # Load features
-    features, hdr_features = load_excel(args.voi_path + grade_name + '.xlsx')
+    features, hdr_features = load_excel(args.voi_path + grade_name + '_' + str(args.n_components) + '.xlsx')
     # Mean feature
     mean = np.mean(features, 1)
 
@@ -40,18 +40,23 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
     pca, score = scikit_pca(features.T, args.n_components, whitening=True, solver='auto')
 
     # Linear and logistic regression
+    lim = (np.min(grades) + np.max(grades)) // 2
     if args.regression == 'max_pool':
         split = 20
         pred_linear, weights = torch_regression(score[:split], score[split:], grades[:split], grades[split:])
-        pred_logistic = logistic_loo(score, grades > 1)
+        pred_logistic = logistic_loo(score, grades > lim)
     elif args.regression == 'train_test':
         return
     elif args.regression == 'logo' and pat_groups is not None:
         pred_linear, weights = regress_logo(score, grades, pat_groups)
-        pred_logistic = logistic_logo(score, grades > 1, pat_groups)
+        try:
+            pred_logistic = logistic_logo(score, grades > lim, pat_groups)
+        except ValueError:
+            print('Error on groups. Check grade distribution.')
+            pred_logistic = logistic_loo(score, grades > lim)
     elif args.regression == 'loo' or pat_groups is None:
         pred_linear, weights = regress_loo(score, grades)
-        pred_logistic = logistic_loo(score, grades > 1)
+        pred_logistic = logistic_loo(score, grades > lim)
     else:
         raise Exception('No valid regression method selected (see arguments)!')
 
@@ -71,7 +76,7 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
     # ROC curves
     fpr, tpr, thresholds = roc_curve(grades > 0, np.round(pred_linear) > 0, pos_label=1)
     auc_linear = auc(fpr, tpr)
-    auc_logistic = roc_auc_score(grades > 1, pred_logistic)
+    auc_logistic = roc_auc_score(grades > lim, pred_logistic)
 
     # Spearman corr
     rho = spearmanr(grades, pred_linear)
@@ -81,7 +86,7 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
     r2 = r2_score(grades, pred_linear.flatten())
     # Mean squared error
     mse_linear = mean_squared_error(grades, pred_linear)
-    mse_bootstrap(grades, pred_linear)
+    mse_boot, l_mse, h_mse = mse_bootstrap(grades, pred_linear)
     # c1 = confusion_matrix(grades, np.round(pred_linear).astype('int'))
 
     # Save prediction
@@ -111,7 +116,7 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
         # Stats
         print('Mean squared error, Area under curve (linear and logistic)')
         print(mse_linear, auc_linear, auc_logistic)
-        print('Spearman: {0}, p: {1}, Wilcoxon p: {2}, r^2: {3}'.format(rho[0], rho[1], wilc[1], r2))
+        print(r'Spearman: {0}, p: {1}, Wilcoxon p: {2}, r2: {3}'.format(rho[0], rho[1], wilc[1], r2))
 
         # Scatter plot actual vs prediction
         m, b = np.polyfit(grades, pred_linear.flatten(), 1)
@@ -121,11 +126,14 @@ def pipeline_load(args, grade_name, pat_groups=None, show_results=True, check_sa
         ax2.plot(grades, m * grades + b, '-', color='r')
         ax2.set_xlabel('Actual grade')
         ax2.set_ylabel('Predicted')
+        text_string = 'MSE: {0:.2f}, [{1:.2f}, {2:.2f}]\nSpearman: {3:.2f}\nWilcoxon: {4:.2f}\n$R^2$: {5:.2f}'\
+            .format(mse_boot, l_mse, h_mse, rho[0], wilc[1], r2)
+        ax2.text(0.05, 0.95, text_string, transform=ax2.transAxes, fontsize=14, verticalalignment='top')
         for k in range(len(grades)):
             txt = hdr_grades[k] + str(grades[k])
             ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
-        plt.savefig(args.save_path + '\\linear_' + grade_name, bbox_inches='tight')
-        plt.show()
+        plt.savefig(args.save_path + '\\linear_' + grade_name + '_' + str(args.n_components) + '_' + args.regression, bbox_inches='tight')
+        plt.close()
     return grades, pred_logistic, mse_linear
 
 
@@ -141,27 +149,30 @@ def reference_regress(features, grades, mean, args, pca, weights, model):
 
 if __name__ == '__main__':
     # Arguments
-    choice = '2mm'
-    path = r'Y:\3DHistoData\Grading\LBP\\' + choice + '\\'
+    choice = 'Insaf'
+    path = r'X:\3DHistoData\Grading\LBP\\' + choice + '\\'
     parser = ArgumentParser()
-    parser.add_argument('--voi_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice + '\\Features_')
+    parser.add_argument('--voi_path', type=str, default=path + '\\Features_')
     parser.add_argument('--grades_used', type=str,
                         default=['surf_sub',
                                  'deep_mat',
                                  'deep_cell',
+                                 'deep_sub',
                                  'calc_mat',
-                                 'calc_vasc'])
-    parser.add_argument('--regression', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='logo')
-    parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Grading\LBP\\' + choice)
-    parser.add_argument('--n_components', type=int, default=10)
+                                 'calc_vasc',
+                                 'calc_sub'
+                                 ])
+    parser.add_argument('--regression', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
+    parser.add_argument('--save_path', type=str, default=path)
+    parser.add_argument('--n_components', type=int, default=0.9)
     parser.add_argument('--n_jobs', type=int, default=12)
 
     if choice == 'Insaf':
-        n_samples = 28
+        n_samples = 34
         groups = duplicate_vector(np.linspace(1, n_samples, num=n_samples), 2)
-        parser.add_argument('--n_subvolumes', type=int, default=2)
+        parser.add_argument('--n_subvolumes', type=int, default=1)
         parser.add_argument('--grade_path', type=str,
-                            default=r'Y:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
+                            default=r'X:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
     elif choice == '2mm':
         # Patient groups
         groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
@@ -170,14 +181,14 @@ if __name__ == '__main__':
         #                   15, 16, 16, 17, 17, 18, 19, 19])  # 2mm, 36 patients
         parser.add_argument('--n_subvolumes', type=int, default=1)
         parser.add_argument('--grade_path', type=str,
-                            default=r'Y:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
+                            default=r'X:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
 #        parser.add_argument('--grade_path', type=str, default=r'Y:\3DHistoData\Grading\ERCGrades.xlsx')
     else:
         n_samples = 14
         groups = duplicate_vector(np.linspace(1, n_samples, num=n_samples), 9)
         parser.add_argument('--n_subvolumes', type=int, default=9)
         parser.add_argument('--grade_path', type=str,
-                            default=r'Y:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
+                            default=r'X:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
     arguments = parser.parse_args()
 
     # Start time
@@ -198,9 +209,12 @@ if __name__ == '__main__':
     method = arguments.regression
     save_path = arguments.save_path
     for i in range(len(arguments.grades_used)):
+        lim = (np.min(gradelist[i]) + np.max(gradelist[i])) // 2
         grade_used = arguments.grades_used[i]
         print(grade_used)
-        roc_curve_bootstrap(gradelist[i] > 1, preds[i], savepath=save_path + '\\roc_' + grade_used + '_' + method)
+        roc_curve_bootstrap(gradelist[i] > lim, preds[i], savepath=
+                            save_path + '\\roc_' + grade_used + '_' + str(arguments.n_components) + '_' + method,
+                            lim=lim)
 
     # Display spent time
     t = time() - start_time

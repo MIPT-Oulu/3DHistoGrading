@@ -13,7 +13,6 @@ from Utilities.misc import print_orthogonal
 
 
 def segmentation_kmeans(array, n_clusters=3, offset=0, method='scikit', zoom_factor=4.0, n_jobs=12):
-    # TODO Check that segmentation works for pipeline
     # Segmentation
     dims = array.shape
     array = zoom(array[:, :, offset:], 1 / zoom_factor, order=3)  # Downscale images
