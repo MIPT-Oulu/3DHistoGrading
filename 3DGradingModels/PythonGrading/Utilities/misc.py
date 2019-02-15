@@ -5,16 +5,22 @@ import os
 import cv2
 
 
-def duplicate_vector(vector, n):
+def duplicate_vector(vector, n, reshape=False):
     new_vector = []
     for i in range(len(vector)):
         for j in range(n):
             new_vector.append(vector[i])
 
     if isinstance(vector[0], type('str')):
-        return new_vector
+        if reshape:
+            return np.reshape(new_vector, (len(new_vector) // n, n))
+        else:
+            return new_vector
     else:
-        return np.array(new_vector)
+        if reshape:
+            return np.reshape(new_vector, (len(new_vector) // n, n))
+        else:
+            return np.array(new_vector)
 
 
 def bounding_box(image, threshold=80, max_val=255, min_area=1600):

@@ -72,6 +72,3 @@ except ValueError:
     mask_array = mask[:, :, :data.shape[2]]
 print_orthogonal(mask_array, True)
 render_volume(mask_array * data, None, False)
-
-# TODO Implement downscaling and upscaling of image stacks. K-means or spectral clustering
-# TODO Scikit kmeans

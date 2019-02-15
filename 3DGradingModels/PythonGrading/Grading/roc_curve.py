@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score, roc_curve, mean_squared_error
 from tqdm.auto import tqdm
 
 
-def roc_curve_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42):
+def roc_curve_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42, lim=None):
     """Evaluates ROC curve using bootstrapping
 
     Also reports confidence intervals and prints them.
@@ -68,10 +68,14 @@ def roc_curve_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42):
     plt.grid()
     plt.xlabel('False positive rate')
     plt.ylabel('True positive rate')
+    if lim is not None:
+        text_string = 'Grade > {0}'.format(lim)
+        plt.text(0.75, 0.25, text_string, fontsize=14, verticalalignment='top')
     plt.tight_layout()
     if savepath is not None:
         plt.savefig(savepath, bbox_inches='tight')
-    plt.show()
+    else:
+        plt.show()
     plt.close()
 
     print('AUC:', np.round(auc, 5))
@@ -205,7 +209,8 @@ def roc_multi(y, preds, y2, preds2, y3, preds3, savepath=None, n_bootstrap=1000,
     plt.rcParams.update({'font.size': 20})
     if savepath is not None:
         plt.savefig(savepath, bbox_inches='tight')
-    plt.show()
+    else:
+        plt.show()
     plt.close()
 
     print('AUC:', np.round(auc, 5))
