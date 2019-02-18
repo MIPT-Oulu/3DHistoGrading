@@ -12,13 +12,15 @@ from scripts.run_pca_regression import pipeline_prediction
 
 if __name__ == '__main__':
     # Arguments
-    choice = 'Insaf'
+    choice = 'Isokerays'
     data_path = r'X:\3DHistoData'
     arguments_p = arg_process.return_args(data_path, choice)
     arguments_g = arg_grading.return_args(data_path, choice, pars=arg_grading.set_90p, grade_list=arg_grading.grades)
+    # Path to image stacks
+    arguments_p.data_path = r'V:\PTA1272\Isokerays_PTA'
 
     # Use listbox to select samples (Result is saved in listbox.file_list)
-    listbox.GetFileSelection(arguments_p.path)
+    listbox.GetFileSelection(arguments_p.data_path)
 
     # Extract samples based on listbox
     samples = os.listdir(arguments_p.data_path)
@@ -30,7 +32,7 @@ if __name__ == '__main__':
     print('')
 
     # Find image paths from list
-    file_paths = find_image_paths(arguments_p.path, samples)
+    file_paths = find_image_paths(arguments_p.data_path, samples)
 
     # Loop for pre-processing samples
     for k in range(len(file_paths)):

@@ -7,7 +7,7 @@ def return_args(root, choice):
     VOI options: width=ROI width, surface, deep, calcified=corresponding VOI depth, offset=VOI offset from BCI."""
 
     parser = ArgumentParser()
-    parser.add_argument('--data_path', type=str)
+    parser.add_argument('--data_path', type=str, default=root)
     parser.add_argument('--save_image_path', type=str, default=root + r'\MeanStd_' + choice)
     parser.add_argument('--model_path', type=str, default=root + r'\components\segmentation\unet\\')
     parser.add_argument('--snapshots', type=str, default=root + r'\components\segmentation\2018_12_03_15_25\\')

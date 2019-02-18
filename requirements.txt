@@ -1,0 +1,12 @@
+cntk==2.6
+cntk-gpu==2.6
+h5py==2.9.0
+numpy==1.15.2
+opencv-python==4.0.0.21
+pandas==0.23.4
+scikit-learn==0.20.0
+scipy==1.1.0
+torch==1.0.0
+torchvision==0.2.1
+tqdm
+vtk==8.1.1
