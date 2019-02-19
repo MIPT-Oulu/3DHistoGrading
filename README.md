@@ -4,7 +4,7 @@
 (c) Santeri Rytky, University of Oulu, 2018-2019
 
 <center>
-<img src="https://github.com/mipt-oulu/oaprogression/blob/master/documentation/flowchart.png" width="900"/> 
+<img src="https://github.com/sarytky/3DHistoGrading/blob/master/documentation/flowchart.PNG" width="900"/> 
 </center>
 
 ## Background
