@@ -41,14 +41,14 @@ def display_dataset(path, save, dset='sum'):
 
             # Save figure
             if not os.path.exists(save):
-                os.makedirs(save)
+                os.makedirs(save, exist_ok=True)
             plt.tight_layout()
             fig.savefig(os.path.join(save, files[k]), bbox_inches="tight", transparent=True)
             plt.close()
 
             # Save h5
             if not os.path.exists(save + '\\MeanStd\\'):
-                os.makedirs(save + '\\MeanStd\\')
+                os.makedirs(save + '\\MeanStd\\', exist_ok=True)
 
             h5 = h5py.File(save + "\\MeanStd\\" + files[k] + '.h5', 'w')
             h5.create_dataset('surf', data=im_surf)

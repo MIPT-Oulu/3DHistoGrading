@@ -12,8 +12,6 @@ def get_interface(data, size, mask=None, n_jobs=12):
     """Give string input to interface variable as 'surface' or 'bci'.
     Input data should be a thresholded, cropped volume of the sample"""
     dims = np.shape(data)
-    if (dims[0] != size['width']) or (dims[1] != size['width']):
-        raise Exception('Sample and voi size are incompatible!')
 
     # Threshold data
     mask_sample, val = otsu_threshold(data)

@@ -8,7 +8,7 @@ from scipy.stats import spearmanr, wilcoxon
 from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score
 
 from components.grading.pca_regression import scikit_pca, regress_logo, regress_loo, logistic_logo, logistic_loo
-from components.grading.roc_curve import mse_bootstrap, roc_curve_bootstrap, roc_multi
+from components.grading.roc_curve import mse_bootstrap, roc_curve_bootstrap, roc_curve_multi
 from components.grading.torch_regression import torch_regression
 from components.utilities.load_write import load_binary_weights, write_binary_weights, load_excel
 from components.utilities.misc import duplicate_vector
@@ -40,20 +40,20 @@ def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, ch
 
     # Linear and logistic regression
     lim = (np.min(grades) + np.max(grades)) // 2
-    if args.regression == 'max_pool':
+    if args.split == 'max_pool':
         split = 20
         pred_linear, weights = torch_regression(score[:split], score[split:], grades[:split], grades[split:])
         pred_logistic = logistic_loo(score, grades > lim)
-    elif args.regression == 'train_test':
+    elif args.split == 'train_test':
         return
-    elif args.regression == 'logo' and pat_groups is not None:
+    elif args.split == 'logo' and pat_groups is not None:
         pred_linear, weights = regress_logo(score, grades, pat_groups)
         try:
             pred_logistic = logistic_logo(score, grades > lim, pat_groups)
         except ValueError:
             print('Error on groups. Check grade distribution.')
             pred_logistic = logistic_loo(score, grades > lim)
-    elif args.regression == 'loo' or pat_groups is None:
+    elif args.split == 'loo' or pat_groups is None:
         pred_linear, weights = regress_loo(score, grades)
         pred_logistic = logistic_loo(score, grades > lim)
     else:
@@ -131,7 +131,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, ch
         for k in range(len(grades)):
             txt = hdr_grades[k] + str(grades[k])
             ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
-        plt.savefig(args.save_path + '\\linear_' + grade_name + '_' + args.str_components + '_' + args.regression, bbox_inches='tight')
+        plt.savefig(args.save_path + '\\linear_' + grade_name + '_' + args.str_components + '_' + args.split, bbox_inches='tight')
         plt.close()
     return grades, pred_logistic, mse_linear
 
@@ -161,7 +161,7 @@ if __name__ == '__main__':
                                  'calc_vasc',
                                  'calc_sub'
                                  ])
-    parser.add_argument('--regression', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
+    parser.add_argument('--split', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
     parser.add_argument('--save_path', type=str, default=path)
     parser.add_argument('--n_components', type=int, default=0.9)
     parser.add_argument('--str_components', type=str, default='90')
@@ -205,16 +205,22 @@ if __name__ == '__main__':
         preds.append(pred)
         mses.append(mse)
 
-    # Receiver operating characteristics curve
-    method = arguments.regression
-    save_path = arguments.save_path
-    for i in range(len(arguments.grades_used)):
-        lim = (np.min(gradelist[i]) + np.max(gradelist[i])) // 2
-        grade_used = arguments.grades_used[i]
-        print(grade_used)
-        roc_curve_bootstrap(gradelist[i] > lim, preds[i], savepath=
-                            save_path + '\\roc_' + grade_used + '_' + arguments.str_components + '_' + method,
-                            lim=lim)
+   # # Receiver operating characteristics curve
+   # split = arguments.split
+   # #save_path = arguments.save_path
+   # for i in range(len(arguments.grades_used)):
+   #     lim = (np.min(gradelist[i]) + np.max(gradelist[i])) // 2
+   #     grade_used = arguments.grades_used[i]
+   #     print(grade_used)
+   #     roc_curve_bootstrap(gradelist[i] > lim, preds[i], savepath=
+   #     save_path + '\\roc_' + grade_used + '_' + arguments.str_components + '_' + split, lim=lim)
+
+    split = arguments.split
+    save_root = arguments.save_path
+    lim = 1
+    save_path = save_root + '\\roc_' + arguments.str_components + '_' + split
+    roc_curve_multi(preds, gradelist, lim, save_path)
+
 
     # Display spent time
     t = time() - start_time

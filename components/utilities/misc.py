@@ -101,7 +101,7 @@ def print_images(images, title=None, subtitles=None, save_path=None, sample=None
     # Save or show
     if save_path is not None and sample is not None:
         if not os.path.exists(save_path):
-            os.makedirs(save_path)
+            os.makedirs(save_path, exist_ok=True)
         plt.tight_layout()  # Make sure that axes are not overlapping
         fig.savefig(save_path + sample, transparent=transparent)
         plt.close(fig)
@@ -184,7 +184,7 @@ def print_orthogonal(data, invert=True, res=3.2, title=None, cbar=True):
 def save_orthogonal(path, data, invert=True, res=3.2, title=None, cbar=True):
     directory = path.rsplit('\\', 1)[0]
     if not os.path.exists(directory):
-        os.makedirs(directory)
+        os.makedirs(directory, exist_ok=True)
 
     dims = np.array(np.shape(data)) // 2
     dims2 = np.array(np.shape(data))

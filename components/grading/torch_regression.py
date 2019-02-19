@@ -81,7 +81,7 @@ def torch_regression(x_train, x_val, y_train, y_val, learning_rate=1e-5, savepat
 def pipeline(args, grade_name, train_group, test_group):
     # Check save path
     if not os.path.exists(args.save_path):
-        os.makedirs(args.save_path)
+        os.makedirs(args.save_path, exist_ok=True)
 
     # Load grades to array
     grades_train, hdr_train_grade = load_excel(args.train_path, titles=[grade_name])
@@ -157,7 +157,7 @@ def pipeline(args, grade_name, train_group, test_group):
     for k in range(len(grades)):
         txt = hdr_grades[k] + str(grades[k])
         ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
-    plt.savefig(args.save_path + '\\linear_' + grade_name + '_' + str(args.n_components) + '_' + args.regression,
+    plt.savefig(args.save_path + '\\linear_' + grade_name + '_' + str(args.n_components) + '_' + args.split,
                 bbox_inches='tight')
     plt.close()
 

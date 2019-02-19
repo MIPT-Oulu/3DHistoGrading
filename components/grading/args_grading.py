@@ -47,7 +47,7 @@ surf_90p_corr = {'ks1': 15, 'sigma1': 1, 'ks2': 25, 'sigma2': 2, 'N': 8, 'R': 22
 
 # Grades pipeline is tested against
 grades = ['surf_sub', 'deep_mat', 'deep_cell', 'deep_sub', 'calc_mat', 'calc_vasc', 'calc_sub']
-grades_cut = ['surf_sub', 'deep_mat', 'deep_cell', 'calc_mat', 'calc_vasc']
+grades_cut = ['surf_sub', 'deep_mat', 'calc_mat']
 
 # Parameter sets
 set_5 = [surf_5n, deep_mat_5n, deep_cell_5n, deep_sub_5n, calc_mat_5n, calc_vasc_5n, calc_sub_5n]
@@ -74,9 +74,9 @@ def return_args(root, choice, pars=set_90p, grade_list=grades):
     parser.add_argument('--n_jobs', type=int, default=12)
     parser.add_argument('--n_components', type=int, default=0.9)
     parser.add_argument('--str_components', type=str, default='90')
-    parser.add_argument('--regression', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
+    parser.add_argument('--split', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
     parser.add_argument('--convolution', type=bool, default=False)
     parser.add_argument('--normalize_hist', type=bool, default=True)
     parser.add_argument('--pars', type=dict, default=pars)
-    parser.add_argument('--grades_used', type=str, default=grade_list)
+    parser.add_argument('--grades_used', type=str, default=grades_cut)
     return parser.parse_args()

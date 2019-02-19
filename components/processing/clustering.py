@@ -19,6 +19,7 @@ def segment_clusters(image, clusters=3):
     plt.show()
     return
 
+
 def kmeans(image, clusters=2, scale=True):
 
     # Reshape image
@@ -221,8 +222,8 @@ def kmeans_scikit(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3
     a1 = cv2.contourArea(contours[-1])
     a2 = cv2.contourArea(contours[-2])
 
-    # Check location of the contour
-    if y + h // 2 > dims[0] // 2 and a2 > a1 / 4:
+    # Check location of the contour (not too high cluster or too small second largest cluster)
+    if y + h // 2 > 3 * dims[0] // 5 and a2 > a1 / 4:
         # Get second largest contour
         c = contours[-2]
         # Bounding rectangle for largest contour
@@ -241,7 +242,7 @@ def kmeans_scikit(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3
         # Loop to fill above the contour bottom
         for i in range(dims[1]):
             for j in range(dims[0]):
-                if largest_cnt[j, i] == 255 or j > x + w:
+                if largest_cnt[j, i] == 255 or j > y + h:
                     bone_mask[j:, i] = 0
         # Get result
         if scale:

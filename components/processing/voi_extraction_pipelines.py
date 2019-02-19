@@ -138,11 +138,10 @@ def pipeline_subvolume_mean_std(args, sample):
     print('2. Orient sample')
     data, angles = orient(data, bounds, args.rotation)
     save_orthogonal(save_path + "\\Images\\" + sample + "_orient.png", data)
-    render_volume(data, save_path + "\\Images\\" + sample + "_orient_render.png")
 
     # 3. Crop and flip volume
     print('3. Crop and flip center volume:')
-    data, crop = crop_center(data, args.size['width'], args.size_wide, method=args.crop_method)  # crop data
+    data, crop = crop_center(data, args.size['width'], args.size['width'], method=args.crop_method)  # crop data
     print_orthogonal(data)
     save_orthogonal(save_path + "\\Images\\" + sample + "_orient_cropped.png", data)
     render_volume(data, save_path + "\\Images\\" + sample + "_orient_cropped_render.png")
@@ -163,7 +162,7 @@ def pipeline_subvolume_mean_std(args, sample):
             mask = segmentation_pytorch(data, args.model_path, args.snapshots, cropsize, offset)
         # K-means segmentation
         elif args.segmentation is 'kmeans':
-            mask = segmentation_kmeans(data, n_clusters=3, offset=offset, n_jobs=args.n_jobs)
+            mask = segmentation_kmeans(data, n_clusters=3, offset=offset, n_jobs=args.n_jobs, method='scikit')
         else:
             raise Exception('Invalid segmentation selection!')
     # CNTK segmentation
@@ -308,9 +307,9 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
 def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=None):
     # Create save paths
     if not os.path.exists(savepath + "\\MeanStd\\"):
-        os.makedirs(savepath + "\\MeanStd\\")
+        os.makedirs(savepath + "\\MeanStd\\", exist_ok=True)
     if not os.path.exists(savepath + "\\Images\\MeanStd\\"):
-        os.makedirs(savepath + "\\Images\\MeanStd\\")
+        os.makedirs(savepath + "\\Images\\MeanStd\\", exist_ok=True)
 
     # Surface
     if otsu_thresh is not None:

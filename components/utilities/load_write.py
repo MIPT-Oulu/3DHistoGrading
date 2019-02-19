@@ -16,20 +16,23 @@ def find_image_paths(path, files):
     for k in range(len(files)):
         # Data path
         try:
-            os.listdir(path + "\\" + files[k] + '\\' + files[k] + '_Rec')
-            file_paths.append(path + "\\" + files[k] + '\\' + files[k] + '_Rec')
-        except FileNotFoundError:
+            os.listdir(path + "\\" + files[k] + "\\" + "Registration")
+            file_paths.append(path + "\\" + files[k] + "\\" + "Registration")
+        except FileNotFoundError:  # Case: Unusable folder
             try:
-                os.listdir(path + '\\' + files[k])
-                file_paths.append(path + '\\' + files[k])
-            except FileNotFoundError:  # Case: sample name folder twice
-                print('Extending sample name for {0}'.format(files[k]))
+                os.listdir(path + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration")
+                file_paths.append(path + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration")
+            except FileNotFoundError:
                 try:
-                    os.listdir(path + "\\" + files[k] + "\\" + "Registration")
-                    file_paths.append(path + "\\" + files[k] + "\\" + "Registration")
-                except FileNotFoundError:  # Case: Unusable folder
-                    print('Skipping folder {0}'.format(files[k]))
-                    continue
+                    os.listdir(path + "\\" + files[k] + '\\' + files[k] + '_Rec')
+                    file_paths.append(path + "\\" + files[k] + '\\' + files[k] + '_Rec')
+                except FileNotFoundError:
+                    try:
+                        os.listdir(path + '\\' + files[k])
+                        file_paths.append(path + '\\' + files[k])
+                    except FileNotFoundError:  # Case: Unusable folder
+                        print('Skipping folder {0}'.format(files[k]))
+                        continue
     return file_paths
 
 
@@ -125,7 +128,7 @@ def save(path, file_name, data, n_jobs=12):
     :param n_jobs: Number of parallel workers. Check N of CPU cores.
     """
     if not os.path.exists(path):
-        os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
     nfiles = np.shape(data)[2]
 
     if data[0, 0, 0].dtype is bool:
@@ -256,7 +259,7 @@ def load_vois_h5(pth, sample):
 
 def save_h5(impath, flist, dsetname="dataset"):
     if not os.path.exists(impath.rsplit('\\', 1)[0]):
-        os.makedirs(impath.rsplit('\\', 1)[0])
+        os.makedirs(impath.rsplit('\\', 1)[0], exist_ok=True)
     f = h5py.File(impath, "w")
     f.create_dataset(dsetname, data=flist)
     f.close()
@@ -286,7 +289,7 @@ def load_excel(path, titles=None):
 
 def save_excel(array, save_path, files=None):
     if not os.path.exists(save_path.rsplit('\\', 1)[0]):
-        os.makedirs(save_path.rsplit('\\', 1)[0])
+        os.makedirs(save_path.rsplit('\\', 1)[0], exist_ok=True)
     writer = pd.ExcelWriter(save_path)
     if files is not None:
         try:

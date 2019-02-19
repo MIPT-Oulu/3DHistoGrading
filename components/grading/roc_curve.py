@@ -7,6 +7,31 @@ from sklearn.metrics import roc_auc_score, roc_curve, mean_squared_error
 from tqdm.auto import tqdm
 
 
+def roc_curve_multi(preds, targets, lim, savepath=None, seed=42):
+    """ROC curve for three predictions."""
+
+    fpr_surf, tpr_surf = roc_curve(targets[0] > lim, preds[0])
+    fpr_deep, tpr_deep = roc_curve(targets[1] > lim, preds[1])
+    fpr_calc, tpr_calc = roc_curve(targets[2] > lim, preds[2])
+
+    auc_surf = roc_auc_score(targets[0] > lim, preds[0])
+    auc_deep = roc_auc_score(targets[1] > lim, preds[1])
+    auc_calc = roc_auc_score(targets[2] > lim, preds[2])
+
+    # Plot figure
+    plt.figure(figsize=(8, 8))
+    plt.plot(fpr_surf, tpr_surf, color=(217 / 225, 95 / 225, 2 / 225))
+    plt.plot(fpr_deep, tpr_deep, color=(27 / 225, 158 / 225, 119 / 225))
+    plt.plot(fpr_calc, tpr_calc, color=(117 / 225, 112 / 225, 179 / 225))
+    plt.legend(['surface, AUC: {:0.3f}'.format(auc_surf),
+                'deep, AUC: {:0.3f}'.format(auc_deep),
+                'calcified, AUC: {:0.3f}'.format(auc_calc)], loc='lower right', fontsize=36)
+    plt.ylabel('True Positive Rate', fontsize=36)
+    plt.xlabel('False Positive Rate', fontsize=36)
+    plt.savefig(savepath, bbox_inches='tight')
+    plt.show()
+
+
 def roc_curve_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42, lim=None):
     """Evaluates ROC curve using bootstrapping
 
@@ -116,7 +141,7 @@ def mse_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42):
     return mse_m, CI_l_mse, CI_h_mse
 
 
-def roc_multi(y, preds, y2, preds2, y3, preds3, savepath=None, n_bootstrap=1000, seed=42):
+def roc_multi_bootstrap(y, preds, y2, preds2, y3, preds3, savepath=None, n_bootstrap=1000, seed=42):
     # 1
     np.random.seed(seed)
     aucs = []
@@ -216,24 +241,3 @@ def roc_multi(y, preds, y2, preds2, y3, preds3, savepath=None, n_bootstrap=1000,
     print('AUC:', np.round(auc, 5))
     print(f'CI [{CI_l:.5f}, {CI_h:.5f}]')
     return auc, CI_l, CI_h
-
-# def roc_multi():
-#    sfpr,stpr,_ = roc_curve(sgrades>1,surfp_log,pos_label=1)
-#    dfpr,dtpr,_ = roc_curve(dgrades>1,deepp_log,pos_label=1)
-#    cfpr,ctpr,_ = roc_curve(cgrades>1,calcp_log,pos_label=1)
-#    sscore = roc_auc_score(sgrades>1,surfp_log)
-#    dscore = roc_auc_score(dgrades>1,deepp_log)
-#    cscore = roc_auc_score(cgrades>1,calcp_log)
-#
-#    plt.figure(figsize=(11,11))
-#    plt.plot(sfpr,stpr,color='r')
-#    plt.plot(dfpr,dtpr,color='g')
-#    plt.plot(cfpr,ctpr,color='b')
-#    plt.legend(['surface, AUC: {:0.3f}'.format(sscore),
-#                'deep, AUC: {:0.3f}'.format(dscore),
-#                'calcified, AUC: {:0.3f}'.format(cscore)],loc='lower right')
-#    plt.ylabel('True Positive Rate')
-#    plt.xlabel('False Positive Rate')
-#    savepath = r'Z:\3DHistoData\Grading\ROC.png'
-#    plt.savefig(savepath, bbox_inches='tight')
-#    plt.show()

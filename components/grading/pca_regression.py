@@ -1,6 +1,7 @@
 import numpy as np
 
 from sklearn.linear_model import Ridge, LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
 from sklearn.decomposition import PCA
@@ -27,7 +28,7 @@ def regress_loo(features, grades):
     return np.array(predictions).squeeze(), model.coef_
 
 
-def regress_logo(features, grades, groups):
+def regress_logo(features, grades, groups, method='ridge'):
     """Calculates linear regression with leave-one-group-out split."""
     predictions = []
     # Leave one out split
@@ -43,7 +44,10 @@ def regress_logo(features, grades, groups):
 
         y_train, y_test = grades[train_idx], grades[test_idx]
         # Linear regression
-        model = Ridge(alpha=1, normalize=True, random_state=42)
+        if method == 'ridge':
+            model = Ridge(alpha=1, normalize=True, random_state=42)
+        else:
+            model = RandomForestClassifier(n_estimators=trees, n_jobs=12, max_depth=d, random_state=42)
         model.fit(x_train, y_train)
         # Predicted score
         predictions.append(model.predict(x_test))

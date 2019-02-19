@@ -8,12 +8,13 @@ from components.utilities.load_write import find_image_paths
 
 if __name__ == '__main__':
     # Arguments
-    choice = 'Insaf'
-    data_path = r'X:\3DHistoData'
+    choice = '2mm_new'
+    data_path = r'Y:\3DHistoData'
     arguments = arg.return_args(data_path, choice)
+    arguments.data_path = r'Y:\3DHistoData\rekisteroidyt_2mm'
 
     # Use listbox (Result is saved in listbox.file_list)
-    listbox.GetFileSelection(arguments.path)
+    listbox.GetFileSelection(arguments.data_path)
 
     # Extract sample list
     samples = os.listdir(arguments.data_path)
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     print('')
 
     # Find paths for image stacks
-    file_paths = find_image_paths(arguments.path, samples)
+    file_paths = find_image_paths(arguments.data_path, samples)
 
     # Loop for pre-processing samples
     for k in range(len(file_paths)):

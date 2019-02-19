@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import h5py
 import pandas as pd
 
 from argparse import ArgumentParser
@@ -24,17 +23,6 @@ def pipeline(arguments, selection=None, pat_groups=None):
     for k in range(len(files)):
         # Load images
         image_surf, image_deep, image_calc = load_vois_h5(arguments.path, files[k])
-
-        ## Crop
-        #if np.shape(image_surf)[0] > 400:
-        #    crop = (np.shape(image_surf)[0] - 400) // 2
-        #  #  image_surf = image_surf[crop:-crop, crop:-crop]
-        #if np.shape(image_deep)[0] > 400:
-        #    crop = (np.shape(image_deep)[0] - 400) // 2
-        #    image_deep = image_deep[crop:-crop, crop:-crop]
-        #if np.shape(image_calc)[0] > 400:
-        #    crop = (np.shape(image_calc)[0] - 400) // 2
-        #    image_calc = image_calc[crop:-crop, crop:-crop]
 
         # Append to list
         images_surf.append(image_surf)
@@ -77,8 +65,8 @@ if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
     comps = [15, 20]  # PCA components
-    # parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm_Python')
-    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_Insaf_combined')
+    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm_Python')
+    # parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_Insaf_combined')
     parser.add_argument('--path_grades', type=str, default=r'Y:\3DHistoData\Grading\trimmed_grades_2mm.xlsx')
     parser.add_argument('--grade_keys', type=str, default='surf_sub')
     parser.add_argument('--grade_mode', type=str, choices=['sum', 'mean'], default='sum')
@@ -103,8 +91,8 @@ if __name__ == '__main__':
     # Exclude samples
     files = [files[i] for i in listbox.file_list]
     print('Selected files')
-    for k in range(len(files)):
-        print(files[k])
+    for f in range(len(files)):
+        print(files[f])
     print('')
 
     for comp in comps:

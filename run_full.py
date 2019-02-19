@@ -9,15 +9,15 @@ from components.utilities.load_write import find_image_paths
 from scripts.run_lbp_features_vois import pipeline_lbp
 from scripts.run_pca_regression import pipeline_prediction
 
-
 if __name__ == '__main__':
+
     # Arguments
-    choice = 'Isokerays'
-    data_path = r'X:\3DHistoData'
+    choice = 'Isokerays:test'
+    data_path = r'Y:\3DHistoData'
     arguments_p = arg_process.return_args(data_path, choice)
     arguments_g = arg_grading.return_args(data_path, choice, pars=arg_grading.set_90p, grade_list=arg_grading.grades)
     # Path to image stacks
-    arguments_p.data_path = r'V:\PTA1272\Isokerays_PTA'
+    arguments_p.data_path = r'U:\PTA1272\Isokerays_PTA'
 
     # Use listbox to select samples (Result is saved in listbox.file_list)
     listbox.GetFileSelection(arguments_p.data_path)
