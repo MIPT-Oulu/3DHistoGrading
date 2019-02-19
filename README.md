@@ -3,6 +3,10 @@
 
 (c) Santeri Rytky, University of Oulu, 2018-2019
 
+<center>
+<img src="https://github.com/mipt-oulu/oaprogression/blob/master/documentation/flowchart.png" width="900"/> 
+</center>
+
 ## Background
 
 This repository is used to create linear regression models to evaluate degeneration of osteochondral samples.

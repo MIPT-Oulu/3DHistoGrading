@@ -10,24 +10,36 @@ from tqdm.auto import tqdm
 def roc_curve_multi(preds, targets, lim, savepath=None, seed=42):
     """ROC curve for three predictions."""
 
-    fpr_surf, tpr_surf = roc_curve(targets[0] > lim, preds[0])
-    fpr_deep, tpr_deep = roc_curve(targets[1] > lim, preds[1])
-    fpr_calc, tpr_calc = roc_curve(targets[2] > lim, preds[2])
+    fpr_surf, tpr_surf, _ = roc_curve(targets[0] > lim, preds[0])
+    fpr_deep, tpr_deep, _ = roc_curve(targets[1] > lim, preds[1])
+    fpr_calc, tpr_calc, _ = roc_curve(targets[2] > lim, preds[2])
 
     auc_surf = roc_auc_score(targets[0] > lim, preds[0])
     auc_deep = roc_auc_score(targets[1] > lim, preds[1])
     auc_calc = roc_auc_score(targets[2] > lim, preds[2])
 
     # Plot figure
-    plt.figure(figsize=(8, 8))
-    plt.plot(fpr_surf, tpr_surf, color=(217 / 225, 95 / 225, 2 / 225))
-    plt.plot(fpr_deep, tpr_deep, color=(27 / 225, 158 / 225, 119 / 225))
-    plt.plot(fpr_calc, tpr_calc, color=(117 / 225, 112 / 225, 179 / 225))
+    plt.figure(figsize=(11, 11))
+    #red = (217 / 225, 95 / 225, 2 / 225)
+    red = (225 / 225, 126 / 225, 49 / 225)
+    #green = (217 / 225, 95 / 225, 2 / 225)
+    green = (128 / 225, 160 / 225, 60 / 225)
+    #blue = (117 / 225, 112 / 225, 179 / 225)
+    blue = (132 / 225, 102 / 225, 179 / 225)
+    plt.plot(fpr_surf, tpr_surf, color=blue, linewidth=3)
+    plt.plot(fpr_deep, tpr_deep, color=green, linewidth=3)
+    plt.plot(fpr_calc, tpr_calc, color=red, linewidth=3)
+    plt.plot([0, 1], [0, 1], '--', color='black')
     plt.legend(['surface, AUC: {:0.3f}'.format(auc_surf),
                 'deep, AUC: {:0.3f}'.format(auc_deep),
-                'calcified, AUC: {:0.3f}'.format(auc_calc)], loc='lower right', fontsize=36)
+                'calcified, AUC: {:0.3f}'.format(auc_calc)], loc='lower right', fontsize=30)
     plt.ylabel('True Positive Rate', fontsize=36)
     plt.xlabel('False Positive Rate', fontsize=36)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
+    plt.xlim([-0.01, 1.01])
+    plt.ylim([-0.01, 1.01])
+    plt.grid()
     plt.savefig(savepath, bbox_inches='tight')
     plt.show()
 

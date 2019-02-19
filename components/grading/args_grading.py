@@ -44,6 +44,11 @@ surf_90p = {'ks1': 15, 'sigma1': 1, 'ks2': 25, 'sigma2': 2, 'N': 8, 'R': 22, 'r'
 surf_95p = {'ks1': 5, 'sigma1': 1, 'ks2': 15, 'sigma2': 13, 'N': 8, 'R': 20, 'r': 14, 'wc': 13, 'wl': 5, 'ws': 11}
 # Correlation (Equal to MSE training 90%)
 surf_90p_corr = {'ks1': 15, 'sigma1': 1, 'ks2': 25, 'sigma2': 2, 'N': 8, 'R': 22, 'r': 20, 'wc': 7, 'wl': 13, 'ws': 7}
+# 2mm 90%
+surf_90p_2m = {'ks1': 15, 'sigma1': 9, 'ks2': 7, 'sigma2': 2, 'N': 8, 'R': 25, 'r': 18, 'wc': 15, 'wl': 13, 'ws': 9}
+deep_mat_90p_2m = {'ks1': 21, 'sigma1': 4, 'ks2': 25, 'sigma2': 1, 'N': 8, 'R': 26, 'r': 7, 'wc': 5, 'wl': 9, 'ws': 11}
+deep_cell_90p_2m = {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5}
+calc_mat_90p_2m = {'ks1': 21, 'sigma1': 7, 'ks2': 11, 'sigma2': 3, 'N': 8, 'R': 27, 'r': 1, 'wc': 3, 'wl': 3, 'ws': 7}
 
 # Grades pipeline is tested against
 grades = ['surf_sub', 'deep_mat', 'deep_cell', 'deep_sub', 'calc_mat', 'calc_vasc', 'calc_sub']
@@ -56,13 +61,14 @@ set_15 = [surf_15n, deep_mat_15n, deep_cell_15n, deep_sub_15n, calc_mat_15n, cal
 set_20 = [surf_20n, deep_mat_20n, deep_cell_20n, deep_sub_20n, calc_mat_20n, calc_vasc_20n, calc_sub_20n]
 set_90p = [surf_90p, surf_90p, surf_90p, surf_90p, surf_90p, surf_90p, surf_90p]
 set_95p = [surf_95p, surf_95p, surf_95p, surf_95p, surf_95p, surf_95p, surf_95p]
+set_90p_2m = [surf_90p_2m, deep_mat_90p_2m, deep_cell_90p_2m, deep_mat_90p_2m, calc_mat_90p_2m, calc_mat_90p_2m, calc_mat_90p_2m]
 
 # Patient groups
 groups_2mm = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
                       15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
 
 
-def return_args(root, choice, pars=set_90p, grade_list=grades):
+def return_args(root, choice, pars=set_90p, grade_list=grades_cut):
     """Returns arguments needed in grading pipeline."""
 
     parser = ArgumentParser()
@@ -78,5 +84,5 @@ def return_args(root, choice, pars=set_90p, grade_list=grades):
     parser.add_argument('--convolution', type=bool, default=False)
     parser.add_argument('--normalize_hist', type=bool, default=True)
     parser.add_argument('--pars', type=dict, default=pars)
-    parser.add_argument('--grades_used', type=str, default=grades_cut)
+    parser.add_argument('--grades_used', type=str, default=grade_list)
     return parser.parse_args()

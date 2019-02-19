@@ -12,7 +12,7 @@ from components.utilities import listbox
 from components.utilities.misc import print_images
 
 
-def pipeline_lbp(args, selection, parameters, grade_used, save_images=False):
+def pipeline_lbp(args, selection, parameters, grade_used, save_images=True):
     """Calculates LBP features from mean and standard deviation images.
     Supports parallelization for decreased processing times."""
     # Start time
@@ -93,9 +93,9 @@ def load_voi(path, save, file, grade, par, save_images=False, max_roi=400):
 if __name__ == '__main__':
 
     # Arguments
-    choice = 'Insaf'
+    choice = '2mm'
     datapath = r'X:\3DHistoData'
-    arguments = arg.return_args(datapath, choice, pars=arg.set_90p, grade_list=arg.grades)
+    arguments = arg.return_args(datapath, choice, pars=arg.set_90p_2m, grade_list=arg.grades)
 
     # Use listbox (Result is saved in listbox.file_list)
     listbox.GetFileSelection(arguments.image_path)

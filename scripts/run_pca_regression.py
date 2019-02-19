@@ -68,7 +68,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, ch
 
     # Reference for pretrained PCA
     try:
-        reference_regress(features, grades, mean, args, pca, weights, grade_used + '_weights.dat')
+        reference_regress(features, grades, mean, args, pca, weights, grade_name + '_weights.dat')
     except:
         print('Reference model not found!')
 
@@ -85,7 +85,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, ch
     r2 = r2_score(grades, pred_linear.flatten())
     # Mean squared error
     mse_linear = mean_squared_error(grades, pred_linear)
-    mse_boot, l_mse, h_mse = mse_bootstrap(grades, pred_linear)
+    #mse_boot, l_mse, h_mse = mse_bootstrap(grades, pred_linear)
     # c1 = confusion_matrix(grades, np.round(pred_linear).astype('int'))
 
     # Save prediction
@@ -101,14 +101,14 @@ def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, ch
     df1.to_excel(writer, sheet_name='Prediction')
     writer.save()
 
-    ## Save calculated weights
-    #dataadjust = features.T - mean
-    #write_binary_weights(args.save_path + '\\' + grade_used + '_weights.dat',
-    #                     args.n_components,
-    #                     pca.components_,
-    #                     pca.singular_values_ / np.sqrt(dataadjust.shape[0] - 1),
-    #                     weights,
-    #                     mean)
+    # Save calculated weights
+    dataadjust = features.T - mean
+    write_binary_weights(args.save_path + '\\' + grade_name + '_weights.dat',
+                         score.shape[1],
+                         pca.components_,
+                         pca.singular_values_ / np.sqrt(dataadjust.shape[0] - 1),
+                         weights.flatten(),
+                         mean)
 
     # Display results
     if show_results:
@@ -121,18 +121,21 @@ def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, ch
         m, b = np.polyfit(grades, pred_linear.flatten(), 1)
         fig = plt.figure(figsize=(6, 6))
         ax2 = fig.add_subplot(111)
-        ax2.scatter(grades, pred_linear.flatten())
-        ax2.plot(grades, m * grades + b, '-', color='r')
-        ax2.set_xlabel('Actual grade')
-        ax2.set_ylabel('Predicted')
-        text_string = 'MSE: {0:.2f}, [{1:.2f}, {2:.2f}]\nSpearman: {3:.2f}\nWilcoxon: {4:.2f}\n$R^2$: {5:.2f}'\
-            .format(mse_boot, l_mse, h_mse, rho[0], wilc[1], r2)
+        ax2.scatter(grades, pred_linear.flatten(), linewidths=7, color=(132 / 225, 102 / 225, 179 / 225))
+        ax2.plot(grades, m * grades + b, '--', color='black')
+        ax2.set_xlabel('Actual grade', fontsize=24)
+        ax2.set_ylabel('Predicted', fontsize=24)
+        plt.xticks(fontsize=24)
+        plt.yticks(fontsize=24)
+        plt.title(grade_name)
+        text_string = 'MSE: {0:.2f}\nSpearman: {1:.2f}\nWilcoxon: {2:.2f}\n$R^2$: {3:.2f}'\
+            .format(mse_linear, rho[0], wilc[1], r2)
         ax2.text(0.05, 0.95, text_string, transform=ax2.transAxes, fontsize=14, verticalalignment='top')
-        for k in range(len(grades)):
-            txt = hdr_grades[k] + str(grades[k])
-            ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
+        #for k in range(len(grades)):
+        #    txt = hdr_grades[k] + str(grades[k])
+        #    ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
         plt.savefig(args.save_path + '\\linear_' + grade_name + '_' + args.str_components + '_' + args.split, bbox_inches='tight')
-        plt.close()
+        plt.show()
     return grades, pred_logistic, mse_linear
 
 
@@ -148,20 +151,20 @@ def reference_regress(features, grades, mean, args, pca, weights, model):
 
 if __name__ == '__main__':
     # Arguments
-    choice = 'Insaf'
+    choice = '2mm'
     path = r'X:\3DHistoData\Grading\LBP\\' + choice + '\\'
     parser = ArgumentParser()
     parser.add_argument('--feature_path', type=str, default=path + '\\Features_')
     parser.add_argument('--grades_used', type=str,
                         default=['surf_sub',
                                  'deep_mat',
-                                 'deep_cell',
-                                 'deep_sub',
+                              #   'deep_cell',
+                              #   'deep_sub',
                                  'calc_mat',
-                                 'calc_vasc',
-                                 'calc_sub'
+                               #  'calc_vasc',
+                               #  'calc_sub'
                                  ])
-    parser.add_argument('--split', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
+    parser.add_argument('--split', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='logo')
     parser.add_argument('--save_path', type=str, default=path)
     parser.add_argument('--n_components', type=int, default=0.9)
     parser.add_argument('--str_components', type=str, default='90')
