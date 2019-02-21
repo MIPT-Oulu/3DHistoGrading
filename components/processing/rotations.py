@@ -12,7 +12,7 @@ def orient(data, bounds, choice=1):
     dims = np.array(np.shape(data))
 
     # Skip large sample
-    if dims[0] > 1200 and dims[1] > 1200 or dims[2] > 2000:
+    if dims[0] * dims[1] * dims[2] > 3e9:  # Samples > 3GB
         print('Skipping orientation for large sample')
         return data, (0, 0)
 

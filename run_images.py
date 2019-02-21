@@ -8,10 +8,10 @@ from components.utilities.load_write import find_image_paths
 
 if __name__ == '__main__':
     # Arguments
-    choice = '2mm_new'
+    choice = 'Isokerays_test'
     data_path = r'Y:\3DHistoData'
     arguments = arg.return_args(data_path, choice)
-    arguments.data_path = r'Y:\3DHistoData\rekisteroidyt_2mm'
+    arguments.data_path = r'D:\PTA1272\Samples with missing grades'
 
     # Use listbox (Result is saved in listbox.file_list)
     listbox.GetFileSelection(arguments.data_path)
