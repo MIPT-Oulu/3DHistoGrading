@@ -76,7 +76,7 @@ def calculate_bci(image, interface, s_deep, s_calc, offset, threshold):
             if image[y, depth - z] < threshold / 2:
                 void = True
 
-        if void:
+        if void and depth > s_deep:
             # In case of void, don't use offset
             if depth < np.uint(dims[1] - s_calc):
                 calcified_voi[y, :] = image[y, depth + offset:depth + s_calc + offset]
@@ -95,7 +95,10 @@ def calculate_bci(image, interface, s_deep, s_calc, offset, threshold):
             calcified_voi[y, :] = image[y, depth:depth + s_calc]
 
         depths.append(depth)
-        deep_voi[y, :] = image[y, depth - s_deep:depth]
+        try:
+            deep_voi[y, :] = image[y, depth - s_deep:depth]
+        except ValueError:
+            deep_voi[y, :] = image[y, :s_deep]
     output = np.zeros((dims[0], s_deep + s_calc))
     output[:, :s_deep] = deep_voi
     output[:, -s_calc:] = calcified_voi

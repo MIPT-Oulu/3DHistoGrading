@@ -238,7 +238,7 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
     center = np.zeros(2)
 
     # Calculate center moment
-    crop = dims[2] // 3
+    crop = dims[2] // 2
     sumarray = data[:, :, :crop].sum(2).astype(float)
     # sumarray = data.sum(2).astype(float)
     sumarray -= sumarray.min()

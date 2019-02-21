@@ -65,14 +65,14 @@ if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
     comps = [15, 20]  # PCA components
-    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm_Python')
+    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm')
     # parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_Insaf_combined')
     parser.add_argument('--path_grades', type=str, default=r'Y:\3DHistoData\Grading\trimmed_grades_2mm.xlsx')
     parser.add_argument('--grade_keys', type=str, default='surf_sub')
     parser.add_argument('--grade_mode', type=str, choices=['sum', 'mean'], default='sum')
     parser.add_argument('-hist_normalize', type=bool, default=True)
     parser.add_argument('--n_components', type=int, default=0.9)
-    parser.add_argument('--n_pars', type=int, default=1000)
+    parser.add_argument('--n_pars', type=int, default=750)
     parser.add_argument('--classifier', type=str, choices=['ridge', 'random_forest'], default='ridge')
     parser.add_argument('--crop', type=int, default=0)
     parser.add_argument('--n_jobs', type=int, default=12)
@@ -101,32 +101,27 @@ if __name__ == '__main__':
         #args.n_components = comp
 
         # Surface subgrade
-        args.grade_keys = 'surf_sub'
+        #args.grade_keys = 'surf_sub'
         #pipeline(args, listbox.file_list, groups)
-        pipeline(args, listbox.file_list)
 
-        args.n_components = 0.95
-        # pipeline(args, listbox.file_list, groups)
-        pipeline(args, listbox.file_list)
-        break
         # Deep ECM
         args.grade_keys = 'deep_mat'
-        pipeline(args, listbox.file_list, groups)
-
-        # Deep cellularity
-        args.grade_keys = 'deep_cell'
-        pipeline(args, listbox.file_list, groups)
-
-        # Deep subgrade
-        args.grade_keys = 'deep_sub'
         pipeline(args, listbox.file_list, groups)
 
         # Calcified ECM
         args.grade_keys = 'calc_mat'
         pipeline(args, listbox.file_list, groups)
 
+        # Deep cellularity
+        args.grade_keys = 'deep_cell'
+        pipeline(args, listbox.file_list, groups)
+
         # Calcified vascularity
         args.grade_keys = 'calc_vasc'
+        pipeline(args, listbox.file_list, groups)
+
+        # Deep subgrade
+        args.grade_keys = 'deep_sub'
         pipeline(args, listbox.file_list, groups)
 
         # Calcified subgrade
