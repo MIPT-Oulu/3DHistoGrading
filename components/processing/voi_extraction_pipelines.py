@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import cv2
-import os
-import h5py
 
 from tqdm.auto import tqdm
 
@@ -12,7 +10,7 @@ from components.utilities.load_write import load_bbox, save
 from components.utilities.VTKFunctions import render_volume
 from components.processing.rotations import orient
 from components.processing.segmentation_pipelines import segmentation_cntk, segmentation_kmeans, segmentation_pytorch
-from components.processing.extract_volume import get_interface, deep_depth
+from components.processing.extract_volume import get_interface, deep_depth, mean_std
 
 
 def pipeline_mean_std(image_path, args, sample, mask_path=None):
@@ -302,99 +300,3 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
     else:
         print('Center moment selected')
     return data[xx1:xx2, yy1:yy2, :], (xx1, xx2, yy1, yy2)
-
-
-def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=None):
-    # Create save paths
-    if not os.path.exists(savepath + "\\MeanStd\\"):
-        os.makedirs(savepath + "\\MeanStd\\", exist_ok=True)
-    if not os.path.exists(savepath + "\\Images\\MeanStd\\"):
-        os.makedirs(savepath + "\\Images\\MeanStd\\", exist_ok=True)
-
-    # Surface
-    if otsu_thresh is not None:
-        voi_mask = surfvoi > otsu_thresh
-    else:
-        voi_mask, _ = otsu_threshold(surfvoi)
-    mean = (surfvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
-    centered = np.zeros(surfvoi.shape)
-    for i in range(surfvoi.shape[2]):
-        centered[:, :, i] = surfvoi[:, :, i] * voi_mask[:, :, i] - mean
-    std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
-
-    # Plot
-    fig = plt.figure(dpi=300)
-    ax1 = fig.add_subplot(321)
-    ax1.imshow(mean, cmap='gray')
-    plt.title('Mean')
-    ax2 = fig.add_subplot(322)
-    ax2.imshow(std, cmap='gray')
-    plt.title('Standard deviation')
-
-    # Save images
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_surface_mean.png",
-                ((mean - np.min(mean)) / (np.max(mean) - np.min(mean)) * 255))
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_surface_std.png",
-                ((std - np.min(std)) / (np.max(std) - np.min(std)) * 255))
-    # Save .dat
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_surface_mean.dat', mean, 'double')
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_surface_std.dat', std, 'double')
-    # Save .h5
-    h5 = h5py.File(savepath + "\\MeanStd\\" + sample + '.h5', 'w')
-    h5.create_dataset('surf', data=mean + std)
-
-    # Deep
-    if otsu_thresh is not None:
-        voi_mask = deepvoi > otsu_thresh
-    else:
-        voi_mask, _ = otsu_threshold(deepvoi)
-    mean = (deepvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
-    centered = np.zeros(deepvoi.shape)
-    for i in range(deepvoi.shape[2]):
-        centered[:, :, i] = deepvoi[:, :, i] * voi_mask[:, :, i] - mean
-    std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
-    ax3 = fig.add_subplot(323)
-    ax3.imshow(mean, cmap='gray')
-    ax4 = fig.add_subplot(324)
-    ax4.imshow(std, cmap='gray')
-
-    # Save images
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_deep_mean.png",
-                ((mean - np.min(mean)) / (np.max(mean) - np.min(mean)) * 255))
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_deep_std.png",
-                ((std - np.min(std)) / (np.max(std) - np.min(std)) * 255))
-    # Save .dat
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_deep_mean.dat', mean, 'double')
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_deep_std.dat', std, 'double')
-    # Save .h5
-    h5.create_dataset('deep', data=mean + std)
-
-    # Calc
-    if otsu_thresh is not None:
-        voi_mask = ccvoi > otsu_thresh
-    else:
-        voi_mask, _ = otsu_threshold(ccvoi)
-    mean = (ccvoi * voi_mask).sum(2) / (voi_mask.sum(2) + 1e-9)
-    centered = np.zeros(ccvoi.shape)
-    for i in range(ccvoi.shape[2]):
-        centered[:, :, i] = ccvoi[:, :, i] * voi_mask[:, :, i] - mean
-    std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
-
-    # Plot
-    ax5 = fig.add_subplot(325)
-    ax5.imshow(mean, cmap='gray')
-    ax6 = fig.add_subplot(326)
-    ax6.imshow(std, cmap='gray')
-    plt.show()
-
-    # Save images
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_cc_mean.png",
-                ((mean - np.min(mean)) / (np.max(mean) - np.min(mean)) * 255))
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_cc_std.png",
-                ((std - np.min(std)) / (np.max(std) - np.min(std)) * 255))
-    # Save .dat
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_cc_mean.dat', mean, 'double')
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_cc_std.dat', std, 'double')
-    # Save .h5
-    h5.create_dataset('calc', data=mean + std)
-    h5.close()

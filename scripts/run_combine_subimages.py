@@ -1,6 +1,4 @@
-from time import time
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 import h5py
 from joblib import Parallel, delayed
@@ -8,14 +6,11 @@ from argparse import ArgumentParser
 from tqdm import tqdm
 from copy import deepcopy
 
-from components.utilities.load_write import load_vois_h5, save_h5
+from components.utilities.load_write import load_vois_h5
 from components.utilities import listbox
 
 
 def pipeline(arg, selection, size=640-48, size_s=480-48):
-    # Start time
-    start_time = time()
-
     # List datasets
     files = os.listdir(arg.image_path)
     files.sort()
@@ -36,11 +31,12 @@ def pipeline(arg, selection, size=640-48, size_s=480-48):
     dims_l = images_surf[0].shape
     for i in range(0, len(files), 2):
         dims = images_surf[i].shape
-        if dims[0] < dims_l[0]:
+        if dims[0] <= dims_l[0]:
             s = deepcopy(size_s)
         else:
             s = deepcopy(size)
 
+        # Combine images
         im_surf = np.zeros((dims[0], s))
         im_surf[:, :dims[1]] = images_surf[i]
         im_surf[:, -dims[1]:] = images_surf[i + 1]
@@ -51,9 +47,9 @@ def pipeline(arg, selection, size=640-48, size_s=480-48):
         im_calc[:, :dims[1]] = images_calc[i]
         im_calc[:, -dims[1]:] = images_calc[i + 1]
 
-        plt.imshow(im_surf)
-        plt.show()
         # Save .h5
+        if not os.path.exists(arg.save_path):
+            os.makedirs(arg.save_path, exist_ok=True)
         h5 = h5py.File(arg.save_path + "\\" + files[i][:-8] + '.h5', 'w')
         h5.create_dataset('surf', data=im_surf)
         h5.create_dataset('deep', data=im_deep)
@@ -90,8 +86,8 @@ if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
     choice = 'Insaf'
-    parser.add_argument('--image_path', type=str, default=r'Y:\3DHistoData\MeanStd_' + choice)  # + '_Python')
-    parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\MeanStd_' + choice + '_combined')
+    parser.add_argument('--image_path', type=str, default=r'X:\3DHistoData\MeanStd_' + choice + '_sub')  # + '_Python')
+    parser.add_argument('--save_path', type=str, default=r'X:\3DHistoData\MeanStd_' + choice)
     parser.add_argument('--n_components', type=int, default=15)
     parser.add_argument('--n_jobs', type=int, default=12)
     parser.add_argument('--convolution', type=bool, default=False)

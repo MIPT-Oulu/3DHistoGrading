@@ -26,9 +26,9 @@ def roc_curve_multi(preds, targets, lim, savepath=None, seed=42):
     green = (128 / 225, 160 / 225, 60 / 225)
     #blue = (117 / 225, 112 / 225, 179 / 225)
     blue = (132 / 225, 102 / 225, 179 / 225)
-    plt.plot(fpr_surf, tpr_surf, color=blue, linewidth=3)
-    plt.plot(fpr_deep, tpr_deep, color=green, linewidth=3)
-    plt.plot(fpr_calc, tpr_calc, color=red, linewidth=3)
+    plt.plot(fpr_surf, tpr_surf, color=blue, linewidth=5)
+    plt.plot(fpr_deep, tpr_deep, color=green, linewidth=5)
+    plt.plot(fpr_calc, tpr_calc, color=red, linewidth=5)
     plt.plot([0, 1], [0, 1], '--', color='black')
     plt.legend(['surface, AUC: {:0.3f}'.format(auc_surf),
                 'deep, AUC: {:0.3f}'.format(auc_deep),

@@ -116,26 +116,12 @@ def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, ch
         print('Mean squared error, Area under curve (linear and logistic)')
         print(mse_linear, auc_linear, auc_logistic)
         print(r'Spearman: {0}, p: {1}, Wilcoxon p: {2}, r2: {3}'.format(rho[0], rho[1], wilc[1], r2))
-
-        # Scatter plot actual vs prediction
-        m, b = np.polyfit(grades, pred_linear.flatten(), 1)
-        fig = plt.figure(figsize=(6, 6))
-        ax2 = fig.add_subplot(111)
-        ax2.scatter(grades, pred_linear.flatten(), linewidths=7, color=(132 / 225, 102 / 225, 179 / 225))
-        ax2.plot(grades, m * grades + b, '--', color='black')
-        ax2.set_xlabel('Actual grade', fontsize=24)
-        ax2.set_ylabel('Predicted', fontsize=24)
-        plt.xticks(fontsize=24)
-        plt.yticks(fontsize=24)
-        plt.title(grade_name)
-        text_string = 'MSE: {0:.2f}\nSpearman: {1:.2f}\nWilcoxon: {2:.2f}\n$R^2$: {3:.2f}'\
+        text_string = 'MSE: {0:.2f}\nSpearman: {1:.2f}\nWilcoxon: {2:.2f}\n$R^2$: {3:.2f}' \
             .format(mse_linear, rho[0], wilc[1], r2)
-        ax2.text(0.05, 0.95, text_string, transform=ax2.transAxes, fontsize=14, verticalalignment='top')
-        #for k in range(len(grades)):
-        #    txt = hdr_grades[k] + str(grades[k])
-        #    ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
-        plt.savefig(args.save_path + '\\linear_' + grade_name + '_' + args.str_components + '_' + args.split, bbox_inches='tight')
-        plt.show()
+        save_fig = args.save_path + '\\linear_' + grade_name + '_' + args.str_components + '_' + args.split
+        # Draw plot
+        plot_linear(grades, pred_linear, text_string, grade_name, savepath=save_fig)
+
     return grades, pred_logistic, mse_linear
 
 
@@ -147,6 +133,29 @@ def reference_regress(features, grades, mean, args, pca, weights, model):
     reference = np.matmul(pcaref, weights)
     print('Sum of differences to actual grades (pretrained)')
     print(np.sum(np.abs((reference + 1.5).flatten() - grades)))
+
+
+def plot_linear(grades, pred_linear, text_string, title, savepath=None, annotate=False, headers=None):
+    # Scatter plot actual vs prediction
+    m, b = np.polyfit(grades, pred_linear.flatten(), 1)
+    fig = plt.figure(figsize=(6, 6))
+    ax2 = fig.add_subplot(111)
+    ax2.scatter(grades, pred_linear.flatten(), linewidths=7, color=(132 / 225, 102 / 225, 179 / 225))
+    ax2.plot(grades, m * grades + b, '--', color='black')
+    ax2.set_xlabel('Actual grade', fontsize=24)
+    ax2.set_ylabel('Predicted', fontsize=24)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
+    plt.title(title)
+
+    ax2.text(0.05, 0.95, text_string, transform=ax2.transAxes, fontsize=14, verticalalignment='top')
+    if annotate and headers is not None:
+        for k in range(len(grades)):
+            txt = headers[k]
+            ax2.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
+    if savepath is not None:
+        plt.savefig(savepath, bbox_inches='tight')
+    plt.show()
 
 
 if __name__ == '__main__':

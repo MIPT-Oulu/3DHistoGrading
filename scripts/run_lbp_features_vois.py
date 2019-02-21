@@ -9,10 +9,10 @@ import components.grading.args_grading as arg
 from components.grading.local_binary_pattern import local_normalize_abs as local_standard, MRELBP, Conv_MRELBP
 from components.utilities.load_write import save_excel, load_vois_h5
 from components.utilities import listbox
-from components.utilities.misc import print_images
+from components.utilities.misc import print_images, auto_corner_crop
 
 
-def pipeline_lbp(args, selection, parameters, grade_used, save_images=True):
+def pipeline_lbp(args, selection, parameters, grade_used):
     """Calculates LBP features from mean and standard deviation images.
     Supports parallelization for decreased processing times."""
     # Start time
@@ -26,9 +26,11 @@ def pipeline_lbp(args, selection, parameters, grade_used, save_images=True):
         files = [files[i] for i in selection]
 
     # Load and normalize images
+    save_images = args.save_images  # Choice whether to save images
+    print('Loading images...')
     images_norm = (Parallel(n_jobs=args.n_jobs)(delayed(load_voi)  # Initialize
                    (args.image_path, args.save_path, files[i], grade_used, parameters, save_images)
-                                                     for i in tqdm(range(len(files)), desc='Loading and normalizing')))  # Iterable
+                                                     for i in range(len(files))))  # Iterable
 
     # Calculate features
     if args.convolution:
@@ -57,37 +59,35 @@ def pipeline_lbp(args, selection, parameters, grade_used, save_images=True):
     print('Elapsed time: {0}s'.format(t))
 
 
-def load_voi(path, save, file, grade, par, save_images=False, max_roi=400):
-        # Load images
-        image_surf, image_deep, image_calc = load_vois_h5(path, file)
-        # Crop
-        if np.shape(image_surf)[0] > max_roi:
-            crop = (np.shape(image_surf)[0] - max_roi) // 2
-            image_surf = image_surf[crop:-crop, crop:-crop]
-        if np.shape(image_deep)[0] > max_roi:
-            crop = (np.shape(image_deep)[0] - max_roi) // 2
-            image_deep = image_deep[crop:-crop, crop:-crop]
-        if np.shape(image_calc)[0] > max_roi:
-            crop = (np.shape(image_calc)[0] - max_roi) // 2
-            image_calc = image_calc[crop:-crop, crop:-crop]
-        # Select VOI
-        if grade[:4] == 'surf':
-            image = image_surf[:]
-        elif grade[:4] == 'deep':
-            image = image_deep[:]
-        elif grade[:4] == 'calc':
-            image = image_calc[:]
-        else:
-            raise Exception('Check selected zone!')
-        # Normalize
-        image_norm = local_standard(image, par)
-        # Save image
-        if save_images:
-            titles_norm = ['Mean + Std', '', 'Normalized']
-            print_images((image, image, image_norm),
-                         subtitles=titles_norm, title=file + ' Input',
-                         save_path=save + r'\Images\Input\\', sample=file[:-3] + '_' + grade + '.png')
-        return image_norm
+def load_voi(path, save, file, grade, par, save_images=False):
+    """Loads mean+std images and performs automatic artefact crop and grayscale normalization."""
+    # Load images
+    image_surf, image_deep, image_calc = load_vois_h5(path, file)
+
+    # Select VOI
+    if grade[:4] == 'surf':
+        image = image_surf[:]
+    elif grade[:4] == 'deep':
+        image, cropped = auto_corner_crop(image_deep)
+        if cropped:
+            print('Automatically cropped sample {0}, deep zone from shape: ({1}, {2}) to: ({3}, {4})'
+                  .format(file[:-3], image_deep.shape[0], image_deep.shape[1], image.shape[0], image.shape[1]))
+    elif grade[:4] == 'calc':
+        image, cropped = auto_corner_crop(image_calc)
+        if cropped:
+            print('Automatically cropped sample {0}, calcified zone from shape: ({1}, {2}) to: ({3}, {4})'
+                  .format(file[:-3], image_calc.shape[0], image_calc.shape[1], image.shape[0], image.shape[1]))
+    else:
+        raise Exception('Check selected zone!')
+    # Normalize
+    image_norm = local_standard(image, par)
+    # Save image
+    if save_images:
+        titles_norm = ['Mean + Std', '', 'Normalized']
+        print_images((image, image, image_norm),
+                     subtitles=titles_norm, title=file + ' Input',
+                     save_path=save + r'\Images\Input\\', sample=file[:-3] + '_' + grade + '.png')
+    return image_norm
 
 
 if __name__ == '__main__':
@@ -95,7 +95,8 @@ if __name__ == '__main__':
     # Arguments
     choice = '2mm'
     datapath = r'X:\3DHistoData'
-    arguments = arg.return_args(datapath, choice, pars=arg.set_90p_2m, grade_list=arg.grades)
+    arguments = arg.return_args(datapath, choice, pars=arg.set_90p_2m, grade_list=arg.grades_cut)
+    arguments.save_path = r'X:\3DHistoData\Grading\LBP\\' + choice + '_autocrop'
 
     # Use listbox (Result is saved in listbox.file_list)
     listbox.GetFileSelection(arguments.image_path)

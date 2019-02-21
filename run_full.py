@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # Find image paths from list
     file_paths = find_image_paths(arguments_p.data_path, samples)
 
-    # Loop for pre-processing samples
+    # Pre-processing samples
     for k in range(len(file_paths)):
         start = time()
         # Initiate pipeline
@@ -48,7 +48,7 @@ if __name__ == '__main__':
             continue
     print('Done')
 
-    # Call Grading pipelines for different grade evaluations
+    # Grading pipeline for different grade evaluations
     for k in range(len(arguments_g.grades_used)):
         # LBP features
         pars = arguments_g.pars[k]
