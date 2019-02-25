@@ -123,8 +123,8 @@ def deep_depth(data, mask):
 
 def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=None):
     # Create save paths
-    if not os.path.exists(savepath + "\\MeanStd\\"):
-        os.makedirs(savepath + "\\MeanStd\\", exist_ok=True)
+    if not os.path.exists(savepath):
+        os.makedirs(savepath, exist_ok=True)
     if not os.path.exists(savepath + "\\Images\\MeanStd\\"):
         os.makedirs(savepath + "\\Images\\MeanStd\\", exist_ok=True)
 
@@ -148,15 +148,11 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
     ax2.imshow(std, cmap='gray')
     plt.title('Standard deviation')
 
-    # Save images
+    # Save
     meansd = mean + std
     cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_surface_mean_std.png",
                 ((meansd - np.min(meansd)) / (np.max(meansd) - np.min(meansd)) * 255))
-    # Save .dat
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_surface_mean.dat', mean, 'double')
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_surface_std.dat', std, 'double')
-    # Save .h5
-    h5 = h5py.File(savepath + "\\MeanStd\\" + sample + '.h5', 'w')
+    h5 = h5py.File(savepath + "\\" + sample + '.h5', 'w')
     h5.create_dataset('surf', data=meansd)
 
     # Deep
@@ -169,19 +165,17 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
     for i in range(deepvoi.shape[2]):
         centered[:, :, i] = deepvoi[:, :, i] * voi_mask[:, :, i] - mean
     std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
+
+    # Continue plot
     ax3 = fig.add_subplot(323)
     ax3.imshow(mean, cmap='gray')
     ax4 = fig.add_subplot(324)
     ax4.imshow(std, cmap='gray')
 
-    # Save images
+    # Save
     meansd = mean + std
     cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_deep_mean_std.png",
                 ((meansd - np.min(meansd)) / (np.max(meansd) - np.min(meansd)) * 255))
-    # Save .dat
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_deep_mean.dat', mean, 'double')
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_deep_std.dat', std, 'double')
-    # Save .h5
     h5.create_dataset('deep', data=meansd)
 
     # Calc
@@ -195,20 +189,16 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
         centered[:, :, i] = ccvoi[:, :, i] * voi_mask[:, :, i] - mean
     std = np.sqrt(np.sum((centered * voi_mask) ** 2, 2) / (voi_mask.sum(2) - 1 + 1e-9))
 
-    # Plot
+    # Continue plot
     ax5 = fig.add_subplot(325)
     ax5.imshow(mean, cmap='gray')
     ax6 = fig.add_subplot(326)
     ax6.imshow(std, cmap='gray')
     plt.show()
 
-    # Save images
+    # Save
     meansd = mean + std
     cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_cc_mean_std.png",
                 ((meansd - np.min(meansd)) / (np.max(meansd) - np.min(meansd)) * 255))
-    # Save .dat
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_cc_mean.dat', mean, 'double')
-    # writebinaryimage(savepath + "\\MeanStd\\" + sample + '_cc_std.dat', std, 'double')
-    # Save .h5
     h5.create_dataset('calc', data=mean + std)
     h5.close()

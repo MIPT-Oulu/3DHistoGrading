@@ -1,6 +1,7 @@
 cntk==2.6
 cntk-gpu==2.6
 h5py==2.9.0
+hyperopt==0.1.2
 joblib=0.12.1
 matplotlib==2.2.2
 numpy==1.15.2

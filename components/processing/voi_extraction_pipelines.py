@@ -169,7 +169,7 @@ def pipeline_subvolume_mean_std(args, sample):
     print_orthogonal(mask)
     save_orthogonal(save_path + "\\Images\\" + sample + "_mask.png", mask * data)
     render_volume((mask > 0.7) * data, save_path + "\\Images\\" + sample + "_mask_render.png")
-    save(save_path + '\\' + sample + '\\Mask', sample, mask)
+    save(save_path + '\\Mask\\' + sample, sample, mask)
 
     # 5. Get VOIs
     # Crop

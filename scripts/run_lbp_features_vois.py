@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 from time import time
 
@@ -68,15 +69,19 @@ def load_voi(path, save, file, grade, par, save_images=False):
     if grade[:4] == 'surf':
         image = image_surf[:]
     elif grade[:4] == 'deep':
-        image, cropped = auto_corner_crop(image_deep)
-        if cropped:
-            print('Automatically cropped sample {0}, deep zone from shape: ({1}, {2}) to: ({3}, {4})'
-                  .format(file[:-3], image_deep.shape[0], image_deep.shape[1], image.shape[0], image.shape[1]))
+        image = image_deep[:]
+        #image, cropped = auto_corner_crop(image_deep)
+        #if cropped:
+        #    # print_crop(image_deep, image, file[:-3] + ' deep zone')
+        #    print('Automatically cropped sample {0}, deep zone from shape: ({1}, {2}) to: ({3}, {4})'
+        #          .format(file[:-3], image_deep.shape[0], image_deep.shape[1], image.shape[0], image.shape[1]))
     elif grade[:4] == 'calc':
-        image, cropped = auto_corner_crop(image_calc)
-        if cropped:
-            print('Automatically cropped sample {0}, calcified zone from shape: ({1}, {2}) to: ({3}, {4})'
-                  .format(file[:-3], image_calc.shape[0], image_calc.shape[1], image.shape[0], image.shape[1]))
+        image = image_calc[:]
+        #image, cropped = auto_corner_crop(image_calc)
+        #if cropped:
+        #    # print_crop(image_calc, image, file[:-3] + ' calcified zone')
+        #    print('Automatically cropped sample {0}, calcified zone from shape: ({1}, {2}) to: ({3}, {4})'
+        #          .format(file[:-3], image_calc.shape[0], image_calc.shape[1], image.shape[0], image.shape[1]))
     else:
         raise Exception('Check selected zone!')
     # Normalize
@@ -90,13 +95,36 @@ def load_voi(path, save, file, grade, par, save_images=False):
     return image_norm
 
 
-if __name__ == '__main__':
+def print_crop(image, image_crop, title=None, savepath=None):
+    fig = plt.figure(dpi=500)
+    ax1 = fig.add_subplot(121)
+    cax1 = ax1.imshow(image, cmap='gray')
+    if not isinstance(image, np.bool_):
+        cbar1 = fig.colorbar(cax1, ticks=[np.min(image), np.max(image)], orientation='horizontal')
+        cbar1.solids.set_edgecolor("face")
+    ax1 = fig.add_subplot(122)
+    cax1 = ax1.imshow(image_crop, cmap='gray')
+    if not isinstance(image_crop, np.bool_):
+        cbar1 = fig.colorbar(cax1, ticks=[np.min(image_crop), np.max(image_crop)], orientation='horizontal')
+        cbar1.solids.set_edgecolor("face")
 
+    # Give plot a title
+    if title is not None:
+        fig.suptitle(title)
+
+    # Save images
+    plt.tight_layout()
+    if savepath is not None:
+        fig.savefig(savepath, bbox_inches="tight", transparent=True)
+    plt.show()
+
+
+if __name__ == '__main__':
     # Arguments
     choice = '2mm'
     datapath = r'X:\3DHistoData'
-    arguments = arg.return_args(datapath, choice, pars=arg.set_90p_2m, grade_list=arg.grades_cut)
-    arguments.save_path = r'X:\3DHistoData\Grading\LBP\\' + choice + '_autocrop'
+    arguments = arg.return_args(datapath, choice, pars=arg.set_90p_2m_cut, grade_list=arg.grades_cut)
+    arguments.save_path = r'X:\3DHistoData\Grading\LBP\\' + choice
 
     # Use listbox (Result is saved in listbox.file_list)
     listbox.GetFileSelection(arguments.image_path)

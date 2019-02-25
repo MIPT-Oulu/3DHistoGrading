@@ -47,9 +47,16 @@ surf_90p_corr = {'ks1': 15, 'sigma1': 1, 'ks2': 25, 'sigma2': 2, 'N': 8, 'R': 22
 # 2mm 90%
 surf_90p_2m = {'ks1': 15, 'sigma1': 9, 'ks2': 7, 'sigma2': 2, 'N': 8, 'R': 25, 'r': 18, 'wc': 15, 'wl': 13, 'ws': 9}
 deep_mat_90p_2m = {'ks1': 21, 'sigma1': 4, 'ks2': 25, 'sigma2': 1, 'N': 8, 'R': 26, 'r': 7, 'wc': 5, 'wl': 9, 'ws': 11}
-deep_cell_90p_2m = {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5}
-calc_mat_90p_2m = {'ks1': 21, 'sigma1': 7, 'ks2': 11, 'sigma2': 3, 'N': 8, 'R': 27, 'r': 1, 'wc': 3, 'wl': 3, 'ws': 7}
-calc_vasc_90p_2m = {'ks1': 19, 'sigma1': 15, 'ks2': 17, 'sigma2': 5, 'N': 8, 'R': 13, 'r': 11, 'wc': 5, 'wl': 9, 'ws': 15}
+deep_cell_90p_2m_nocrop = {'ks1': 9, 'sigma1': 6, 'ks2': 23, 'sigma2': 2, 'N': 8, 'R': 14, 'r': 12, 'wc': 13, 'wl': 9, 'ws': 5}
+deep_cell_90p_2m = {'ks1': 11, 'sigma1': 3, 'ks2': 25, 'sigma2': 1, 'N': 8, 'R': 22, 'r': 21, 'wc': 15, 'wl': 3, 'ws': 7}
+calc_mat_90p_2m_nocrop = {'ks1': 21, 'sigma1': 7, 'ks2': 11, 'sigma2': 3, 'N': 8, 'R': 27, 'r': 1, 'wc': 3, 'wl': 3, 'ws': 7}
+calc_mat_90p_2m = {'ks1': 15, 'sigma1': 7, 'ks2': 3, 'sigma2': 1, 'N': 8, 'R': 17, 'r': 2, 'wc': 11, 'wl': 11, 'ws': 13}
+calc_vasc_90p_2m_nocrop = {'ks1': 19, 'sigma1': 15, 'ks2': 17, 'sigma2': 5, 'N': 8, 'R': 13, 'r': 11, 'wc': 5, 'wl': 9, 'ws': 15}
+calc_vasc_90p_2m = {'ks1': 13, 'sigma1': 12, 'ks2': 19, 'sigma2': 9, 'N': 8, 'R': 17, 'r': 10, 'wc': 5, 'wl': 3, 'ws': 11}
+
+surf_sum = {'ks1': 15, 'sigma1': 15, 'ks2': 13, 'sigma2': 3, 'N': 8, 'R': 27, 'r': 26, 'wc': 15, 'wl': 13, 'ws': 11}
+deep_mat_sum = {'ks1': 23, 'sigma1': 19, 'ks2': 5, 'sigma2': 4, 'N': 8, 'R': 27, 'r': 6, 'wc': 3, 'wl': 15, 'ws': 9}
+calc_mat_sum = {'ks1': 25, 'sigma1': 19, 'ks2': 3, 'sigma2': 3, 'N': 8, 'R': 16, 'r': 3, 'wc': 13, 'wl': 11, 'ws': 9}
 
 # Grades pipeline is tested against
 grades = ['surf_sub', 'deep_mat', 'deep_cell', 'deep_sub', 'calc_mat', 'calc_vasc', 'calc_sub']
@@ -63,13 +70,15 @@ set_20 = [surf_20n, deep_mat_20n, deep_cell_20n, deep_sub_20n, calc_mat_20n, cal
 set_90p = [surf_90p, surf_90p, surf_90p, surf_90p, surf_90p, surf_90p, surf_90p]
 set_95p = [surf_95p, surf_95p, surf_95p, surf_95p, surf_95p, surf_95p, surf_95p]
 set_90p_2m = [surf_90p_2m, deep_mat_90p_2m, deep_cell_90p_2m, deep_mat_90p_2m, calc_mat_90p_2m, calc_vasc_90p_2m, calc_mat_90p_2m]
+set_90p_2m_cut_nocrop = [surf_90p_2m, deep_mat_90p_2m, calc_mat_90p_2m_nocrop]
+set_90p_2m_cut = [surf_sum, deep_mat_sum, calc_mat_sum]
 
 # Patient groups
 groups_2mm = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
                       15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
 
 
-def return_args(root, choice, pars=set_90p, grade_list=grades_cut):
+def return_args(root, choice, pars=set_90p_2m_cut, grade_list=grades_cut):
     """Returns arguments needed in grading pipeline."""
 
     parser = ArgumentParser()

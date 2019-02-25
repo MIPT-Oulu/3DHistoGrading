@@ -24,42 +24,84 @@ def auto_corner_crop(image_input):
 
     # Find artefact contour
     contours, _ = cv2.findContours(corners.astype('uint8'), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-    contours = sorted(contours, key=cv2.contourArea)  # Sort contours
+    contours =sorted(contours, key=cv2.contourArea)  # Sort contours
 
     # Check for too large contour
     if len(contours) == 0:
-        return image_input, False
-    area = cv2.contourArea(contours[-1])
-    if area > image_input.shape[0] * image_input.shape[1] / 4:
         return image_input, False
 
     # Bounding rectangle for artefact contour
     x, y, w, h = cv2.boundingRect(contours[-1])
 
     # Find location of contour
+    dims = image_input.shape
     if x == 0:  # Left side
         if y == 0:  # Top left
-            return image_input[h:, w:], True
+            dims_crop = image_input[h:, w:].shape
+            if dims_crop[0] * dims_crop[1] > dims[0] * dims[1] * (1 / 2):
+                return image_input[h:, w:], True
+            else:
+                return image_input, False
         elif y + h == image_input.shape[0]:  # Bottom left
-            return image_input[:-h, w:], True
+            dims_crop = image_input[:-h, w:].shape
+            if dims_crop[0] * dims_crop[1] > dims[0] * dims[1] * (1 / 2):
+                return image_input[:-h, w:], True
+            else:
+                return image_input, False
         else:  # No artefact found
             return image_input, False
     elif x + w == image_input.shape[1]:  # Right side
         if y == 0:  # Top right
-            return image_input[h:, :-w], True
+            dims_crop = image_input[h:, :-w].shape
+            if dims_crop[0] * dims_crop[1] > dims[0] * dims[1] * (1 / 2):
+                return image_input[h:, :-w], True
+            else:
+                return image_input, False
         elif y + h == image_input.shape[0]:  # Bottom right
-            return image_input[:-h, :-w], True
+            dims_crop = image_input[:-h, :-w].shape
+            if dims_crop[0] * dims_crop[1] > dims[0] * dims[1] * (1 / 2):
+                return image_input[:-h, :-w], True
+            else:
+                return image_input, False
         else:  # No artefact found
             return image_input, False
     else:
         return image_input, False
+
+    ## Check for too large contour
+    #if len(contours) == 0:
+    #    return image_input, False
+    #area = cv2.contourArea(contours[-1])
+    #if area > image_input.shape[0] * image_input.shape[1] / 4:
+    #    return image_input, False
+#
+    ## Bounding rectangle for artefact contour
+    #x, y, w, h = cv2.boundingRect(contours[-1])
+#
+    ## Find location of contour
+    #if x == 0:  # Left side
+    #    if y == 0:  # Top left
+    #        return image_input[h:, w:], True
+    #    elif y + h == image_input.shape[0]:  # Bottom left
+    #        return image_input[:-h, w:], True
+    #    else:  # No artefact found
+    #        return image_input, False
+    #elif x + w == image_input.shape[1]:  # Right side
+    #    if y == 0:  # Top right
+    #        return image_input[h:, :-w], True
+    #    elif y + h == image_input.shape[0]:  # Bottom right
+    #        return image_input[:-h, :-w], True
+    #    else:  # No artefact found
+    #        return image_input, False
+    #else:
+    #    return image_input, False#
 
 
 def duplicate_vector(vector, n, reshape=False):
     new_vector = []
     for i in range(len(vector)):
         for j in range(n):
-            new_vector.append(vector[i])
+            new_vector.append(vector[i])#
 
     if isinstance(vector[0], type('str')):
         if reshape:

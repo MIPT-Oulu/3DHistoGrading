@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 from argparse import ArgumentParser
-from components.lbptraining.Components import parameter_optimization_random
+from components.lbptraining.Components import parameter_optimization_loo
 from components.utilities import listbox
 from components.utilities.load_write import load_vois_h5
 from components.utilities.misc import auto_corner_crop
@@ -63,7 +63,7 @@ def pipeline(arguments, selection=None, pat_groups=None):
     else:
         raise Exception('Check selected zone!')
     # Optimize parameters
-    pars, error = parameter_optimization_random(images, grades, arguments, pat_groups)
+    pars, error = parameter_optimization_loo(np.array(images), grades, arguments, groups=pat_groups, seed=arguments.seed)
 
     print('Results for grades: ' + arguments.grade_keys)
     print('Explained variance: ' + str(arguments.n_components))
@@ -75,16 +75,16 @@ def pipeline(arguments, selection=None, pat_groups=None):
 if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
-    comps = [15, 20]  # PCA components
-    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm')
-    # parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_Insaf_combined')
-    parser.add_argument('--path_grades', type=str, default=r'Y:\3DHistoData\Grading\trimmed_grades_2mm.xlsx')
+    root = r'X:\3DHistoData\\'
+    parser.add_argument('--path', type=str, default=root + 'MeanStd_2mm')
+    parser.add_argument('--path_grades', type=str, default=root + r'Grading\trimmed_grades_2mm.xlsx')
     parser.add_argument('--grade_keys', type=str, default='surf_sub')
     parser.add_argument('-hist_normalize', type=bool, default=True)
     parser.add_argument('--n_components', type=int, default=0.9)
-    parser.add_argument('--n_pars', type=int, default=750)
+    parser.add_argument('--n_pars', type=int, default=100)
     parser.add_argument('--classifier', type=str, choices=['ridge', 'random_forest'], default='ridge')
     parser.add_argument('--n_jobs', type=int, default=12)
+    parser.add_argument('--seed', type=int, default=42)
 
     args = parser.parse_args()
     # Patient groups
@@ -104,37 +104,32 @@ if __name__ == '__main__':
         print(files[f])
     print('')
 
-    for comp in comps:
-        # Update number of components
-        #print('Number of PCA components: {0}'.format(comp))
-        #args.n_components = comp
+    # Surface subgrade
+    args.grade_keys = 'surf_sub'
+    pipeline(args, listbox.file_list, groups)
 
-        # Surface subgrade
-        #args.grade_keys = 'surf_sub'
-        #pipeline(args, listbox.file_list, groups)
+    # Deep ECM
+    args.grade_keys = 'deep_mat'
+    pipeline(args, listbox.file_list, groups)
 
-        # Deep ECM
-        args.grade_keys = 'deep_mat'
-        pipeline(args, listbox.file_list, groups)
+    # Calcified ECM
+    args.grade_keys = 'calc_mat'
+    pipeline(args, listbox.file_list, groups)
 
-        # Calcified ECM
-        args.grade_keys = 'calc_mat'
-        pipeline(args, listbox.file_list, groups)
+    # Deep cellularity
+    args.grade_keys = 'deep_cell'
+    pipeline(args, listbox.file_list, groups)
 
-        # Deep cellularity
-        args.grade_keys = 'deep_cell'
-        pipeline(args, listbox.file_list, groups)
+    # Calcified vascularity
+    args.grade_keys = 'calc_vasc'
+    pipeline(args, listbox.file_list, groups)
 
-        # Calcified vascularity
-        args.grade_keys = 'calc_vasc'
-        pipeline(args, listbox.file_list, groups)
+    # Deep subgrade
+    args.grade_keys = 'deep_sub'
+    pipeline(args, listbox.file_list, groups)
 
-        # Deep subgrade
-        args.grade_keys = 'deep_sub'
-        pipeline(args, listbox.file_list, groups)
-
-        # Calcified subgrade
-        args.grade_keys = 'calc_sub'
-        pipeline(args, listbox.file_list, groups)
+    # Calcified subgrade
+    args.grade_keys = 'calc_sub'
+    pipeline(args, listbox.file_list, groups)
 
 

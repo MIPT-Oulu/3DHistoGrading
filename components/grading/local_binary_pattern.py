@@ -141,10 +141,10 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=
 
     # Histogram normalization
     if normalize:
-        center_hist /= np.linalg.norm(center_hist)
-        large_hist /= np.linalg.norm(large_hist)
-        small_hist /= np.linalg.norm(small_hist)
-        radial_hist /= np.linalg.norm(radial_hist)
+        center_hist /= np.sum(center_hist)
+        large_hist /= np.sum(large_hist)
+        small_hist /= np.sum(small_hist)
+        radial_hist /= np.sum(radial_hist)
 
     # Concatenate histograms
     hist = np.concatenate((center_hist, large_hist, small_hist, radial_hist), 1)
@@ -340,10 +340,10 @@ def Conv_MRELBP(image, pars, savepath=None, sample=None, normalize=True):
 
     # Histogram normalization
     if normalize:
-        histc /= np.linalg.norm(histc)
-        histR /= np.linalg.norm(histR)
-        histr /= np.linalg.norm(histr)
-        histR_r /= np.linalg.norm(histR_r)
+        histc /= np.sum(histc)
+        histR /= np.sum(histR)
+        histr /= np.sum(histr)
+        histR_r /= np.sum(histR_r)
 
     # Append histograms
     hist = np.concatenate((histc, histR, histr, histR_r), 1)

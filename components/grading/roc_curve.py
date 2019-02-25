@@ -44,6 +44,31 @@ def roc_curve_multi(preds, targets, lim, savepath=None, seed=42):
     plt.show()
 
 
+def roc_curve_single(preds, targets, lim, savepath=None, seed=42):
+    """Plots ROC curve for given prediction."""
+
+    fpr, tpr, _ = roc_curve(targets > lim, preds)
+    auc = roc_auc_score(targets > lim, preds)
+
+    # Plot figure
+    plt.figure(figsize=(11, 11))
+    red = (225 / 225, 126 / 225, 49 / 225)
+    green = (128 / 225, 160 / 225, 60 / 225)
+    blue = (132 / 225, 102 / 225, 179 / 225)
+    plt.plot(fpr, tpr, color=blue, linewidth=5)
+    plt.plot([0, 1], [0, 1], '--', color='black')
+    plt.legend(['AUC: {:0.3f}'.format(auc)], loc='lower right', fontsize=30)
+    plt.ylabel('True Positive Rate', fontsize=36)
+    plt.xlabel('False Positive Rate', fontsize=36)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
+    plt.xlim([-0.01, 1.01])
+    plt.ylim([-0.01, 1.01])
+    plt.grid()
+    plt.savefig(savepath, bbox_inches='tight')
+    plt.show()
+
+
 def roc_curve_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42, lim=None):
     """Evaluates ROC curve using bootstrapping
 

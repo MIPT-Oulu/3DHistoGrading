@@ -5,6 +5,8 @@ import gc
 from joblib import Parallel, delayed
 from tqdm import tqdm
 from scipy.stats import spearmanr
+from functools import partial
+from hyperopt import hp, fmin, tpe, STATUS_OK, Trials, space_eval
 
 from sklearn.model_selection import LeaveOneOut
 from sklearn.decomposition import PCA
@@ -21,7 +23,8 @@ def make_pars(n_pars):
     pars = []
 
     for k in range(n_pars):
-        tmp = {'ks1': 0, 'sigma1': 0, 'ks2': 0, 'sigma2': 0, 'N': 8, 'R': 0, 'r': 0, 'wc': 0, 'wl': 0, 'ws': 0}
+        tmp = dict()
+        tmp['N'] = 8
         tmp['ks1'] = np.random.randint(1, 13)*2+1
         tmp['sigma1'] = np.random.randint(1, tmp['ks1']+1)
         tmp['ks2'] = np.random.randint(1, 13)*2+1
@@ -34,6 +37,31 @@ def make_pars(n_pars):
         pars.append(tmp)
 
     return pars
+
+
+def make_pars_hyperopt(seed):
+    """Generate LBP parameter space for hyperopt."""
+    par_set = dict()
+    par_set['N'] = hp.choice('N', [8, 16])
+    par_set['ks1'] = hp.randint('ks1', 12) * 2 + 3
+    par_set['sigma1'] = hp.randint('sigma1', par_set['ks1']) + 1
+    par_set['ks2'] = hp.randint('ks2', 12) * 2 + 3
+    par_set['sigma2'] = hp.randint('sigma2', par_set['ks2']) + 1
+    par_set['R'] = hp.randint('R', 25) + 3
+    par_set['r'] = hp.randint('r', par_set['R'] - 2) + 1
+    par_set['wc'] = hp.randint('wc', 7) * 2 + 3
+    par_set['wl'] = hp.randint('wl', 7) * 2 + 3
+    par_set['ws'] = hp.randint('ws', 7) * 2 + 3
+    par_set['seed'] = seed
+
+    return par_set
+
+
+def evaluate(parameters, imgs, grades, args, groups=None, callback=None):
+    res = get_error(imgs, grades, parameters, args, groups=groups)
+    if callback is not None:
+        callback()
+    return {'loss': 1 - res, 'status': STATUS_OK}
 
 
 def get_mse(preds, targets):
@@ -67,12 +95,48 @@ def get_error(imgs, grades, parameters, args, groups=None):
     else:
         preds, _ = regress_loo(score, grades)
     
-    # return get_mse(preds, grades)
+    return get_mse(preds, grades)
 
-    return get_corr_loss(preds, grades)
+    # return get_corr_loss(preds, grades)
 
 
-def find_pars_bforce(imgs, grades, args, groups=None):
+def parameter_optimization_loo(imgs, grades, args, groups=None, seed=42):
+    """Parameter optimization with Leave-one-out."""
+    # Get leave-one-out split
+    loo = LeaveOneOut()
+    loo.get_n_splits(grades)
+
+    best_pars = []
+    trial_list = []
+    for train_idx, test_idx in tqdm(loo.split(grades), desc='Optimizing through sets'):
+        if groups is not None:
+            groups_train = groups[train_idx]
+        else:
+            groups_train = None
+
+        trials = Trials()
+        pbar = tqdm(total=args.n_pars, desc="Hyperopt:")
+        param_space = make_pars_hyperopt(seed)
+        grades_train = grades[train_idx]
+        imgs_train = imgs[train_idx]
+        best = fmin(fn=partial(evaluate, imgs=imgs_train, grades=grades_train, args=args,
+                               groups=groups_train, callback=lambda: pbar.update()),
+                    space=param_space,
+                    algo=tpe.suggest,
+                    max_evals=args.n_pars,
+                    trials=trials,
+                    verbose=0,
+                    rstate=np.random.RandomState(seed))
+        print(best)
+        print(space_eval(param_space, best))
+        best_pars.append(space_eval(param_space, best))
+        trial_list.append(trials)
+        pbar.close()
+
+    return best_pars, trials
+
+
+def parameter_optimization_random(imgs, grades, args, groups=None):
     # Unpack parameters
     n_pars = args.n_pars
     n_jobs = args.n_jobs

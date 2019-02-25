@@ -1,11 +1,14 @@
+import numpy as np
 import os
 from time import time
 
 import components.processing.args_processing as arg_process
 import components.grading.args_grading as arg_grading
 import components.utilities.listbox as listbox
+
 from components.processing.voi_extraction_pipelines import pipeline_subvolume_mean_std
 from components.utilities.load_write import find_image_paths
+from components.grading.roc_curve import roc_curve_multi, roc_curve_single
 from scripts.run_lbp_features_vois import pipeline_lbp
 from scripts.run_pca_regression import pipeline_prediction
 
@@ -18,6 +21,13 @@ if __name__ == '__main__':
     arguments_g = arg_grading.return_args(data_path, choice, pars=arg_grading.set_90p, grade_list=arg_grading.grades)
     # Path to image stacks
     arguments_p.data_path = r'U:\PTA1272\Isokerays_PTA'
+    # LOGO for 2mm samples
+    if choice == '2mm':
+        arguments_g.split = 'logo'
+        groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
+                           15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
+    else:
+        groups = None
 
     # Use listbox to select samples (Result is saved in listbox.file_list)
     listbox.GetFileSelection(arguments_p.data_path)
@@ -48,13 +58,30 @@ if __name__ == '__main__':
             continue
     print('Done')
 
-    # Grading pipeline for different grade evaluations
+    # Call Grading pipelines for different grade evaluations
+    gradelist = []
+    preds = []
     for k in range(len(arguments_g.grades_used)):
         # LBP features
         pars = arguments_g.pars[k]
         grade_selection = arguments_g.grades_used[k]
         print('Processing against grades: {0}'.format(grade_selection))
-        pipeline_lbp(arguments_g, listbox.file_list, pars, grade_selection, save_images=False)
+        pipeline_lbp(arguments_g, listbox.file_list, pars, grade_selection)
 
         # Get predictions
-        pipeline_prediction(arguments_g, grade_selection, show_results=True, check_samples=False, pat_groups=None)
+        grade, pred, _ = pipeline_prediction(arguments_g, grade_selection, pat_groups=groups)
+        gradelist.append(grade)
+        preds.append(pred)
+
+        # ROC curve
+        lim = (np.min(grade) + np.max(grade)) // 2
+        split = arguments_g.split
+        save_path = arguments_g.save_path + '\\roc_' + grade_selection + '_' + arguments_g.str_components + '_' + split
+        roc_curve_single(pred, grade, lim, savepath=save_path)
+
+    # Multi ROC curve
+    if len(gradelist) == 3:
+        split = arguments_g.split
+        lim = 1
+        save_path = arguments_g.save_path + '\\roc_' + arguments_g.str_components + '_' + split
+        roc_curve_multi(preds, gradelist, lim, savepath=save_path)

@@ -1,20 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import components.grading.args_grading as arg
 
 from time import time
-from argparse import ArgumentParser
 from scipy.stats import spearmanr, wilcoxon
 from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score
 
 from components.grading.pca_regression import scikit_pca, regress_logo, regress_loo, logistic_logo, logistic_loo
-from components.grading.roc_curve import mse_bootstrap, roc_curve_bootstrap, roc_curve_multi
+from components.grading.roc_curve import roc_curve_single, roc_curve_multi
 from components.grading.torch_regression import torch_regression
 from components.utilities.load_write import load_binary_weights, write_binary_weights, load_excel
 from components.utilities.misc import duplicate_vector
 
 
-def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, check_samples=False):
+def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False):
     print(grade_name)
     # Load grades to array
     grades, hdr_grades = load_excel(args.grade_path, titles=[grade_name])
@@ -111,16 +111,14 @@ def pipeline_prediction(args, grade_name, pat_groups=None, show_results=True, ch
                          mean)
 
     # Display results
-    if show_results:
-        # Stats
-        print('Mean squared error, Area under curve (linear and logistic)')
-        print(mse_linear, auc_linear, auc_logistic)
-        print(r'Spearman: {0}, p: {1}, Wilcoxon p: {2}, r2: {3}'.format(rho[0], rho[1], wilc[1], r2))
-        text_string = 'MSE: {0:.2f}\nSpearman: {1:.2f}\nWilcoxon: {2:.2f}\n$R^2$: {3:.2f}' \
-            .format(mse_linear, rho[0], wilc[1], r2)
-        save_fig = args.save_path + '\\linear_' + grade_name + '_' + args.str_components + '_' + args.split
-        # Draw plot
-        plot_linear(grades, pred_linear, text_string, grade_name, savepath=save_fig)
+    print('Mean squared error, Area under curve (linear and logistic)')
+    print(mse_linear, auc_linear, auc_logistic)
+    print(r'Spearman: {0}, p: {1}, Wilcoxon p: {2}, r2: {3}'.format(rho[0], rho[1], wilc[1], r2))
+    text_string = 'MSE: {0:.2f}\nSpearman: {1:.2f}\nWilcoxon: {2:.2f}\n$R^2$: {3:.2f}' \
+        .format(mse_linear, rho[0], wilc[1], r2)
+    save_fig = args.save_path + '\\linear_' + grade_name + '_' + args.str_components + '_' + args.split
+    # Draw plot
+    plot_linear(grades, pred_linear, text_string, grade_name, savepath=save_fig)
 
     return grades, pred_logistic, mse_linear
 
@@ -161,47 +159,15 @@ def plot_linear(grades, pred_linear, text_string, title, savepath=None, annotate
 if __name__ == '__main__':
     # Arguments
     choice = '2mm'
-    path = r'X:\3DHistoData\Grading\LBP\\' + choice + '\\'
-    parser = ArgumentParser()
-    parser.add_argument('--feature_path', type=str, default=path + '\\Features_')
-    parser.add_argument('--grades_used', type=str,
-                        default=['surf_sub',
-                                 'deep_mat',
-                              #   'deep_cell',
-                              #   'deep_sub',
-                                 'calc_mat',
-                               #  'calc_vasc',
-                               #  'calc_sub'
-                                 ])
-    parser.add_argument('--split', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='logo')
-    parser.add_argument('--save_path', type=str, default=path)
-    parser.add_argument('--n_components', type=int, default=0.9)
-    parser.add_argument('--str_components', type=str, default='90')
-    parser.add_argument('--n_jobs', type=int, default=12)
-
-    if choice == 'Insaf':
-        n_samples = 34
-        groups = duplicate_vector(np.linspace(1, n_samples, num=n_samples), 2)
-        parser.add_argument('--n_subvolumes', type=int, default=1)
-        parser.add_argument('--grade_path', type=str,
-                            default=r'X:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
-    elif choice == '2mm':
-        # Patient groups
+    datapath = r'X:\3DHistoData'
+    arguments = arg.return_args(datapath, choice, pars=arg.set_90p_2m, grade_list=arg.grades_cut)
+    # LOGO for 2mm samples
+    if choice == '2mm':
+        arguments.split = 'logo'
         groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
                            15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
-        # groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
-        #                   15, 16, 16, 17, 17, 18, 19, 19])  # 2mm, 36 patients
-        parser.add_argument('--n_subvolumes', type=int, default=1)
-        parser.add_argument('--grade_path', type=str,
-                            default=r'X:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
-#        parser.add_argument('--grade_path', type=str, default=r'Y:\3DHistoData\Grading\ERCGrades.xlsx')
     else:
-        n_samples = 14
-        groups = duplicate_vector(np.linspace(1, n_samples, num=n_samples), 9)
-        parser.add_argument('--n_subvolumes', type=int, default=9)
-        parser.add_argument('--grade_path', type=str,
-                            default=r'X:\3DHistoData\Grading\trimmed_grades_' + choice + '.xlsx')
-    arguments = parser.parse_args()
+        groups = None
 
     # Start time
     start_time = time()
@@ -217,22 +183,19 @@ if __name__ == '__main__':
         preds.append(pred)
         mses.append(mse)
 
-   # # Receiver operating characteristics curve
-   # split = arguments.split
-   # #save_path = arguments.save_path
-   # for i in range(len(arguments.grades_used)):
-   #     lim = (np.min(gradelist[i]) + np.max(gradelist[i])) // 2
-   #     grade_used = arguments.grades_used[i]
-   #     print(grade_used)
-   #     roc_curve_bootstrap(gradelist[i] > lim, preds[i], savepath=
-   #     save_path + '\\roc_' + grade_used + '_' + arguments.str_components + '_' + split, lim=lim)
-
-    split = arguments.split
-    save_root = arguments.save_path
-    lim = 1
-    save_path = save_root + '\\roc_' + arguments.str_components + '_' + split
-    roc_curve_multi(preds, gradelist, lim, save_path)
-
+    # Receiver operating characteristics curve
+    if len(gradelist) == 3:
+        split = arguments.split
+        lim = 1
+        save_path = arguments.save_path + '\\roc_' + arguments.str_components + '_' + split
+        roc_curve_multi(preds, gradelist, lim, savepath=save_path)
+    else:
+        split = arguments.split
+        for i in range(len(arguments.grades_used)):
+            lim = (np.min(gradelist[i]) + np.max(gradelist[i])) // 2
+            grade_used = arguments.grades_used[i]
+            save_path = arguments.save_path + '\\roc_' + grade_used + '_' + arguments.str_components + '_' + split
+            roc_curve_single(preds[i], gradelist[i], lim, savepath=save_path)
 
     # Display spent time
     t = time() - start_time
