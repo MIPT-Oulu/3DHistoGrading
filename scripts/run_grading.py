@@ -1,4 +1,6 @@
 import numpy as np
+import os
+from glob import glob
 import components.grading.args_grading as arg
 import components.utilities.listbox as listbox
 
@@ -8,9 +10,10 @@ from components.grading.roc_curve import roc_curve_single, roc_curve_multi
 
 if __name__ == '__main__':
     # Arguments
-    choice = '2mm'
-    data_path = r'X:\3DHistoData'
-    arguments = arg.return_args(data_path, choice, pars=arg.set_90p_2m_cut_nocrop, grade_list=arg.grades_cut)
+    choice = 'Isokerays'
+    data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
+    arguments = arg.return_args(data_path, choice, pars=arg.set_90p_2m_cut, grade_list=arg.grades_cut)
+    arguments.train_regression = False
     # LOGO for 2mm samples
     if choice == '2mm':
         arguments.split = 'logo'
@@ -19,8 +22,12 @@ if __name__ == '__main__':
     else:
         groups = None
 
-    # Use listbox (Result is saved in listbox.file_list)
-    listbox.GetFileSelection(arguments.image_path)
+    if arguments.GUI:
+        # Use listbox (Result is saved in listbox.file_list)
+        listbox.GetFileSelection(arguments.image_path)
+        file_list = listbox.file_list
+    else:
+        file_list = [os.path.basename(f) for f in glob(arguments.image_path + '/' + '*.h5')]
 
     # Call Grading pipelines for different grade evaluations
     gradelist = []
@@ -30,7 +37,7 @@ if __name__ == '__main__':
         pars = arguments.pars[k]
         grade_selection = arguments.grades_used[k]
         print('Processing against grades: {0}'.format(grade_selection))
-        pipeline_lbp(arguments, listbox.file_list, pars, grade_selection)
+        pipeline_lbp(arguments, file_list, pars, grade_selection)
 
         # Get predictions
         grade, pred, _ = pipeline_prediction(arguments, grade_selection, pat_groups=groups)
@@ -38,13 +45,14 @@ if __name__ == '__main__':
         preds.append(pred)
 
         # ROC curve
-        lim = (np.min(grade) + np.max(grade)) // 2
-        split = arguments.split
-        save_path = arguments.save_path + '\\roc_' + grade_selection + '_' + arguments.str_components + '_' + split
-        roc_curve_single(pred, grade, lim, savepath=save_path)
+        if len(arguments.grades_used) != 3:
+            lim = (np.min(grade) + np.max(grade)) // 2
+            split = arguments.split
+            save_path = arguments.save_path + '\\roc_' + grade_selection + '_' + arguments.str_components + '_' + split
+            roc_curve_single(pred, grade, lim, savepath=save_path)
 
     # Multi ROC curve
-    if len(gradelist) == 3:
+    if len(arguments.grades_used) == 3:
         split = arguments.split
         lim = 1
         save_path = arguments.save_path + '\\roc_' + arguments.str_components + '_' + split

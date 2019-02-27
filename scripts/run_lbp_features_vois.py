@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 from time import time
 
 from tqdm import tqdm
@@ -13,24 +12,17 @@ from components.utilities import listbox
 from components.utilities.misc import print_images, auto_corner_crop
 
 
-def pipeline_lbp(args, selection, parameters, grade_used):
+def pipeline_lbp(args, files, parameters, grade_used):
     """Calculates LBP features from mean and standard deviation images.
     Supports parallelization for decreased processing times."""
     # Start time
     start_time = time()
 
-    # List datasets
-    files = os.listdir(args.image_path)
-    files.sort()
-    # Exclude samples
-    if selection is not None:
-        files = [files[i] for i in selection]
-
     # Load and normalize images
     save_images = args.save_images  # Choice whether to save images
     print('Loading images...')
     images_norm = (Parallel(n_jobs=args.n_jobs)(delayed(load_voi)  # Initialize
-                   (args.image_path, args.save_path, files[i], grade_used, parameters, save_images)
+                   (args.image_path, files[i], grade_used, parameters, save=args.save_path, autocrop=args.auto_crop)
                                                      for i in range(len(files))))  # Iterable
 
     # Calculate features
@@ -60,7 +52,7 @@ def pipeline_lbp(args, selection, parameters, grade_used):
     print('Elapsed time: {0}s'.format(t))
 
 
-def load_voi(path, save, file, grade, par, save_images=False):
+def load_voi(path, file, grade, par, save=None, autocrop=True):
     """Loads mean+std images and performs automatic artefact crop and grayscale normalization."""
     # Load images
     image_surf, image_deep, image_calc = load_vois_h5(path, file)
@@ -69,25 +61,29 @@ def load_voi(path, save, file, grade, par, save_images=False):
     if grade[:4] == 'surf':
         image = image_surf[:]
     elif grade[:4] == 'deep':
-        image = image_deep[:]
-        #image, cropped = auto_corner_crop(image_deep)
-        #if cropped:
-        #    # print_crop(image_deep, image, file[:-3] + ' deep zone')
-        #    print('Automatically cropped sample {0}, deep zone from shape: ({1}, {2}) to: ({3}, {4})'
-        #          .format(file[:-3], image_deep.shape[0], image_deep.shape[1], image.shape[0], image.shape[1]))
+        if autocrop:
+            image, cropped = auto_corner_crop(image_deep)
+            if cropped:
+                # print_crop(image_deep, image, file[:-3] + ' deep zone')
+                print('Automatically cropped sample {0}, deep zone from shape: ({1}, {2}) to: ({3}, {4})'
+                      .format(file[:-3], image_deep.shape[0], image_deep.shape[1], image.shape[0], image.shape[1]))
+        else:
+            image = image_deep[:]
     elif grade[:4] == 'calc':
-        image = image_calc[:]
-        #image, cropped = auto_corner_crop(image_calc)
-        #if cropped:
-        #    # print_crop(image_calc, image, file[:-3] + ' calcified zone')
-        #    print('Automatically cropped sample {0}, calcified zone from shape: ({1}, {2}) to: ({3}, {4})'
-        #          .format(file[:-3], image_calc.shape[0], image_calc.shape[1], image.shape[0], image.shape[1]))
+        if autocrop:
+            image, cropped = auto_corner_crop(image_calc)
+            if cropped:
+                # print_crop(image_calc, image, file[:-3] + ' calcified zone')
+                print('Automatically cropped sample {0}, calcified zone from shape: ({1}, {2}) to: ({3}, {4})'
+                      .format(file[:-3], image_calc.shape[0], image_calc.shape[1], image.shape[0], image.shape[1]))
+        else:
+            image = image_calc[:]
     else:
         raise Exception('Check selected zone!')
     # Normalize
     image_norm = local_standard(image, par)
     # Save image
-    if save_images:
+    if save is not None:
         titles_norm = ['Mean + Std', '', 'Normalized']
         print_images((image, image, image_norm),
                      subtitles=titles_norm, title=file + ' Input',

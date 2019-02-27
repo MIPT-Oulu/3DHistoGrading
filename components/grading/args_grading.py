@@ -57,6 +57,8 @@ calc_vasc_90p_2m = {'ks1': 13, 'sigma1': 12, 'ks2': 19, 'sigma2': 9, 'N': 8, 'R'
 surf_sum = {'ks1': 15, 'sigma1': 15, 'ks2': 13, 'sigma2': 3, 'N': 8, 'R': 27, 'r': 26, 'wc': 15, 'wl': 13, 'ws': 11}
 deep_mat_sum = {'ks1': 23, 'sigma1': 19, 'ks2': 5, 'sigma2': 4, 'N': 8, 'R': 27, 'r': 6, 'wc': 3, 'wl': 15, 'ws': 9}
 calc_mat_sum = {'ks1': 25, 'sigma1': 19, 'ks2': 3, 'sigma2': 3, 'N': 8, 'R': 16, 'r': 3, 'wc': 13, 'wl': 11, 'ws': 9}
+deep_cell_sum = {'ks1': 11, 'sigma1': 3, 'ks2': 25, 'sigma2': 1, 'N': 8, 'R': 22, 'r': 21, 'wc': 15, 'wl': 3, 'ws': 7}
+
 
 # Grades pipeline is tested against
 grades = ['surf_sub', 'deep_mat', 'deep_cell', 'deep_sub', 'calc_mat', 'calc_vasc', 'calc_sub']
@@ -82,18 +84,24 @@ def return_args(root, choice, pars=set_90p_2m_cut, grade_list=grades_cut):
     """Returns arguments needed in grading pipeline."""
 
     parser = ArgumentParser()
-    parser.add_argument('--image_path', type=str, default=root + r'\MeanStd_' + choice)
-    parser.add_argument('--feature_path', type=str, default=root + r'\Grading\LBP\\' + choice + r'\Features_')
-    parser.add_argument('--save_path', type=str, default=root + r'\Grading\LBP\\' + choice)
-    parser.add_argument('--grade_path', type=str, default=root + r'\Grading\trimmed_grades_' + choice + '.xlsx')
+    parser.add_argument('--image_path', type=str, default=root + r'/MeanStd_' + choice)
+    parser.add_argument('--feature_path', type=str, default=root + r'/Grading/LBP/' + choice + r'/Features_')
+    parser.add_argument('--save_path', type=str, default=root + r'/Grading/LBP/' + choice)
+    parser.add_argument('--grade_path', type=str, default=root + r'/Grading/trimmed_grades_' + choice + '.xlsx')
     parser.add_argument('--n_subvolumes', type=int, default=1)
     parser.add_argument('--n_jobs', type=int, default=12)
     parser.add_argument('--n_components', type=int, default=0.9)
     parser.add_argument('--str_components', type=str, default='90')
     parser.add_argument('--split', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
+    parser.add_argument('--regression', type=str, choices=['lasso', 'ridge'], default='ridge')
     parser.add_argument('--convolution', type=bool, default=False)
     parser.add_argument('--normalize_hist', type=bool, default=True)
     parser.add_argument('--save_images', type=bool, default=True)
+    parser.add_argument('--train_regression', type=bool, default=True)
+    parser.add_argument('--auto_crop', type=bool, default=True)
+    parser.add_argument('--GUI', type=bool, default=False)
     parser.add_argument('--pars', type=dict, default=pars)
     parser.add_argument('--grades_used', type=str, default=grade_list)
+    parser.add_argument('--seed', type=int, default=42)  # Random seed
+    parser.add_argument('--n_pars', type=int, default=100)  # Parameter optimization
     return parser.parse_args()

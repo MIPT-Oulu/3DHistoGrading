@@ -16,9 +16,9 @@ class GetFileSelection:
         self.list_box = Listbox(frame, width=40, height=30, selectmode='extended')
         self.list_box.pack(side='left')
 
-        self.insert_list(list_path)
+        files = self.insert_list(list_path)
 
-        self.quit = Button(frame, text='Exit and run program', command=self.exit, width=15)
+        self.quit = Button(frame, text='Exit and run program', command=self.exit(files), width=15)
         self.quit.pack(side='bottom')
 
         self.button = Button(frame, text='Show list', command=self.print_list, width=15)
@@ -31,14 +31,17 @@ class GetFileSelection:
         files.sort()
         for k in range(len(files)):
             self.list_box.insert('end', files[k])
+        return files
 
     def print_list(self):
         val = self.list_box.curselection()
         print('Selected values: {0}'.format(val))
 
-    def exit(self):
+    def exit(self, files):
         global file_list
         file_list = self.list_box.curselection()
+        files = [files[i] for i in file_list]
+        file_list = files[:]
         print('')
         self.master.destroy()
 

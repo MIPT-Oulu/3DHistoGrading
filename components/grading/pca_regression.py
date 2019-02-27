@@ -7,7 +7,7 @@ from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
 from sklearn.decomposition import PCA
 
 
-def regress_loo(features, grades):
+def regress_loo(features, grades, method='ridge', standard=False):
     """Calculates linear regression with leave-one-out split."""
     predictions = []
     # Get leave-one-out split
@@ -15,20 +15,33 @@ def regress_loo(features, grades):
     loo.get_n_splits(features)
     for train_idx, test_idx in loo.split(features):
         # Train split
-        f = features[train_idx] - features.mean(0)
-        g = grades[train_idx]
+        x_train, x_test = features[train_idx], features[test_idx]
+        y_train, y_test = grades[train_idx], grades[test_idx]
+
+        # Normalize with mean and std
+        if standard:
+            x_train = standardize(x_train, axis=0)
+            x_test = standardize(x_train, axis=0)
 
         # Linear regression
-        model = Ridge(alpha=1, normalize=True, random_state=42)
-        model.fit(f, g.reshape(-1, 1))
+        if method == 'ridge':
+            model = Ridge(alpha=1, normalize=True, random_state=42)
+        else:
+            model = Lasso(alpha=1, normalize=True, random_state=42)
+        model.fit(x_train, y_train)
 
         # Evaluate on test sample
-        p = model.predict((features[test_idx] - features.mean(0)).reshape(1, -1))
-        predictions.append(p)
+        predictions.append(model.predict(x_test))
+
+    predictions_flat = []
+    for group in predictions:
+        for p in group:
+            predictions_flat.append(p)
+
     return np.array(predictions).squeeze(), model.coef_
 
 
-def regress_logo(features, grades, groups, method='ridge'):
+def regress_logo(features, grades, groups, method='ridge', standard=False):
     """Calculates linear regression with leave-one-group-out split."""
     predictions = []
     # Leave one out split
@@ -39,16 +52,20 @@ def regress_logo(features, grades, groups, method='ridge'):
     for train_idx, test_idx in logo.split(features, grades, groups):
         # Indices
         x_train, x_test = features[train_idx], features[test_idx]
-        x_test -= x_train.mean(0)
-        x_train -= x_train.mean(0)
-
         y_train, y_test = grades[train_idx], grades[test_idx]
+
+        # Normalize with mean and std
+        if standard:
+            x_train = standardize(x_train, axis=0)
+            x_test = standardize(x_train, axis=0)
+
         # Linear regression
         if method == 'ridge':
             model = Ridge(alpha=1, normalize=True, random_state=42)
         else:
             model = Lasso(alpha=1, normalize=True, random_state=42)
         model.fit(x_train, y_train)
+
         # Predicted score
         predictions.append(model.predict(x_test))
 
@@ -57,35 +74,46 @@ def regress_logo(features, grades, groups, method='ridge'):
         for p in group:
             predictions_flat.append(p)
 
-    return np.array(predictions_flat), model.coef_
+    # print('Linear model score: {0}'.format(model.score(features, grades)))
+
+    return np.array(predictions_flat), model.coef_, model.intercept_
 
 
-def regress(data_x, data_y, split):
+def regress(data_x, data_y, split, method='ridge', standard=False):
     """Calculates linear regression model by dividing data into train and test sets."""
     # Train and test split
-    data_x_train = data_x[:split]
-    data_x_test = data_x[split:]
+    x_train = data_x[:split]
+    x_test = data_x[split:]
 
-    data_y_train = data_y[:split]
-    data_y_test = data_y[split:]
+    y_train = data_y[:split]
+    y_test = data_y[split:]
+
+    # Normalize with mean and std
+    if standard:
+        x_train = standardize(x_train, axis=0)
+        x_test = standardize(x_train, axis=0)
 
     # Linear regression
-    model = Ridge(alpha=1, normalize=True, random_state=42)
-    model.fit(data_x_train, data_y_train)
+    if method == 'ridge':
+        model = Ridge(alpha=1, normalize=True, random_state=42)
+    else:
+        model = Lasso(alpha=1, normalize=True, random_state=42)
+    model.fit(x_train, y_train)
+
     # Predicted score
-    predictions = model.predict(data_x_test)
+    predictions = model.predict(x_test)
 
     # Mean squared error
-    mse = mean_squared_error(data_y_test, predictions)
+    mse = mean_squared_error(y_test, predictions)
 
     # Explained variance
-    r2 = r2_score(data_y_test, predictions)
+    r2 = r2_score(y_test, predictions)
 
     return np.array(predictions), model.coef_, mse, r2
 
 
 # Logistic regression
-def logistic_loo(features, score):
+def logistic_loo(features, targets, standard='False'):
     """Calculates logistic regression with leave-one-out split."""
     predictions = []
     # Leave one out split
@@ -93,53 +121,60 @@ def logistic_loo(features, score):
     for train_idx, test_idx in loo.split(features):
         # Indices
         x_train, x_test = features[train_idx], features[test_idx]
-        x_test -= x_train.mean(0)
-        x_train -= x_train.mean(0)
+        y_train, y_test = targets[train_idx], targets[test_idx]
 
-        y_train, y_test = score[train_idx], score[test_idx]
+        # Normalize with mean and std
+        if standard:
+            x_train = standardize(x_train, axis=0)
+            x_test = standardize(x_train, axis=0)
+
         # Linear regression
         model = LogisticRegression(solver='newton-cg', max_iter=1000)
         model.fit(x_train, y_train)
+
         # Predicted score
         p = model.predict_proba(x_test)
         predictions.append(p)
 
     predictions = np.array(predictions)
     predictions = predictions[:, :, 1]
-    return predictions.flatten()
+    return predictions.flatten(), model.coef_, model.intercept_
 
 
-def logistic_logo(features, score, groups):
+def logistic_logo(features, targets, groups, standard=False):
     """Calculates logistic regression with leave-one-group-out split."""
     predictions = []
     # Leave one out split
     logo = LeaveOneGroupOut()
-    logo.get_n_splits(features, score, groups)
+    logo.get_n_splits(features, targets, groups)
     logo.get_n_splits(groups=groups)  # 'groups' is always required
 
-    for train_idx, test_idx in logo.split(features, score, groups):
+    for train_idx, test_idx in logo.split(features, targets, groups):
         # Indices
         x_train, x_test = features[train_idx], features[test_idx]
-        x_test -= x_train.mean(0)
-        x_train -= x_train.mean(0)
+        y_train, y_test = targets[train_idx], targets[test_idx]
 
-        y_train, y_test = score[train_idx], score[test_idx]
+        # Normalize with mean and std
+        if standard:
+            x_train = standardize(x_train, axis=0)
+            x_test = standardize(x_train, axis=0)
+
         # Linear regression
         model = LogisticRegression(solver='newton-cg', max_iter=1000)
         model.fit(x_train, y_train)
+
         # Predicted score
         p = model.predict_proba(x_test)
         predictions.append(p)
-
-    # predictions = np.array(predictions)
-    # predictions = predictions[:,:,1]
 
     predictions_flat = []
     for group in predictions:
         for p in group:
             predictions_flat.append(p)
 
-    return np.array(predictions_flat)[:, 1]
+    # print('Logistic model score: {0}'.format(model.score(features, targets)))
+    # print('Intercept: {0}'.format(model.intercept_))
+    return np.array(predictions_flat)[:, 1], model.coef_, model.intercept_
 
 
 def regress_old(features, score):
@@ -150,9 +185,6 @@ def regress_old(features, score):
     for train_idx, test_idx in loo.split(features):
         # Indices
         x_train, x_test = features[train_idx], features[test_idx]
-        x_test -= x_train.mean(0)
-        x_train -= x_train.mean(0)
-
         y_train, y_test = score[train_idx], score[test_idx]
         # Linear regression
         model = Ridge(alpha=1, normalize=True, random_state=42)
@@ -168,6 +200,17 @@ def scikit_pca(features, n_components, whitening=False, solver='full'):
     pca = PCA(n_components=n_components, svd_solver=solver, whiten=whitening, random_state=42)
     score = pca.fit(features).transform(features)
     return pca, score
+
+
+def standardize(array, axis=0):
+    """Standardization by mean and standard deviation."""
+    mean = np.mean(array, axis=axis)
+    std = np.std(array, axis=axis)
+    try:
+        res = (array - mean) / std
+    except ValueError:
+        res = ((array.T - mean) / std).T
+    return res
 
 
 def get_pca(features, n_components):

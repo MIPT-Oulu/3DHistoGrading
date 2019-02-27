@@ -185,13 +185,19 @@ def load_binary_weights(path):
         weights = np.zeros(ncomp)
         for i in range(ncomp):
             weights[i] = unpack('<d', f.read(8))[0]
+
+        weights_log = np.zeros(ncomp)
+        for i in range(ncomp):
+            weights_log[i] = unpack('<d', f.read(8))[0]
         mean = np.zeros(w)
         for i in range(w):
             mean[i] = unpack('<d', f.read(8))[0]
-        return w, ncomp, eigenvec, singularvalues, weights, mean
+        intercept_lin = unpack('<d', f.read(8))[0]
+        intercept_log = unpack('<d', f.read(8))[0]
+        return w, ncomp, eigenvec, singularvalues, weights, weights_log, mean, [intercept_lin, intercept_log]
 
 
-def write_binary_weights(path, ncomp, eigenvectors, singularvalues, weights, mean):
+def write_binary_weights(path, ncomp, eigenvectors, singularvalues, weights, weights_log, mean, intercepts):
     """Saves linear regression weights and PCA variables into a binary .dat file."""
     # Input eigenvectors in shape: components, features
     with open(path, "wb") as f:
@@ -207,8 +213,12 @@ def write_binary_weights(path, ncomp, eigenvectors, singularvalues, weights, mea
         # Weights
         for i in range(weights.shape[0]):
             f.write(pack('<d', weights[i]))
+        for i in range(weights_log.shape[0]):
+            f.write(pack('<d', weights_log[i]))
         for i in range(mean.shape[0]):
             f.write(pack('<d', mean[i]))
+        f.write(pack('<d', intercepts[0]))  # Linear intercept
+        f.write(pack('<d', intercepts[1]))  # Logistic intercept
 
 
 def write_binary_image(path, image, dtype='int'):

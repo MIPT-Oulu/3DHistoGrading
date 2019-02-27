@@ -1,29 +1,24 @@
 import numpy as np
 import os
 import pandas as pd
+import components.grading.args_grading as arg
 
-from argparse import ArgumentParser
-from components.lbptraining.Components import parameter_optimization_random
+from glob import glob
+from sklearn.metrics import mean_squared_error
+from components.lbptraining.Components import parameter_optimization_loo
 from components.utilities import listbox
-from components.utilities.load_write import load_vois_h5
+from components.utilities.load_write import load_vois_h5, load_excel
 from components.utilities.misc import auto_corner_crop
 
 
-def pipeline(arguments, selection=None, pat_groups=None):
-    # File list
-    files = os.listdir(arguments.path)
-    files.sort()
-    # Exclude samples
-    if selection is not None:
-        files = [files[i] for i in selection]
-
+def pipeline(arguments, files, loss, pat_groups=None):
     # Load images
     images_surf = []
     images_deep = []
     images_calc = []
     for k in range(len(files)):
         # Load images
-        image_surf, image_deep, image_calc = load_vois_h5(arguments.path, files[k])
+        image_surf, image_deep, image_calc = load_vois_h5(arguments.image_path, files[k])
 
         # Automatic corner crop
         image_deep, cropped_deep = auto_corner_crop(image_deep)
@@ -40,101 +35,80 @@ def pipeline(arguments, selection=None, pat_groups=None):
         images_deep.append(image_deep)
         images_calc.append(image_calc)
 
-    # Load grades
-    grades = []
-    df = pd.read_excel(arguments.path_grades)
-    if isinstance(arguments.grade_keys, type('abc')):
-        grades = np.array(df[arguments.grade_keys])
-    else:
-        for key in arguments.grade_keys:
-            try:
-                grades += np.array(df[key])
-
-            except NameError:
-                grades = np.array(df[key])
+    # Load grades to array
+    grades, hdr_grades = load_excel(arguments.grade_path, titles=[arguments.grades_used])
+    grades = grades.squeeze()
+    # Sort grades based on alphabetical order
+    grades = np.array([grade for _, grade in sorted(zip(hdr_grades, grades), key=lambda var: var[0])])
 
     # Select VOI
-    if arguments.grade_keys[:4] == 'surf':
+    if arguments.grades_used[:4] == 'surf':
         images = images_surf[:]
-    elif arguments.grade_keys[:4] == 'deep':
+    elif arguments.grades_used[:4] == 'deep':
         images = images_deep[:]
-    elif arguments.grade_keys[:4] == 'calc':
+    elif arguments.grades_used[:4] == 'calc':
         images = images_calc[:]
     else:
         raise Exception('Check selected zone!')
     # Optimize parameters
-    pars, error = parameter_optimization_random(images, grades, arguments, pat_groups)
+    pars, error = parameter_optimization_loo(np.array(images), grades, arguments, loss, groups=pat_groups)
 
-    print('Results for grades: ' + arguments.grade_keys)
-    print('Explained variance: ' + str(arguments.n_components))
+    print('Results for grades: ' + arguments.grades_used)
     print("Minimum error is : {0}".format(error))
     print("Parameters are:")
-    print(pars)
+    for i in range(len(pars)):
+        print(error[i])
+        print(pars[i])
 
 
 if __name__ == '__main__':
     # Arguments
-    parser = ArgumentParser()
-    comps = [15, 20]  # PCA components
-    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_2mm')
-    # parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\MeanStd_Insaf_combined')
-    parser.add_argument('--path_grades', type=str, default=r'Y:\3DHistoData\Grading\trimmed_grades_2mm.xlsx')
-    parser.add_argument('--grade_keys', type=str, default='surf_sub')
-    parser.add_argument('-hist_normalize', type=bool, default=True)
-    parser.add_argument('--n_components', type=int, default=0.9)
-    parser.add_argument('--n_pars', type=int, default=750)
-    parser.add_argument('--classifier', type=str, choices=['ridge', 'random_forest'], default='ridge')
-    parser.add_argument('--n_jobs', type=int, default=12)
-
-    args = parser.parse_args()
-    # Patient groups
+    choice = '2mm'
+    data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
+    arguments = arg.return_args(data_path, choice, pars=arg.set_90p_2m_cut, grade_list=arg.grades_cut)
+    arguments.split = 'logo'
+    arguments.n_jobs = 8
+    arguments.n_pars = 50
+    loss_function = mean_squared_error
     groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
                        15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
 
-    # Use listbox (Result is saved in listbox.file_list)
-    listbox.GetFileSelection(args.path)
+    if arguments.GUI:
+        # Use listbox (Result is saved in listbox.file_list)
+        listbox.GetFileSelection(arguments.image_path)
+        files = listbox.file_list
+    else:
+        files = [os.path.basename(f) for f in glob(arguments.image_path + '/' + '*.h5')]
 
-    # File list
-    files = os.listdir(args.path)
-    files.sort()
-    # Exclude samples
-    files = [files[i] for i in listbox.file_list]
     print('Selected files')
     for f in range(len(files)):
         print(files[f])
     print('')
 
-    for comp in comps:
-        # Update number of components
-        #print('Number of PCA components: {0}'.format(comp))
-        #args.n_components = comp
+    # Surface subgrade
+    arguments.grades_used = 'surf_sub'
+    pipeline(arguments, files, loss_function, groups)
 
-        # Surface subgrade
-        #args.grade_keys = 'surf_sub'
-        #pipeline(args, listbox.file_list, groups)
+    # Deep ECM
+    arguments.grades_used = 'deep_mat'
+    pipeline(arguments, files, loss_function, groups)
 
-        # Deep ECM
-        args.grade_keys = 'deep_mat'
-        pipeline(args, listbox.file_list, groups)
+    # Calcified ECM
+    arguments.grades_used = 'calc_mat'
+    pipeline(arguments, files, loss_function, groups)
 
-        # Calcified ECM
-        args.grade_keys = 'calc_mat'
-        pipeline(args, listbox.file_list, groups)
+    # Deep cellularity
+    arguments.grades_used = 'deep_cell'
+    pipeline(arguments, files, loss_function, groups)
 
-        # Deep cellularity
-        args.grade_keys = 'deep_cell'
-        pipeline(args, listbox.file_list, groups)
+    # Calcified vascularity
+    arguments.grades_used = 'calc_vasc'
+    pipeline(arguments, files, loss_function, groups)
 
-        # Calcified vascularity
-        args.grade_keys = 'calc_vasc'
-        pipeline(args, listbox.file_list, groups)
+    # Deep subgrade
+    arguments.grades_used = 'deep_sub'
+    pipeline(arguments, files, loss_function, groups)
 
-        # Deep subgrade
-        args.grade_keys = 'deep_sub'
-        pipeline(args, listbox.file_list, groups)
-
-        # Calcified subgrade
-        args.grade_keys = 'calc_sub'
-        pipeline(args, listbox.file_list, groups)
-
-
+    # Calcified subgrade
+    arguments.grades_used = 'calc_sub'
+    pipeline(arguments, files, loss_function, groups)
