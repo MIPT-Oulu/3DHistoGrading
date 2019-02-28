@@ -50,7 +50,11 @@ namespace HistoGrading.Components
             mod.eigenVectors = reader.eigenVectors;
             mod.singularValues = reader.singularValues;
             mod.weights = reader.weights;
+            mod.weightsLog = reader.weightsLog;
+            mod.intercept = reader.intercept;
+            mod.interceptLog = reader.interceptLog;
             mod.mean = reader.mean;
+            
 
             // Load parameters from .csv
             var paramList = DataTypes.ReadCSV(path + param_path).ToInt32();
@@ -141,7 +145,16 @@ namespace HistoGrading.Components
             double[,] PCA = dataAdjust.Dot(transform);
 
             // Regression
-            double[] grades = PCA.Dot(mod.weights).Add(1.5);
+            double[] grades = PCA.Dot(mod.weights).Add(mod.intercept);
+            double[] logistic = PCA.Dot(mod.weightsLog).Add(mod.interceptLog);
+            if (logistic[0] > 0.5)
+            {
+                Console.WriteLine("Logistic regression estimated sample as degenerated.");
+            }
+            else
+            {
+                Console.WriteLine("Logistic regression estimated sample as healthy / mildly degenerated.");
+            }
 
             // Convert estimated grade to string
             if (grades[0] < 0)
@@ -272,9 +285,13 @@ namespace HistoGrading.Components
         /// </summary>
         public float[] singularValues;
         /// <summary>
-        /// Feature weights from pretrained linear regression.
+        /// Pretrained linear and logistic regression weights. Readed with ReadWeights method from .dat file.
         /// </summary>
-        public double[] weights;
+        public double[] weights, weightsLog;
+        /// <summary>
+        /// Pretrained linear and logistic regression intercept term.
+        /// </summary>
+        public double intercept, interceptLog;
         /// <summary>
         /// Mean feature vector.
         /// </summary>
