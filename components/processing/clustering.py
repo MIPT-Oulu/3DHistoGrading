@@ -7,17 +7,9 @@ from scipy.signal import medfilt
 from sklearn.utils import shuffle
 from sklearn.cluster import KMeans, spectral_clustering
 from sklearn.feature_extraction import image as im
-from skimage import segmentation
 
 cv2.ocl.setUseOpenCL(False)
 cv2.setNumThreads(0)
-
-
-def segment_clusters(image, clusters=3):
-    labels = segmentation.slic(image, clusters, compactness=40)
-    plt.imshow(labels)
-    plt.show()
-    return
 
 
 def kmeans(image, clusters=2, scale=True):

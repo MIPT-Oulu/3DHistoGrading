@@ -18,34 +18,42 @@ def pipeline_lbp(args, files, parameters, grade_used):
     # Start time
     start_time = time()
 
-    # Load and normalize images
-    save_images = args.save_images  # Choice whether to save images
-    print('Loading images...')
-    images_norm = (Parallel(n_jobs=args.n_jobs)(delayed(load_voi)  # Initialize
-                   (args.image_path, files[i], grade_used, parameters, save=args.save_path, autocrop=args.auto_crop)
-                                                     for i in range(len(files))))  # Iterable
+    for vol in range(args.n_subvolumes):
+        if args.n_subvolumes > 1:
+            print('Loading images from subvolume {0}'.format(vol))
+            files_input = files[vol]
+        else:
+            print('Loading images...')
+            files_input = files
+        # Load and normalize images
+        images_norm = (Parallel(n_jobs=args.n_jobs)(delayed(load_voi)  # Initialize
+                       (args.image_path, files_input[i], grade_used, parameters, save=args.save_path, autocrop=args.auto_crop)
+                                                         for i in range(len(files_input))))  # Iterable
 
-    # Calculate features
-    if args.convolution:
-        features = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)  # Initialize
-                    (images_norm[i], parameters,  # LBP parameters
-                     normalize=args.normalize_hist,
-                     savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used)  # Save paths
-                                                      for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
-    else:
-        features = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)  # Initialize
-                    (images_norm[i], parameters,  # LBP parameters
-                     normalize=args.normalize_hist,
-                     savepath=args.save_path + '\\Images\\LBP\\', sample=files[i][:-3] + '_' + grade_used,  # Save paths
-                     save_images=save_images)
-                                                      for i in tqdm(range(len(files)), desc='Calculating LBP features')))  # Iterable
+        # Calculate features
+        if args.convolution:
+            features = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)  # Initialize
+                        (images_norm[i], parameters,  # LBP parameters
+                         normalize=args.normalize_hist,
+                         savepath=args.save_path + '\\Images\\LBP\\', sample=files_input[i][:-3] + '_' + grade_used)  # Save paths
+                                                          for i in tqdm(range(len(files_input)), desc='Calculating LBP features')))  # Iterable
+        else:
+            features = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)  # Initialize
+                        (images_norm[i], parameters,  # LBP parameters
+                         normalize=args.normalize_hist,
+                         savepath=args.save_path + '\\Images\\LBP\\', sample=files_input[i][:-3] + '_' + grade_used,  # Save paths
+                         save_images=args.save_images)
+                                                          for i in tqdm(range(len(files_input)), desc='Calculating LBP features')))  # Iterable
 
-    # Convert to array
-    features = np.array(features).squeeze()
+        # Convert to array
+        features = np.array(features).squeeze()
 
-    # Save features
-    save = args.save_path
-    save_excel(features.T, save + r'\Features_' + grade_used + '_' + args.str_components + '.xlsx', files)
+        # Save features
+        if args.n_subvolumes > 1:
+            save = args.save_path + r'\Features\\' + grade_used + '_' + str(vol) + '.xlsx'
+        else:
+            save = args.save_path + r'\Features\\' + grade_used + '.xlsx'
+        save_excel(features.T, save, files_input)
 
     # Display spent time
     t = time() - start_time

@@ -66,10 +66,15 @@ if __name__ == '__main__':
     arguments = arg.return_args(data_path, choice, pars=arg.set_90p_2m_cut, grade_list=arg.grades_cut)
     arguments.split = 'logo'
     arguments.n_jobs = 8
-    arguments.n_pars = 25
+    arguments.n_pars = 5
+    arguments.regression = 'ridge'
     loss_function = mean_squared_error
-    groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
-                       15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
+    if choice == '2mm':
+        arguments.split = 'logo'
+        groups, _ = load_excel(arguments.grade_path, titles=['groups'])
+        groups = groups.flatten()
+    else:
+        groups = None
 
     if arguments.GUI:
         # Use listbox (Result is saved in listbox.file_list)

@@ -1,3 +1,4 @@
+cloudpickle
 cntk==2.6
 cntk-gpu==2.6
 glob3==0.0.1

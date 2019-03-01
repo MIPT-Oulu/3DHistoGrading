@@ -1,28 +1,47 @@
 import numpy as np
 import os
+import sys
 from glob import glob
 import components.grading.args_grading as arg
 import components.utilities.listbox as listbox
+import warnings
 
 from scripts.run_lbp_features_vois import pipeline_lbp
 from scripts.run_pca_regression import pipeline_prediction
 from components.grading.roc_curve import roc_curve_single, roc_curve_multi
+from components.utilities.load_write import load_excel
 
 if __name__ == '__main__':
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
     # Arguments
-    choice = 'Isokerays'
+    if len(sys.argv) > 1:
+        choice = sys.argv[1]
+    else:
+        choice = 'Isokerays'
     data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
     arguments = arg.return_args(data_path, choice, pars=arg.set_90p_2m_cut, grade_list=arg.grades_cut)
-    arguments.train_regression = False
     # LOGO for 2mm samples
     if choice == '2mm':
+        arguments.train_regression = True
         arguments.split = 'logo'
-        groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
-                           15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
+        groups, _ = load_excel(arguments.grade_path, titles=['groups'])
+        groups = groups.flatten()
+    elif choice == 'Isokerays' or choice == 'Isokerays_sub':
+        arguments.train_regression = False
+        arguments.n_subvolumes = 9
+        groups = None
     else:
+        arguments.train_regression = False
+        arguments.n_subvolumes = 2
         groups = None
 
-    if arguments.GUI:
+    # Get file list
+    if arguments.n_subvolumes > 1:
+        file_list = []
+        for sub in range(arguments.n_subvolumes):
+            file_list_sub = [os.path.basename(f) for f in glob(arguments.image_path + '/*sub' + str(sub) + '.h5')]
+            file_list.append(file_list_sub)
+    elif arguments.GUI:
         # Use listbox (Result is saved in listbox.file_list)
         listbox.GetFileSelection(arguments.image_path)
         file_list = listbox.file_list
@@ -49,7 +68,7 @@ if __name__ == '__main__':
             lim = (np.min(grade) + np.max(grade)) // 2
             split = arguments.split
             save_path = arguments.save_path + '\\roc_' + grade_selection + '_' + arguments.str_components + '_' + split
-            roc_curve_single(pred, grade, lim, savepath=save_path)
+            roc_curve_single(pred, grade, lim, savepath=save_path, title=grade_selection)
 
     # Multi ROC curve
     if len(arguments.grades_used) == 3:

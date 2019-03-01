@@ -116,6 +116,7 @@ def duplicate_vector(vector, n, reshape=False):
 
 
 def bounding_box(image, threshold=80, max_val=255, min_area=1600):
+    """Return bounding box of largest sample contour."""
     # Threshold
     _, mask = cv2.threshold(image, threshold, max_val, 0)
     # Get contours
@@ -145,8 +146,8 @@ def bounding_box(image, threshold=80, max_val=255, min_area=1600):
     return left, right, top, bottom
 
 
-def otsu_threshold(data, parallel=True):
-
+def otsu_threshold(data):
+    """Thresholds 3D aray using Otsu method. Returns mask and threshold value."""
     if len(data.shape) == 2:
         val, mask = cv2.threshold(data.astype('uint8'), 0, 255, cv2.THRESH_OTSU)
         return mask, val
@@ -161,6 +162,21 @@ def otsu_threshold(data, parallel=True):
         values2[i], mask2[:, i, :] = cv2.threshold(data[:, i, :].astype('uint8'), 0, 255, cv2.THRESH_OTSU)
     value = (np.mean(values1) + np.mean(values2)) / 2
     return data > value, value
+
+
+def create_subimages(image, n_x=3, n_y=3, im_size_x=400, im_size_y=400):
+    """Splits an image into smaller images to fit images with given size with even spacing"""
+    swipe_range_x = image.shape[0] - im_size_x
+    swipe_x = swipe_range_x // n_x
+    swipe_range_y = image.shape[1] - im_size_y
+    swipe_y = swipe_range_y // n_y
+    subimages = []
+    for x in range(n_x):
+        for y in range(n_y):
+            x_ind = swipe_x * x
+            y_ind = swipe_y * y
+            subimages.append(image[x_ind:x_ind + im_size_x, y_ind:y_ind + im_size_y])
+    return subimages
 
 
 def print_images(images, title=None, subtitles=None, save_path=None, sample=None, transparent=False):

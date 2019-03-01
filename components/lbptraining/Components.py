@@ -56,35 +56,37 @@ def make_pars_hyperopt(seed):
 def fit_model(imgs, grades, parameters, args, loss=mean_squared_error, groups=None):
     """Runs LBP, PCA and regression on given parameters and return error metric."""
     
+    # LBP features
     features = []
-    
     for img in imgs:
         img = local_normalize_abs(img, parameters)
         f = MRELBP(img, parameters, normalize=args.normalize_hist)
         features.append(f)
-        
     features = np.array(features).squeeze()
+    # Remove zero features
+    features = features[~np.all(features == 0, axis=1)]
+
+    # Centering
+    mean = np.mean(features, 1)
+    features = (features.T - mean).T
 
     # PCA
     _, score = scikit_pca(features, args.n_components, whitening=True, solver='auto')
 
     # Groups
     if groups is not None:
-        preds, _, _ = regress_logo(score, grades, groups, method=args.regression)
+        preds, _, _ = regress_logo(score, grades, groups, method=args.regression, standard=False, use_intercept=True)
     else:
-        preds, _, _ = regress_loo(score, grades, method=args.regression)
+        preds, _, _ = regress_loo(score, grades, method=args.regression, standard=False, use_intercept=True)
     
     return loss(preds, grades)
 
 
-def evaluate(parameters, imgs, grades, args, loss, groups=None, callback=None):
+def evaluate(parameters, imgs, grades, args, loss, groups=None):
     try:
         res = fit_model(imgs, grades, parameters, args, loss, groups=groups)
     except TypeError:
         res = 1e6
-    if callback is not None:
-        #callback()
-        pass
     # print('Parameters are: {0}'.format(parameters))
     return {'loss': res, 'status': STATUS_OK}  # , 'pars': parameters}
 
@@ -114,7 +116,7 @@ def parameter_optimization_hyperopt(imgs, grades, args, loss, groups=None):
 
         # Optimize
         min_loss = fmin(fn=partial(evaluate, imgs=imgs_train, grades=grades_train, args=args,
-                        groups=groups_train, loss=loss, callback=None),
+                        groups=groups_train, loss=loss),
                         space=param_space,
                         algo=tpe.suggest,
                         max_evals=args.n_pars,

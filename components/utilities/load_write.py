@@ -28,8 +28,8 @@ def find_image_paths(path, files):
                     file_paths.append(path + "\\" + files[k] + '\\' + files[k] + '_Rec')
                 except FileNotFoundError:
                     try:
-                        os.listdir(path + '\\' + files[k])
-                        file_paths.append(path + '\\' + files[k])
+                        pth = os.path.basename(path + '\\' + files[k])
+                        file_paths.append(pth)
                     except FileNotFoundError:  # Case: Unusable folder
                         print('Skipping folder {0}'.format(files[k]))
                         continue
@@ -185,7 +185,6 @@ def load_binary_weights(path):
         weights = np.zeros(ncomp)
         for i in range(ncomp):
             weights[i] = unpack('<d', f.read(8))[0]
-
         weights_log = np.zeros(ncomp)
         for i in range(ncomp):
             weights_log[i] = unpack('<d', f.read(8))[0]

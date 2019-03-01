@@ -18,4 +18,5 @@ def return_args(root, choice):
     parser.add_argument('--segmentation', type=str, choices=['torch', 'kmeans', 'cntk'], default='kmeans')
     parser.add_argument('--n_subvolumes', type=int, default=1)
     parser.add_argument('--n_jobs', type=int, default=12)
+    parser.add_argument('--GUI', type=bool, default=False)
     return parser.parse_args()

@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import os
 import pickle
-import cntk as C
+#import cntk as C
 
 from components.segmentation.torch_segmentation import get_split, inference
 from components.processing.clustering import kmeans_opencv, kmeans_scikit

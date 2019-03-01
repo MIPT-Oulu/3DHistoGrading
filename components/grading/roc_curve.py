@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score, roc_curve, mean_squared_error
 from tqdm.auto import tqdm
 
 
-def roc_curve_multi(preds, targets, lim, savepath=None, seed=42):
+def roc_curve_multi(preds, targets, lim, savepath=None, seed=42, title=None):
     """ROC curve for three predictions."""
 
     fpr_surf, tpr_surf, _ = roc_curve(targets[0] > lim, preds[0])
@@ -39,12 +39,14 @@ def roc_curve_multi(preds, targets, lim, savepath=None, seed=42):
     plt.yticks(fontsize=24)
     plt.xlim([-0.01, 1.01])
     plt.ylim([-0.01, 1.01])
+    if title is not None:
+        plt.title(title)
     plt.grid()
     plt.savefig(savepath, bbox_inches='tight')
     plt.show()
 
 
-def roc_curve_single(preds, targets, lim, savepath=None, seed=42):
+def roc_curve_single(preds, targets, lim, savepath=None, seed=42, title=None):
     """Plots ROC curve for given prediction."""
 
     fpr, tpr, _ = roc_curve(targets > lim, preds)
@@ -64,6 +66,8 @@ def roc_curve_single(preds, targets, lim, savepath=None, seed=42):
     plt.yticks(fontsize=24)
     plt.xlim([-0.01, 1.01])
     plt.ylim([-0.01, 1.01])
+    if title is not None:
+        plt.title(title)
     plt.grid()
     plt.savefig(savepath, bbox_inches='tight')
     plt.show()
