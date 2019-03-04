@@ -5,7 +5,7 @@ import components.grading.args_grading as arg
 
 from glob import glob
 from sklearn.metrics import mean_squared_error
-from components.lbptraining.Components import parameter_optimization_hyperopt
+from components.lbptraining.training_components import optimization_hyperopt_loo
 from components.utilities import listbox
 from components.utilities.load_write import load_vois_h5, load_excel
 from components.utilities.misc import auto_corner_crop
@@ -51,12 +51,11 @@ def pipeline(args, files, metric, pat_groups=None):
     else:
         raise Exception('Check selected zone!')
     # Optimize parameters
-    pars, error = parameter_optimization_hyperopt(np.array(images), grades, args, metric, groups=pat_groups)
+    pars, error = optimization_hyperopt_loo(np.array(images), grades, args, metric, groups=pat_groups)
 
     print('Results for grades: ' + args.grade_keys)
-    print("Minimum error is : {0}".format(error))
-    print("Parameters are:")
-    print(pars)
+    print("Minimum errors:\n", error)
+    print("Parameters are:\n", pars)
 
 
 if __name__ == '__main__':

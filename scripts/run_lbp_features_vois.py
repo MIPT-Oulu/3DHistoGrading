@@ -27,7 +27,7 @@ def pipeline_lbp(args, files, parameters, grade_used):
             files_input = files
         # Load and normalize images
         images_norm = (Parallel(n_jobs=args.n_jobs)(delayed(load_voi)  # Initialize
-                       (args.image_path, files_input[i], grade_used, parameters, save=args.save_path, autocrop=args.auto_crop)
+                       (args, files_input[i], grade_used, parameters, save_images=args.save_images, autocrop=args.auto_crop)
                                                          for i in range(len(files_input))))  # Iterable
 
         # Calculate features
@@ -35,15 +35,17 @@ def pipeline_lbp(args, files, parameters, grade_used):
             features = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)  # Initialize
                         (images_norm[i], parameters,  # LBP parameters
                          normalize=args.normalize_hist,
-                         savepath=args.save_path + '\\Images\\LBP\\', sample=files_input[i][:-3] + '_' + grade_used)  # Save paths
-                                                          for i in tqdm(range(len(files_input)), desc='Calculating LBP features')))  # Iterable
+                         savepath=args.save_path + '\\Images\\LBP\\',
+                         sample=files_input[i][:-3] + '_' + grade_used)  # Save paths
+                          for i in tqdm(range(len(files_input)), desc='Calculating LBP features')))  # Iterable
         else:
             features = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)  # Initialize
                         (images_norm[i], parameters,  # LBP parameters
                          normalize=args.normalize_hist,
-                         savepath=args.save_path + '\\Images\\LBP\\', sample=files_input[i][:-3] + '_' + grade_used,  # Save paths
+                         savepath=args.save_path + '\\Images\\LBP\\',
+                         sample=files_input[i][:-3] + '_' + grade_used,  # Save paths
                          save_images=args.save_images)
-                                                          for i in tqdm(range(len(files_input)), desc='Calculating LBP features')))  # Iterable
+                          for i in tqdm(range(len(files_input)), desc='Calculating LBP features')))  # Iterable
 
         # Convert to array
         features = np.array(features).squeeze()
@@ -60,8 +62,10 @@ def pipeline_lbp(args, files, parameters, grade_used):
     print('Elapsed time: {0}s'.format(t))
 
 
-def load_voi(path, file, grade, par, save=None, autocrop=True):
+def load_voi(args, file, grade, par, save_images=False, autocrop=True):
     """Loads mean+std images and performs automatic artefact crop and grayscale normalization."""
+    path = args.image_path
+    save = args.save_path
     # Load images
     image_surf, image_deep, image_calc = load_vois_h5(path, file)
 
@@ -91,7 +95,7 @@ def load_voi(path, file, grade, par, save=None, autocrop=True):
     # Normalize
     image_norm = local_standard(image, par)
     # Save image
-    if save is not None:
+    if save_images:
         titles_norm = ['Mean + Std', '', 'Normalized']
         print_images((image, image, image_norm),
                      subtitles=titles_norm, title=file + ' Input',

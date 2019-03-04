@@ -5,7 +5,7 @@ import components.grading.args_grading as arg
 
 from glob import glob
 from sklearn.metrics import mean_squared_error
-from components.lbptraining.Components import parameter_optimization_loo
+from components.lbptraining.training_components import optimization_randomsearch_loo
 from components.utilities import listbox
 from components.utilities.load_write import load_vois_h5, load_excel
 from components.utilities.misc import auto_corner_crop
@@ -51,7 +51,7 @@ def pipeline(arguments, files, loss, pat_groups=None):
     else:
         raise Exception('Check selected zone!')
     # Optimize parameters
-    pars, error = parameter_optimization_loo(np.array(images), grades, arguments, loss, groups=pat_groups)
+    pars, error = optimization_randomsearch_loo(np.array(images), grades, arguments, loss, groups=pat_groups)
 
     print('Results for grades: ' + arguments.grades_used)
     print("Minimum error is : {0}".format(error))

@@ -30,13 +30,18 @@ if __name__ == '__main__':
     choice = 'Isokerays'
     data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData/Meanstd_' + choice
     arguments = arg.return_args(data_path + '_large', choice)
-    arguments.save_image_path = data_path
-    if choice == 'Isokerays':
-        arguments.n_subvolumes = 9
+    #arguments.save_image_path = data_path
 
-    # Get file list
-    file_list = [os.path.basename(f) for f in glob(arguments.data_path + '/' + '*.h5')]
+    if arguments.n_subvolumes > 1:
+        # Get file list
+        file_list = [os.path.basename(f) for f in glob(arguments.data_path + '/' + '*.h5')]
 
-    jobs = arguments.n_jobs
-    Parallel(n_jobs=jobs)(delayed(load_voi_save_subvolume)(arguments, file_list[f], n_x=10, n_y=10)
-                          for f in tqdm(range(len(file_list)), desc='Creating subvolumes'))
+        # Create subimages
+        jobs = arguments.n_jobs
+        x = arguments.subvolumes_x
+        y = arguments.subvolumes_y
+        Parallel(n_jobs=jobs)(delayed(load_voi_save_subvolume)(arguments, file_list[f], n_x=x, n_y=y)
+                              for f in tqdm(range(len(file_list)), desc='Creating subvolumes'))
+        print('Created {0} subimages.'.format(arguments.n_subvolumes))
+    else:
+        print('Large images used.')

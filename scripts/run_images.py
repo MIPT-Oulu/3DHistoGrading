@@ -13,8 +13,6 @@ if __name__ == '__main__':
     data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
     arguments = arg.return_args(data_path, choice)
     arguments.data_path = r'/media/santeri/Transcend/PTA1272/Samples with missing grades'
-    if choice == 'Isokerays':
-        arguments.n_subvolumes = 9
 
     # Extract sample list
     samples = os.listdir(arguments.data_path)
@@ -31,12 +29,12 @@ if __name__ == '__main__':
     for k in range(len(file_paths)):
         start = time()
         # Initiate pipeline
-        #try:
-        arguments.data_path = file_paths[k]
-        pipeline_subvolume_mean_std(arguments, samples[k])
-        end = time()
-        print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
-       # except Exception:
-        #    print('Sample {0} failing. Skipping to next one'.format(samples[k]))
-        #    continue
+        try:
+            arguments.data_path = file_paths[k]
+            pipeline_subvolume_mean_std(arguments, samples[k], render=arguments.render)
+            end = time()
+            print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
+        except Exception:
+            print('Sample {0} failing. Skipping to next one'.format(samples[k]))
+            continue
     print('Done')

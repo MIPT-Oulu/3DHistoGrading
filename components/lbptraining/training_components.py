@@ -37,7 +37,7 @@ def make_pars_hyperopt(seed):
     """Generate LBP parameter space for hyperopt."""
 
     par_set = dict()
-    #par_set['N'] = hp.choice('N', [8, 16])
+    # par_set['N'] = hp.choice('N', [8, 16])
     par_set['N'] = 8
     par_set['ks1'] = hp.randint('ks1', 12) * 2 + 3
     par_set['sigma1'] = hp.randint('sigma1', par_set['ks1']) + 1
@@ -91,7 +91,7 @@ def evaluate(parameters, imgs, grades, args, loss, groups=None):
     return {'loss': res, 'status': STATUS_OK}  # , 'pars': parameters}
 
 
-def parameter_optimization_hyperopt(imgs, grades, args, loss, groups=None):
+def optimization_hyperopt_loo(imgs, grades, args, loss, groups=None):
     """Parameter optimization with Leave-one-out."""
     # Get leave-one-out split
     loo = LeaveOneOut()
@@ -132,13 +132,13 @@ def parameter_optimization_hyperopt(imgs, grades, args, loss, groups=None):
 
     # Show results
     for i in range(len(best_pars)):
-        print('Loss: {0}'.format(min_loss[i]))
+        print('Loss: {0}'.format(error_list[i]))
         print(best_pars[i])
 
-    return best_pars, trials
+    return best_pars, error_list
 
 
-def parameter_optimization_loo(imgs, grades, args, loss, groups=None):
+def optimization_randomsearch_loo(imgs, grades, args, loss, groups=None):
     # Unpack parameters
     n_pars = args.n_pars
     n_jobs = args.n_jobs
@@ -184,7 +184,7 @@ def parameter_optimization_loo(imgs, grades, args, loss, groups=None):
     return best_pars, error_list
 
 
-def parameter_optimization(imgs, grades, args, loss, groups=None):
+def optimization_randomsearch(imgs, grades, args, loss, groups=None):
     # Unpack parameters
     n_pars = args.n_pars
     n_jobs = args.n_jobs

@@ -34,16 +34,19 @@ def pipeline_subvolume_mean_std(args, sample, render=False):
 
     # 3. Crop and flip volume
     print('3. Crop and flip center volume:')
-    data, crop = crop_center(data, args.size['width'], args.size['width'], method=args.crop_method)  # crop data
+    if args.size_wide is not None:
+        data, crop = crop_center(data, args.size_wide, args.size['width'], method=args.crop_method)  # crop data
+    else:
+        data, crop = crop_center(data, args.size['width'], args.size['width'], method=args.crop_method)  # crop data
     print_orthogonal(data)
     save_orthogonal(save_path + "\\Images\\" + sample + "_orient_cropped.png", data)
     if render:
         render_volume(data, save_path + "\\Images\\" + sample + "_orient_cropped_render.png")
 
     # Different pipeline for large dataset
-    if args.n_subvolumes > 1:
+    if args.n_subvolumes > 1:  # Segment and calculate each subvolume individually
         create_subvolumes(data, sample, args)
-    else:
+    else:  # Calculate
         calculate_mean_std(data, sample, args)
 
 

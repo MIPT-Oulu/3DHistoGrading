@@ -12,12 +12,9 @@ from components.grading.roc_curve import roc_curve_single, roc_curve_multi
 from components.utilities.load_write import load_excel
 
 if __name__ == '__main__':
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
     # Arguments
-    if len(sys.argv) > 1:
-        choice = sys.argv[1]
-    else:
-        choice = 'Isokerays'
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    choice = 'Isokerays'
     data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
     arguments = arg.return_args(data_path, choice, pars=arg.set_90p_2m_cut, grade_list=arg.grades_cut)
     # LOGO for 2mm samples
@@ -28,12 +25,15 @@ if __name__ == '__main__':
         groups = groups.flatten()
     elif choice == 'Isokerays' or choice == 'Isokerays_sub':
         arguments.train_regression = False
-        arguments.n_subvolumes = 9
+        arguments.n_subvolumes = 16
         groups = None
     else:
         arguments.train_regression = False
         arguments.n_subvolumes = 2
         groups = None
+
+    # Print parameters
+    print('Parameters used in experiment:\n', arguments)
 
     # Get file list
     if arguments.n_subvolumes > 1:
@@ -42,10 +42,12 @@ if __name__ == '__main__':
             file_list_sub = [os.path.basename(f) for f in glob(arguments.image_path + '/*sub' + str(sub) + '.h5')]
             file_list.append(file_list_sub)
     elif arguments.GUI:
+        arguments.image_path = arguments.image_path + '_large'
         # Use listbox (Result is saved in listbox.file_list)
         listbox.GetFileSelection(arguments.image_path)
         file_list = listbox.file_list
     else:
+        arguments.image_path = arguments.image_path + '_large'
         file_list = [os.path.basename(f) for f in glob(arguments.image_path + '/' + '*.h5')]
 
     # Call Grading pipelines for different grade evaluations
