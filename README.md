@@ -21,18 +21,18 @@ More about the analysis procedure implemented in this repository can be found in
 
 ## Prerequisites
 
-Dependencies can be loaded using command: `pip install -e .`
+Dependencies are loaded automatically in the bash scripts.
 
 ## Usage
 
 ### Preprocessing
-Phosphotungstic acid -stained osteochondral samples can be preprocessed into mean and standard deviation images with script `run_images.py`.
+Phosphotungstic acid -stained osteochondral samples can be preprocessed into mean and standard deviation images with script `run_images.sh`.
 
 ### Grading
-Mean and standard deviation images can be used to calculate LBP images and estimate degeneration grades using script `run_grading.py`.
+Mean and standard deviation images can be used to calculate LBP images and estimate degeneration grades using script `run_grading.sh`.
 
 ### Full pipeline
-These two steps are combined in script `run_full.py`.
+These two steps are combined in script `run_full.sh`.
 
 ## License
 
