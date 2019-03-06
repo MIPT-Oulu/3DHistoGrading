@@ -45,6 +45,7 @@ python scripts/run_grading.py \
 --save_path ${SAVE_PATH} \
 --grade_path ${GRADE_PATH} \
 --save_images False \
+--train_regression False \
 --n_subvolumes ${SUBVOLUMES} \
 > "${LOGPATH}grading_log.txt" # Save output and errors as log file. Show also live (tee)
 

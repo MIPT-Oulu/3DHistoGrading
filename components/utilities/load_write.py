@@ -304,7 +304,7 @@ def save_excel(array, save_path, files=None):
         try:
             df1 = pd.DataFrame(array, columns=files)
         except ValueError:
-            df1 = pd.DataFrame(array, rows=files)
+            df1 = pd.DataFrame(array.T, columns=files)
     elif isinstance(array, dict):
         df1 = pd.DataFrame(array, index=[0])
     else:

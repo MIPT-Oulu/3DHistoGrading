@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from mpl_toolkits import mplot3d
+from matplotlib.animation import FuncAnimation
 import os
 import cv2
 
@@ -366,3 +368,121 @@ def save_orthogonal(path, data, invert=True, res=3.2, title=None, cbar=True):
     plt.tight_layout()
     fig.savefig(path, bbox_inches="tight", transparent=True)
     plt.close()
+
+
+def plot_array_3d(array, plt_title=None, savepath=None, grades=None):
+    if grades is not None:
+        colors = ['green', 'yellow', 'orange', 'red']
+        labels = ('Grade 0', 'Grade 1', 'Grade 2', 'Grade 3')
+    else:
+        # Choose color
+        if plt_title[:4] == 'deep':
+            color = (128 / 225, 160 / 225, 60 / 225)
+            # color = 'Greens'
+        elif plt_title[:4] == 'calc':
+            color = (225 / 225, 126 / 225, 49 / 225)
+            # color = 'Oranges'
+        else:
+            color = (132 / 225, 102 / 225, 179 / 225)
+            # color = 'Purples'
+    # Transpose array if necessary
+    if array.shape[0] != 3:
+        array = array.T
+
+    # Plot
+    fig = plt.figure(dpi=600)
+    fig.suptitle(plt_title)
+    axes = plt.axes(projection='3d')
+    # axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, c=array[2, :], cmap=color, depthshade=True)
+    if grades is not None:
+        axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, color=[colors[g] for g in grades], label=labels,
+                       depthshade=False)
+        axes.legend()
+    else:
+        axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, color=color, depthshade=False)
+    axes.set_xlabel('Component 1')
+    axes.set_ylabel('Component 2')
+    axes.set_zlabel('Component 3')
+    if savepath is not None:
+        plt.savefig(savepath, bbox_inches='tight')
+
+
+def plot_array_3d_animation(array, savepath, plt_title=None, grades=None):
+    """Save animation of the 3D plot. Requires ffmpeg (sudo apt-get install ffmpeg)"""
+    if grades is not None:
+        colors = ['green', 'yellow', 'orange', 'red']
+        labels = ('Grade 0', 'Grade 1', 'Grade 2', 'Grade 3')
+    else:
+        # Choose color
+        if plt_title[:4] == 'deep':
+            color = (128 / 225, 160 / 225, 60 / 225)
+            # color = 'Greens'
+        elif plt_title[:4] == 'calc':
+            color = (225 / 225, 126 / 225, 49 / 225)
+            # color = 'Oranges'
+        else:
+            color = (132 / 225, 102 / 225, 179 / 225)
+            # color = 'Purples'
+    # Transpose array if necessary
+    if array.shape[0] != 3:
+        array = array.T
+    n_angles = 1000
+    angles = np.linspace(45, 405, num=n_angles)
+
+    # Plot
+    fig = plt.figure(dpi=150)
+    fig.suptitle(plt_title)
+    axes = plt.axes(projection='3d')
+    # axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, c=array[2, :], cmap=color, depthshade=False)
+    if grades is not None:
+        axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, color=[colors[g] for g in grades], label=labels,
+                       depthshade=False)
+        axes.legend()
+    else:
+        axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, color=color, depthshade=False)
+    axes.set_xlabel('Component 1')
+    axes.set_ylabel('Component 2')
+    axes.set_zlabel('Component 3')
+
+    def update(val, ax, rotation):
+        # Set the view angle
+        ax.view_init(30, rotation[val])
+
+    ani = FuncAnimation(fig, update, n_angles, fargs=(axes, angles),
+                                       blit=False)
+    ani.save(savepath + '.mp4', writer="ffmpeg", fps=n_angles/10)
+
+
+def plot_array_2d(array, plt_title=None, savepath=None, grades=None):
+    # Choose color
+    if grades is not None:
+        colors = ['green', 'yellow', 'orange', 'red']
+        labels = ('Grade 0', 'Grade 1', 'Grade 2', 'Grade 3')
+    else:
+        # Choose color
+        if plt_title[:4] == 'deep':
+            color = (128 / 225, 160 / 225, 60 / 225)
+            # color = 'Greens'
+        elif plt_title[:4] == 'calc':
+            color = (225 / 225, 126 / 225, 49 / 225)
+            # color = 'Oranges'
+        else:
+            color = (132 / 225, 102 / 225, 179 / 225)
+            # color = 'Purples'
+    # Transpose array if necessary
+    if array.shape[0] != 2:
+        array = array.T
+
+    # Plot
+    plt.figure(dpi=300)
+    plt.title(plt_title)
+    if grades is not None:
+        plt.scatter(array[0, :], array[1, :], color=[colors[g] for g in grades], label=labels, s=80)
+        plt.legend()
+    else:
+        plt.scatter(array[0, :], array[1, :], color=color, s=80)
+    plt.xlabel('Component 1')
+    plt.ylabel('Component 2')
+    plt.grid()
+    if savepath is not None:
+        plt.savefig(savepath, bbox_inches='tight')

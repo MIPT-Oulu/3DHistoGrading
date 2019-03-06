@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import sys
 from glob import glob
 import components.grading.args_grading as arg
 import components.utilities.listbox as listbox
@@ -16,7 +15,8 @@ if __name__ == '__main__':
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     choice = 'Isokerays'
     data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
-    arguments = arg.return_args(data_path, choice, pars=arg.set_90p_2m_cut, grade_list=arg.grades_cut)
+    arguments = arg.return_args(data_path, choice, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
+    combinator = np.mean
     # LOGO for 2mm samples
     if choice == '2mm':
         arguments.train_regression = True
@@ -25,11 +25,10 @@ if __name__ == '__main__':
         groups = groups.flatten()
     elif choice == 'Isokerays' or choice == 'Isokerays_sub':
         arguments.train_regression = False
-        arguments.n_subvolumes = 16
+        arguments.n_subvolumes = 9
         groups = None
     else:
         arguments.train_regression = False
-        arguments.n_subvolumes = 2
         groups = None
 
     # Print parameters
@@ -37,6 +36,10 @@ if __name__ == '__main__':
 
     # Get file list
     if arguments.n_subvolumes > 1:
+        arguments.save_path = arguments.save_path + '_' + str(arguments.n_subvolumes) + 'subs'
+        arguments.feature_path = arguments.save_path + '/Features'
+        os.makedirs(arguments.save_path, exist_ok=True)
+        os.makedirs(arguments.save_path + '/' + 'Images', exist_ok=True)
         file_list = []
         for sub in range(arguments.n_subvolumes):
             file_list_sub = [os.path.basename(f) for f in glob(arguments.image_path + '/*sub' + str(sub) + '.h5')]
@@ -61,7 +64,7 @@ if __name__ == '__main__':
         pipeline_lbp(arguments, file_list, pars, grade_selection)
 
         # Get predictions
-        grade, pred, _ = pipeline_prediction(arguments, grade_selection, pat_groups=groups)
+        grade, pred, _ = pipeline_prediction(arguments, grade_selection, pat_groups=groups, evaluate_volumes=combinator)
         gradelist.append(grade)
         preds.append(pred)
 
@@ -69,12 +72,12 @@ if __name__ == '__main__':
         if len(arguments.grades_used) != 3:
             lim = (np.min(grade) + np.max(grade)) // 2
             split = arguments.split
-            save_path = arguments.save_path + '\\roc_' + grade_selection + '_' + arguments.str_components + '_' + split
+            save_path = arguments.save_path + '\\roc_' + grade_selection + '_' + split
             roc_curve_single(pred, grade, lim, savepath=save_path, title=grade_selection)
 
     # Multi ROC curve
     if len(arguments.grades_used) == 3:
         split = arguments.split
         lim = 1
-        save_path = arguments.save_path + '\\roc_' + arguments.str_components + '_' + split
+        save_path = arguments.save_path + '\\roc_multi_' + split
         roc_curve_multi(preds, gradelist, lim, savepath=save_path)

@@ -30,7 +30,10 @@ if __name__ == '__main__':
     choice = 'Isokerays'
     data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData/Meanstd_' + choice
     arguments = arg.return_args(data_path + '_large', choice)
-    #arguments.save_image_path = data_path
+    arguments.save_image_path = data_path
+    arguments.subvolumes_x = 3
+    arguments.subvolumes_y = 3
+    arguments.n_subvolumes = 9
 
     if arguments.n_subvolumes > 1:
         # Get file list

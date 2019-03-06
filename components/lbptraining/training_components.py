@@ -110,25 +110,29 @@ def optimization_hyperopt_loo(imgs, grades, args, loss, groups=None):
         else:
             groups_train = None
 
-        # Initialize, define param space
-        trials = Trials()
-        param_space = make_pars_hyperopt(args.seed)
+        try:
+            # Initialize, define param space
+            trials = Trials()
+            param_space = make_pars_hyperopt(args.seed)
 
-        # Optimize
-        min_loss = fmin(fn=partial(evaluate, imgs=imgs_train, grades=grades_train, args=args,
-                        groups=groups_train, loss=loss),
-                        space=param_space,
-                        algo=tpe.suggest,
-                        max_evals=args.n_pars,
-                        trials=trials,
-                        verbose=0,
-                        rstate=np.random.RandomState(args.seed))
+            # Optimize
+            min_loss = fmin(fn=partial(evaluate, imgs=imgs_train, grades=grades_train, args=args,
+                            groups=groups_train, loss=loss),
+                            space=param_space,
+                            algo=tpe.suggest,
+                            max_evals=args.n_pars,
+                            trials=trials,
+                            verbose=0,
+                            rstate=np.random.RandomState(args.seed))
 
-        print(min_loss)
-        print(space_eval(param_space, min_loss))
-        best_pars.append(space_eval(param_space, min_loss))
-        error_list.append(min_loss)
-        trial_list.append(trials)
+            print(min_loss)
+            print(space_eval(param_space, min_loss))
+            best_pars.append(space_eval(param_space, min_loss))
+            error_list.append(min_loss)
+            trial_list.append(trials)
+        except TypeError:
+            print('Batch failing. Skipping to next one')
+            continue
 
     # Show results
     for i in range(len(best_pars)):
