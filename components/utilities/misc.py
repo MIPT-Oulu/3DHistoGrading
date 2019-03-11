@@ -1,3 +1,8 @@
+"""Miscellanous functions
+
+Contains various functions utilised in the repository.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -70,34 +75,6 @@ def auto_corner_crop(image_input):
     else:
         return image_input, False
 
-    ## Check for too large contour
-    #if len(contours) == 0:
-    #    return image_input, False
-    #area = cv2.contourArea(contours[-1])
-    #if area > image_input.shape[0] * image_input.shape[1] / 4:
-    #    return image_input, False
-#
-    ## Bounding rectangle for artefact contour
-    #x, y, w, h = cv2.boundingRect(contours[-1])
-#
-    ## Find location of contour
-    #if x == 0:  # Left side
-    #    if y == 0:  # Top left
-    #        return image_input[h:, w:], True
-    #    elif y + h == image_input.shape[0]:  # Bottom left
-    #        return image_input[:-h, w:], True
-    #    else:  # No artefact found
-    #        return image_input, False
-    #elif x + w == image_input.shape[1]:  # Right side
-    #    if y == 0:  # Top right
-    #        return image_input[h:, :-w], True
-    #    elif y + h == image_input.shape[0]:  # Bottom right
-    #        return image_input[:-h, :-w], True
-    #    else:  # No artefact found
-    #        return image_input, False
-    #else:
-    #    return image_input, False#
-
 
 def duplicate_vector(vector, n, reshape=False):
     new_vector = []
@@ -167,7 +144,21 @@ def otsu_threshold(data):
 
 
 def create_subimages(image, n_x=3, n_y=3, im_size_x=400, im_size_y=400):
-    """Splits an image into smaller images to fit images with given size with even spacing"""
+    """Splits an image into smaller images to fit images with given size with even spacing
+
+    Parameters
+    ----------
+    image : 2D numpy array
+        Input image that is used to create smaller subimages
+    n_x : int
+        Number of subimages along x-axis.
+    n_y : int
+        Number of subimages along y-axis.
+    im_size_x : int
+        Width of the subimages.
+    im_size_y : int
+        Height of the subimages.
+    """
     swipe_range_x = image.shape[0] - im_size_x
     swipe_x = swipe_range_x // n_x
     swipe_range_y = image.shape[1] - im_size_y
@@ -182,6 +173,24 @@ def create_subimages(image, n_x=3, n_y=3, im_size_x=400, im_size_y=400):
 
 
 def print_images(images, title=None, subtitles=None, save_path=None, sample=None, transparent=False):
+    """Print three images from list of three 2D images.
+
+    Parameters
+    ----------
+    images : list
+        List containing three 2D numpy arrays
+    save_path : str
+        Full file name for the saved image. If not given, Image is only shown.
+        Example: C:/path/images.png
+    subtitles : list
+        List of titles to be shown above each plot.
+    sample : str
+        Name for the image.
+    title : str
+        Title for the image.
+    transparent : bool
+        Choose whether to have transparent image background.
+    """
     # Configure plot
     fig = plt.figure(dpi=300)
     if title is not None:
@@ -219,7 +228,27 @@ def print_images(images, title=None, subtitles=None, save_path=None, sample=None
         plt.show()
 
 
-def print_orthogonal(data, invert=True, res=3.2, title=None, cbar=True):
+def print_orthogonal(data, invert=True, res=3.2, title=None, cbar=True, savepath=None):
+    """Print three orthogonal planes from given 3D-numpy array.
+
+    Set pixel resolution in µm to set axes correctly.
+
+    Parameters
+    ----------
+    data : 3D numpy array
+        Three-dimensional input data array.
+    savepath : str
+        Full file name for the saved image. If not given, Image is only shown.
+        Example: C:/path/data.png
+    invert : bool
+        Choose whether to invert y-axis of the data
+    res : float
+        Imaging resolution. Sets tick frequency for plots.
+    title : str
+        Title for the image.
+    cbar : bool
+        Choose whether to use colorbar below the images.
+    """
     dims = np.array(np.shape(data)) // 2
     dims2 = np.array(np.shape(data))
     x = np.linspace(0, dims2[0], dims2[0])
@@ -282,109 +311,52 @@ def print_orthogonal(data, invert=True, res=3.2, title=None, cbar=True):
     ax2.set_yticks(zticks)
     ax3.set_xticks(yticks)     
     ax3.set_yticks(zticks)
-    
+
+    # Invert y-axis
     if invert:
         ax1.invert_yaxis()
         ax2.invert_yaxis()
         ax3.invert_yaxis()
     plt.tight_layout()
+
+    # Save the image
+    if savepath is not None:
+        fig.savefig(savepath, bbox_inches="tight", transparent=True)
     plt.show()
 
 
-def save_orthogonal(path, data, invert=True, res=3.2, title=None, cbar=True):
-    directory = path.rsplit('\\', 1)[0]
-    if not os.path.exists(directory):
-        os.makedirs(directory, exist_ok=True)
-
-    dims = np.array(np.shape(data)) // 2
-    dims2 = np.array(np.shape(data))
-    x = np.linspace(0, dims2[0], dims2[0])
-    y = np.linspace(0, dims2[1], dims2[1])
-    z = np.linspace(0, dims2[2], dims2[2])
-    scale = 1/res
-
-    # Axis ticks
-    if dims2[0] < 1500*scale:
-        xticks = np.arange(0, dims2[0], 500*scale)
-    else:
-        xticks = np.arange(0, dims2[0], 1500*scale)
-    if dims2[1] < 1500*scale:
-        yticks = np.arange(0, dims2[1], 500*scale)
-    else:
-        yticks = np.arange(0, dims2[1], 1500*scale)
-    if dims2[2] < 1500*scale:
-        zticks = np.arange(0, dims2[2], 500*scale)
-    else:
-        zticks = np.arange(0, dims2[2], 1500*scale)
-
-    # Plot figure
-    fig = plt.figure(dpi=300)
-    ax1 = fig.add_subplot(131)
-    cax1 = ax1.imshow(data[:, :, dims[2]].T, cmap='gray')
-    if cbar and not isinstance(data[0, 0, dims[2]], np.bool_):
-        cbar1 = fig.colorbar(cax1, ticks=[np.min(data[:, :, dims[2]]), np.max(data[:, :, dims[2]])],
-                             orientation='horizontal')
-        cbar1.solids.set_edgecolor("face")
-    plt.title('Transaxial (xy)')
-    ax2 = fig.add_subplot(132)
-    cax2 = ax2.imshow(data[:, dims[1], :].T, cmap='gray')
-    if cbar and not isinstance(data[0, dims[1], 0], np.bool_):
-        cbar2 = fig.colorbar(cax2, ticks=[np.min(data[:, dims[1], :]), np.max(data[:, dims[1], :])],
-                             orientation='horizontal')
-        cbar2.solids.set_edgecolor("face")
-    plt.title('Coronal (xz)')
-    ax3 = fig.add_subplot(133)
-    cax3 = ax3.imshow(data[dims[0], :, :].T, cmap='gray')
-    if cbar and not isinstance(data[dims[0], 0, 0], np.bool_):
-        cbar3 = fig.colorbar(cax3, ticks=[np.min(data[dims[0], :, :]), np.max(data[dims[0], :, :])],
-                             orientation='horizontal')
-        cbar3.solids.set_edgecolor("face")
-
-    # Give plot a title
-    if title is not None:
-        plt.suptitle(title)
-
-    # Set ticks
-    ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))
-    ticks_y = ticker.FuncFormatter(lambda y, pos: '{0:g}'.format(y/scale))
-    ticks_z = ticker.FuncFormatter(lambda z, pos: '{0:g}'.format(z/scale))
-    ax1.xaxis.set_major_formatter(ticks_x)
-    ax1.yaxis.set_major_formatter(ticks_y)
-    ax2.xaxis.set_major_formatter(ticks_x)
-    ax2.yaxis.set_major_formatter(ticks_z)
-    ax3.xaxis.set_major_formatter(ticks_y)
-    ax3.yaxis.set_major_formatter(ticks_z)
-    ax1.set_xticks(xticks)     
-    ax1.set_yticks(yticks)
-    ax2.set_xticks(xticks)
-    ax2.set_yticks(zticks)
-    ax3.set_xticks(yticks)     
-    ax3.set_yticks(zticks)
-    
-    if invert:
-        ax1.invert_yaxis()
-        ax2.invert_yaxis()
-        ax3.invert_yaxis()
-    plt.tight_layout()
-    fig.savefig(path, bbox_inches="tight", transparent=True)
-    plt.close()
-
-
 def plot_array_3d(array, plt_title=None, savepath=None, grades=None):
+    """Save 2D scatter plot.
+
+    Used for plotting 3 PCA components of LBP features.
+
+    Parameters
+    ----------
+    array : 3xN numpy array
+        Input array including 3 features.
+    savepath : str
+        Full file name for the saved image.
+        Example: C:/path/pca3.png
+    plt_title : str
+        Title for the animation
+    grades : list
+        List containing ints for that label each sample (can be used to label different OA grades)
+        Example: [0, 0, 1, 0, 2, 1, 3, 1]
+    """
+
     if grades is not None:
-        colors = ['green', 'yellow', 'orange', 'red']
-        labels = ('Grade 0', 'Grade 1', 'Grade 2', 'Grade 3')
+        colors = ['green', 'greenyellow', 'orangered', 'darkred']
+        labels = ['Grade 0', 'Grade 1', 'Grade 2', 'Grade 3']
+    # Choose color and title
+    if plt_title[:4] == 'deep':
+        color = (128 / 225, 160 / 225, 60 / 225)
+        plt_title = 'Deep zone'
+    elif plt_title[:4] == 'calc':
+        color = (225 / 225, 126 / 225, 49 / 225)
+        plt_title = 'Calcified zone'
     else:
-        # Choose color
-        if plt_title[:4] == 'deep':
-            color = (128 / 225, 160 / 225, 60 / 225)
-            # color = 'Greens'
-        elif plt_title[:4] == 'calc':
-            color = (225 / 225, 126 / 225, 49 / 225)
-            # color = 'Oranges'
-        else:
-            color = (132 / 225, 102 / 225, 179 / 225)
-            # color = 'Purples'
+        color = (132 / 225, 102 / 225, 179 / 225)
+        plt_title = 'Surface zone'
     # Transpose array if necessary
     if array.shape[0] != 3:
         array = array.T
@@ -393,10 +365,10 @@ def plot_array_3d(array, plt_title=None, savepath=None, grades=None):
     fig = plt.figure(dpi=600)
     fig.suptitle(plt_title)
     axes = plt.axes(projection='3d')
-    # axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, c=array[2, :], cmap=color, depthshade=True)
     if grades is not None:
-        axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, color=[colors[g] for g in grades], label=labels,
-                       depthshade=False)
+        for g in range(len(labels)):
+            axes.scatter3D(array[0, grades == g], array[1, grades == g], array[2, grades == g],
+                           s=80, color=colors[g], label=labels[g], depthshade=False)
         axes.legend()
     else:
         axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, color=color, depthshade=False)
@@ -408,21 +380,39 @@ def plot_array_3d(array, plt_title=None, savepath=None, grades=None):
 
 
 def plot_array_3d_animation(array, savepath, plt_title=None, grades=None):
-    """Save animation of the 3D plot. Requires ffmpeg (sudo apt-get install ffmpeg)"""
+    """Save animation of the 3D plot.
+
+    Used for plotting 3 PCA components of LBP features.
+
+    Requires ffmpeg (sudo apt-get install ffmpeg)
+
+    Parameters
+    ----------
+    array : 3xN numpy array
+        Input array including 3 features.
+    savepath : str
+        Full file name for the saved image.
+        Example: C:/path/animation
+    plt_title : str
+        Title for the animation
+    grades : list
+        List containing ints for that label each sample (can be used to label different OA grades)
+        Example: [0, 0, 1, 0, 2, 1, 3, 1]
+    """
+
     if grades is not None:
-        colors = ['green', 'yellow', 'orange', 'red']
-        labels = ('Grade 0', 'Grade 1', 'Grade 2', 'Grade 3')
+        colors = ['green', 'greenyellow', 'orangered', 'darkred']
+        labels = ['Grade 0', 'Grade 1', 'Grade 2', 'Grade 3']
+    # Choose color and title
+    if plt_title[:4] == 'deep':
+        color = (128 / 225, 160 / 225, 60 / 225)
+        plt_title = 'Deep zone'
+    elif plt_title[:4] == 'calc':
+        color = (225 / 225, 126 / 225, 49 / 225)
+        plt_title = 'Calcified zone'
     else:
-        # Choose color
-        if plt_title[:4] == 'deep':
-            color = (128 / 225, 160 / 225, 60 / 225)
-            # color = 'Greens'
-        elif plt_title[:4] == 'calc':
-            color = (225 / 225, 126 / 225, 49 / 225)
-            # color = 'Oranges'
-        else:
-            color = (132 / 225, 102 / 225, 179 / 225)
-            # color = 'Purples'
+        color = (132 / 225, 102 / 225, 179 / 225)
+        plt_title = 'Surface zone'
     # Transpose array if necessary
     if array.shape[0] != 3:
         array = array.T
@@ -435,8 +425,9 @@ def plot_array_3d_animation(array, savepath, plt_title=None, grades=None):
     axes = plt.axes(projection='3d')
     # axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, c=array[2, :], cmap=color, depthshade=False)
     if grades is not None:
-        axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, color=[colors[g] for g in grades], label=labels,
-                       depthshade=False)
+        for g in range(len(labels)):
+            axes.scatter3D(array[0, grades == g], array[1, grades == g], array[2, grades == g],
+                           s=80, color=colors[g], label=labels[g], depthshade=False)
         axes.legend()
     else:
         axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, color=color, depthshade=False)
@@ -454,21 +445,37 @@ def plot_array_3d_animation(array, savepath, plt_title=None, grades=None):
 
 
 def plot_array_2d(array, plt_title=None, savepath=None, grades=None):
+    """Save 2D scatter plot.
+
+    Used for plotting 2 PCA components of LBP features.
+
+    Parameters
+    ----------
+    array : 2xN numpy array
+        Input array including 2 features.
+    savepath : str
+        Full file name for the saved image.
+        Example: C:/path/pca2.png
+    plt_title : str
+        Title for the animation
+    grades : list
+        List containing ints for that label each sample (can be used to label different OA grades)
+        Example: [0, 0, 1, 0, 2, 1, 3, 1]
+    """
     # Choose color
     if grades is not None:
-        colors = ['green', 'yellow', 'orange', 'red']
-        labels = ('Grade 0', 'Grade 1', 'Grade 2', 'Grade 3')
+        colors = ['green', 'greenyellow', 'orangered', 'darkred']
+        labels = ['Grade 0', 'Grade 1', 'Grade 2', 'Grade 3']
+    # Choose color and title
+    if plt_title[:4] == 'deep':
+        color = (128 / 225, 160 / 225, 60 / 225)
+        plt_title = 'Deep zone'
+    elif plt_title[:4] == 'calc':
+        color = (225 / 225, 126 / 225, 49 / 225)
+        plt_title = 'Calcified zone'
     else:
-        # Choose color
-        if plt_title[:4] == 'deep':
-            color = (128 / 225, 160 / 225, 60 / 225)
-            # color = 'Greens'
-        elif plt_title[:4] == 'calc':
-            color = (225 / 225, 126 / 225, 49 / 225)
-            # color = 'Oranges'
-        else:
-            color = (132 / 225, 102 / 225, 179 / 225)
-            # color = 'Purples'
+        color = (132 / 225, 102 / 225, 179 / 225)
+        plt_title = 'Surface zone'
     # Transpose array if necessary
     if array.shape[0] != 2:
         array = array.T
@@ -477,7 +484,8 @@ def plot_array_2d(array, plt_title=None, savepath=None, grades=None):
     plt.figure(dpi=300)
     plt.title(plt_title)
     if grades is not None:
-        plt.scatter(array[0, :], array[1, :], color=[colors[g] for g in grades], label=labels, s=80)
+        for g in range(len(labels)):
+            plt.scatter(array[0, grades == g], array[1, grades == g], s=80, color=colors[g], label=labels[g])
         plt.legend()
     else:
         plt.scatter(array[0, :], array[1, :], color=color, s=80)

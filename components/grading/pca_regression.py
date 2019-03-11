@@ -7,7 +7,7 @@ from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
 from sklearn.decomposition import PCA
 
 
-def regress_loo(features, grades, method='ridge', standard=False, use_intercept=True):
+def regress_loo(features, grades, method='ridge', standard=False, use_intercept=True, groups=None):
     """Calculates linear regression with leave-one-out split."""
     predictions = []
     # Get leave-one-out split
@@ -79,7 +79,7 @@ def regress_logo(features, grades, groups, method='ridge', standard=False, use_i
     return np.array(predictions_flat), model.coef_, model.intercept_
 
 
-def logistic_loo(features, targets, standard=False, seed=42, use_intercept=False):
+def logistic_loo(features, targets, standard=False, seed=42, use_intercept=False, groups=None):
     """Calculates logistic regression with leave-one-out split."""
     predictions = []
     # Leave one out split

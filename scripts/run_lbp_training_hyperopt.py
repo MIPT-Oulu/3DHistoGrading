@@ -1,6 +1,13 @@
+""" LBP parameter optimizer
+
+Optimizes MRELBP parameters using Bayesian optimization algorithm.
+
+Check script arguments before running.
+"""
+
 import numpy as np
 import os
-import pandas as pd
+import sys
 import components.grading.args_grading as arg
 
 from glob import glob
@@ -11,7 +18,7 @@ from components.utilities.load_write import load_vois_h5, load_excel
 from components.utilities.misc import auto_corner_crop
 
 
-def pipeline(args, files, metric, pat_groups=None):
+def pipeline_hyperopt(args, files, metric, pat_groups=None):
     # Load images
     images_surf = []
     images_deep = []
@@ -60,20 +67,15 @@ def pipeline(args, files, metric, pat_groups=None):
 
 if __name__ == '__main__':
     # Arguments
-    choice = '2mm'
+    dataset_name = '2mm'
     data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
-    arguments = arg.return_args(data_path, choice, pars=arg.set_90p_2m_cut, grade_list=arg.grades_cut)
+    arguments = arg.return_args(data_path, dataset_name, grade_list=arg.grades_cut)
     arguments.split = 'logo'
-    arguments.n_jobs = 8
     arguments.n_pars = 5
-    arguments.regression = 'ridge'
     loss_function = mean_squared_error
-    if choice == '2mm':
-        arguments.split = 'logo'
-        groups, _ = load_excel(arguments.grade_path, titles=['groups'])
-        groups = groups.flatten()
-    else:
-        groups = None
+    arguments.image_path = arguments.image_path + '_large'
+    groups, _ = load_excel(arguments.grade_path, titles=['groups'])
+    groups = groups.flatten()
 
     if arguments.GUI:
         # Use listbox (Result is saved in listbox.file_list)
@@ -82,6 +84,10 @@ if __name__ == '__main__':
     else:
         files = [os.path.basename(f) for f in glob(arguments.image_path + '/' + '*.h5')]
 
+    # Print output to log file
+    os.makedirs(arguments.save_path, exist_ok=True)
+    sys.stdout = open(arguments.save_path + '/' + 'log.txt', 'w')
+
     print('Selected files')
     for f in range(len(files)):
         print(files[f])
@@ -89,30 +95,15 @@ if __name__ == '__main__':
 
     # Surface subgrade
     arguments.grades_used = 'surf_sub'
-    pipeline(arguments, files, loss_function, groups)
+    pipeline_hyperopt(arguments, files, loss_function, groups)
 
     # Deep ECM
     arguments.grades_used = 'deep_mat'
-    pipeline(arguments, files, loss_function, groups)
+    pipeline_hyperopt(arguments, files, loss_function, groups)
 
     # Calcified ECM
     arguments.grades_used = 'calc_mat'
-    pipeline(arguments, files, loss_function, groups)
+    pipeline_hyperopt(arguments, files, loss_function, groups)
 
-    # Deep cellularity
-    arguments.grades_used = 'deep_cell'
-    pipeline(arguments, files, loss_function, groups)
-
-    # Calcified vascularity
-    arguments.grades_used = 'calc_vasc'
-    pipeline(arguments, files, loss_function, groups)
-
-    # Deep subgrade
-    arguments.grades_used = 'deep_sub'
-    pipeline(arguments, files, loss_function, groups)
-
-    # Calcified subgrade
-    arguments.grades_used = 'calc_sub'
-    pipeline(arguments, files, loss_function, groups)
 
 

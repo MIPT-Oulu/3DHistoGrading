@@ -1,9 +1,32 @@
 import vtk
 import numpy as np
-from vtk.util import numpy_support
 
 
-def render_volume(data, savepath=None, white=True):
+def render_volume(data, savepath=None, white=True, use_outline=False):
+    """Renders three-dimensional visualization of the given array.
+
+    Transparency options should be customized to cut background and show only relevant parts of the sample.
+
+    Sample can also be visualized with different RGB colors based on gray values.
+
+    Data mapper should be selected accordingly. vtkSmartVolumeMapper uses GPU for accelerated rendering if possible,
+    vtkFixedPointVolumeRayCastMapper is maybe more reliable at some cases but slower.
+
+    Viewing angle should also be customized to visualize sample well during the screenshot.
+
+    Parameters
+    ----------
+    data : 3d numpy array
+        Input array that is going to be visualized
+    savepath : str
+        Full file name for the saved image. If not given, data can be interactively visualized.
+        Example: C:/path/rendering.png
+    white : bool
+        Choose whether to have white or black background. Defaults to white.
+    use_outline : bool
+        Choose whether to use an outline to show data extent.
+    """
+
     # Input data as uint8
     data_matrix = np.uint8(data)
     dims = np.shape(data)
@@ -21,7 +44,7 @@ def render_volume(data, savepath=None, white=True):
     data_importer.SetDataExtent(0, dims[2] - 1, 0, dims[1] - 1, 0, dims[0] - 1)
     data_importer.SetWholeExtent(0, dims[2] - 1, 0, dims[1] - 1, 0, dims[0] - 1)
 
-    # Gray value transparency
+    # Gray value transparency (this can be modified for different samples)
     alpha_channel = vtk.vtkPiecewiseFunction()
     alpha_channel.AddPoint(0, 0.0)
     alpha_channel.AddPoint(70, 0.0)
@@ -57,14 +80,15 @@ def render_volume(data, savepath=None, white=True):
     interactor = vtk.vtkRenderWindowInteractor()
     interactor.SetRenderWindow(render_window)
     
-    # # Set outline
-    # outline = vtk.vtkOutlineFilter()
-    # outline.SetInputConnection(data_importer.GetOutputPort())
-    # mapper2 = vtk.vtkPolyDataMapper()
-    # mapper2.SetInputConnection(outline.GetOutputPort())
-    # actor2 = vtk.vtkActor()
-    # actor2.SetMapper(mapper2)
-    # renderer.AddActor(actor2)
+    # Set outline
+    if use_outline:
+        outline = vtk.vtkOutlineFilter()
+        outline.SetInputConnection(data_importer.GetOutputPort())
+        mapper2 = vtk.vtkPolyDataMapper()
+        mapper2.SetInputConnection(outline.GetOutputPort())
+        actor2 = vtk.vtkActor()
+        actor2.SetMapper(mapper2)
+        renderer.AddActor(actor2)
 
     # Set background color
     if white:
@@ -125,40 +149,3 @@ def render_volume(data, savepath=None, white=True):
         return
     else:  # Run the window with user interactions
         interactor.Start()
-
-
-def array_to_vtk(array):
-    imagedata = vtk.vtkImageData()
-    depth_array = numpy_support.numpy_to_vtk(array.ravel(), deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
-    imagedata.SetDimensions(array.shape)
-    imagedata.SetOrigin(0, 0, 0)
-    imagedata.GetPointData().SetScalars(depth_array)
-    return imagedata
-
-
-def vtk_to_array(vtkdata, shape):
-    array = numpy_support.vtk_to_numpy(vtkdata)
-    array = array.reshape(shape)
-    return array
-
-
-def rotate_vtk(vtkdata, angles):
-    # Initialize
-    mapper = vtk.vtkFixedPointVolumeRayCastMapper()
-    mapper.SetInputData(vtkdata)
-    actor = vtk.vtkActor()
-
-    cx, cy, cz = actor.GetCenter()
-
-    transf = vtk.vtkTransform()
-    transf.Translate(cx, cy, cz)
-    transf.RotateX(angles[0])
-    transf.RotateY(angles[1])
-    transf.RotateZ(angles[2])
-    transf.Translate(-cx, -cy, -cz)
-    
-    slicer = vtk.vtkImageReslice()
-    slicer.SetInputData(vtkdata)
-    slicer.Set
-
-    return vtkdata

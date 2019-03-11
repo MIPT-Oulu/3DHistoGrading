@@ -101,7 +101,7 @@ def optimization_hyperopt_loo(imgs, grades, args, loss, groups=None):
     trial_list = []
     error_list = []
     print('\nOptimizing through sets')
-    for train_idx, test_idx in loo.split(grades):
+    for train_idx, test_idx in tqdm(loo.split(grades), desc='Calculating LOO optimization'):
         # Get training set
         grades_train = grades[train_idx]
         imgs_train = imgs[train_idx]

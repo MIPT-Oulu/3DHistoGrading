@@ -63,23 +63,24 @@ def pipeline(arguments, files, loss, pat_groups=None):
 
 if __name__ == '__main__':
     # Arguments
-    choice = '2mm'
+    dataset_name = 'Isokerays'
     data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
-    arguments = arg.return_args(data_path, choice, pars=arg.set_90p_2m_cut, grade_list=arg.grades_cut)
+    arguments = arg.return_args(data_path, dataset_name, grade_list=arg.grades_cut)
     arguments.split = 'logo'
     arguments.n_jobs = 8
-    arguments.n_pars = 50
+    arguments.n_pars = 100
     loss_function = mean_squared_error
-    groups = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
-                       15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
+    arguments.image_path = arguments.image_path + '_large'
+    groups, _ = load_excel(arguments.grade_path, titles=['groups'])
+    groups = groups.flatten()
 
+    # Get files
     if arguments.GUI:
         # Use listbox (Result is saved in listbox.file_list)
         listbox.GetFileSelection(arguments.image_path)
         files = listbox.file_list
     else:
         files = [os.path.basename(f) for f in glob(arguments.image_path + '/' + '*.h5')]
-
     print('Selected files')
     for f in range(len(files)):
         print(files[f])
@@ -95,20 +96,4 @@ if __name__ == '__main__':
 
     # Calcified ECM
     arguments.grades_used = 'calc_mat'
-    pipeline(arguments, files, loss_function, groups)
-
-    # Deep cellularity
-    arguments.grades_used = 'deep_cell'
-    pipeline(arguments, files, loss_function, groups)
-
-    # Calcified vascularity
-    arguments.grades_used = 'calc_vasc'
-    pipeline(arguments, files, loss_function, groups)
-
-    # Deep subgrade
-    arguments.grades_used = 'deep_sub'
-    pipeline(arguments, files, loss_function, groups)
-
-    # Calcified subgrade
-    arguments.grades_used = 'calc_sub'
     pipeline(arguments, files, loss_function, groups)

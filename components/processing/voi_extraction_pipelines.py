@@ -5,7 +5,7 @@ import cv2
 
 from tqdm.auto import tqdm
 
-from components.utilities.misc import print_orthogonal, save_orthogonal, otsu_threshold
+from components.utilities.misc import print_orthogonal, otsu_threshold
 from components.utilities.load_write import load_bbox, save
 from components.utilities.VTKFunctions import render_volume
 from components.processing.rotations import orient
@@ -22,15 +22,14 @@ def pipeline_subvolume_mean_std(args, sample, render=False):
     print('Sample name: ' + sample)
     print('1. Load sample')
     data, bounds = load_bbox(args.data_path, args.n_jobs)
-    print_orthogonal(data)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_input.png", data)
+    print_orthogonal(data, savepath=save_path + "\\Images\\" + sample + "_input.png")
     if render:
         render_volume(data, save_path + "\\Images\\" + sample + "_input_render.png")
 
     # 2. Orient array
     print('2. Orient sample')
     data, angles = orient(data, bounds, args.rotation)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_orient.png", data)
+    print_orthogonal(data, savepath=save_path + "\\Images\\" + sample + "_orient.png")
 
     # 3. Crop and flip volume
     print('3. Crop and flip center volume:')
@@ -38,8 +37,7 @@ def pipeline_subvolume_mean_std(args, sample, render=False):
         data, crop = crop_center(data, args.size_wide, args.size['width'], method=args.crop_method)  # crop data
     else:
         data, crop = crop_center(data, args.size['width'], args.size['width'], method=args.crop_method)  # crop data
-    print_orthogonal(data)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_orient_cropped.png", data)
+    print_orthogonal(data, savepath=save_path + "\\Images\\" + sample + "_orient_cropped.png")
     if render:
         render_volume(data, save_path + "\\Images\\" + sample + "_orient_cropped_render.png")
 
@@ -76,8 +74,7 @@ def calculate_mean_std(data, sample, args, render=False):
     # CNTK segmentation
     else:
         mask = segmentation_cntk(data, args.model_path)
-    print_orthogonal(mask)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_mask.png", mask * data)
+    print_orthogonal(mask * data, savepath=save_path + "\\Images\\" + sample + "_mask.png")
     if render:
         render_volume((mask > 0.7) * data, save_path + "\\Images\\" + sample + "_mask_render.png")
     save(save_path + '\\Mask\\' + sample, sample, mask)
@@ -100,12 +97,9 @@ def calculate_mean_std(data, sample, args, render=False):
     print('5. Get interface coordinates:')
     surf_voi, deep_voi, calc_voi, otsu_thresh = get_interface(data, size_temp, (mask > 0.7), n_jobs=args.n_jobs)
     # Show and save results
-    print_orthogonal(surf_voi)
-    print_orthogonal(deep_voi)
-    print_orthogonal(calc_voi)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_surface.png", surf_voi)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_deep.png", deep_voi)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_cc.png", calc_voi)
+    print_orthogonal(surf_voi, savepath=save_path + "\\Images\\" + sample + "_surface.png")
+    print_orthogonal(deep_voi, savepath=save_path + "\\Images\\" + sample + "_deep.png")
+    print_orthogonal(calc_voi, savepath=save_path + "\\Images\\" + sample + "_cc.png")
     if render:
         render_volume(np.flip(surf_voi, 2), save_path + "\\Images\\" + sample + "_surface_render.png")
         render_volume(np.flip(deep_voi, 2), save_path + "\\Images\\" + sample + "_deep_render.png")
@@ -225,8 +219,7 @@ def pipeline_mean_std(image_path, args, sample, mask_path=None):
     print('1. Load sample')
     save_path = args.save_image_path
     data, bounds = load_bbox(image_path, n_jobs=args.n_jobs)
-    print_orthogonal(data)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_input.png", data)
+    print_orthogonal(data, savepath=save_path + "\\Images\\" + sample + "_input.png")
     render_volume(data, save_path + "\\Images\\" + sample + "_input_render.png")
     if mask_path is not None:
         mask, _ = load_bbox(mask_path)
@@ -253,8 +246,7 @@ def pipeline_mean_std(image_path, args, sample, mask_path=None):
     # CNTK segmentation
     else:
         mask = segmentation_cntk(data, args.model_path)
-    print_orthogonal(mask)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_mask.png", mask * data)
+    print_orthogonal(mask * data, savepath=save_path + "\\Images\\" + sample + "_mask.png")
     render_volume((mask > 0.7) * data, save_path + "\\Images\\" + sample + "_mask_render.png")
     save(save_path + '\\' + sample + '\\Mask', sample, mask)
 
@@ -276,12 +268,9 @@ def pipeline_mean_std(image_path, args, sample, mask_path=None):
     print('4. Get interface coordinates:')
     surf_voi, deep_voi, calc_voi, otsu_thresh = get_interface(data, size_temp, (mask > 0.7), n_jobs=args.n_jobs)
     # Show and save results
-    print_orthogonal(surf_voi)
-    print_orthogonal(deep_voi)
-    print_orthogonal(calc_voi)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_surface.png", surf_voi)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_deep.png", deep_voi)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_cc.png", calc_voi)
+    print_orthogonal(surf_voi, savepath=save_path + "\\Images\\" + sample + "_surface.png")
+    print_orthogonal(deep_voi, savepath=save_path + "\\Images\\" + sample + "_deep.png")
+    print_orthogonal(calc_voi, savepath=save_path + "\\Images\\" + sample + "_cc.png")
     render_volume(np.flip(surf_voi, 2), save_path + "\\Images\\" + sample + "_surface_render.png")
     render_volume(np.flip(deep_voi, 2), save_path + "\\Images\\" + sample + "_deep_render.png")
     render_volume(np.flip(calc_voi, 2), save_path + "\\Images\\" + sample + "_cc_render.png")
@@ -298,21 +287,19 @@ def pipeline_subvolume(args, sample, individual=False):
     print('Sample name: ' + sample)
     print('1. Load sample')
     data, bounds = load_bbox(args.data_path, args.n_jobs)
-    print_orthogonal(data)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_input.png", data)
+    print_orthogonal(data, savepath=save_path + "\\Images\\" + sample + "_input.png")
     render_volume(data, save_path + "\\Images\\" + sample + "_input_render.png")
 
     # 2. Orient array
     print('2. Orient sample')
     data, angles = orient(data, bounds, args.rotation)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_orient.png", data)
+    print_orthogonal(data, savepath=save_path + "\\Images\\" + sample + "_orient.png")
     render_volume(data, save_path + "\\Images\\" + sample + "_orient_render.png")
 
     # 3. Crop and flip volume
     print('3. Crop and flip center volume:')
     data, crop = crop_center(data, args.size['width'], args.size_wide, method=args.crop_method)  # crop data
-    print_orthogonal(data)
-    save_orthogonal(save_path + "\\Images\\" + sample + "_orient_cropped.png", data)
+    print_orthogonal(data, savepath=save_path + "\\Images\\" + sample + "_orient_cropped.png")
     render_volume(data, save_path + "\\Images\\" + sample + "_orient_cropped_render.png")
 
     # Different pipeline for large dataset

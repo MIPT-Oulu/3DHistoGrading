@@ -1,3 +1,8 @@
+"""Loading/writing functions
+
+Contains functions used to writing and reading image stacks, images, h5 datasets, excel tables and binary .dat files.
+"""
+
 import numpy as np
 from struct import pack, unpack  # Binary writing
 import pandas as pd
@@ -10,7 +15,7 @@ from components.utilities.misc import bounding_box
 
 
 def find_image_paths(path, files):
-    """Finds image paths from given"""
+    """Finds image paths from given path."""
     # Loop for all files
     file_paths = []
     for k in range(len(files)):
@@ -40,13 +45,17 @@ def load(path, axis=(1, 2, 0), n_jobs=12):
     """
     Loads an image stack as numpy array.
 
-    Pending update:
-    Test for image size inconsistency.
-
-    Keyword arguments:
-    :param path: Path to image stack.
-    :param axis: Order of loaded sample axes.
-    :return: Loaded stack as 3D numpy array. Coordinates of image bounding boxes.
+    Parameters
+    ----------
+    path : str
+        Path to image stack.
+    axis : tuple
+        Order of loaded sample axes.
+    n_jobs : int
+        Number of parallel workers. Check N of CPU cores.
+    Returns
+    -------
+    Loaded stack as 3D numpy array.
     """
     files = os.listdir(path)
     files.sort()
@@ -72,13 +81,15 @@ def load_bbox(path, n_jobs=12):
     """
     Loads an image stack as numpy array. Calculates bounding box (rectangle) for each loaded image.
 
-    Pending update:
-    Test for image size inconsistency.
-
-    Keyword arguments:
-    :param path: Path to image stack.
-    :param n_jobs: Number of parallel workers. Check N of CPU cores.
-    :return: Loaded stack as 3D numpy array. Coordinates of image bounding boxes.
+    Parameters
+    ----------
+    path : str
+        Path to image stack.
+    n_jobs : int
+        Number of parallel workers. Check N of CPU cores.
+    Returns
+    -------
+    Loaded stack as 3D numpy array. Coordinates of image bounding boxes.
     """
     files = os.listdir(path)
     files.sort()
@@ -102,6 +113,7 @@ def load_bbox(path, n_jobs=12):
 
 
 def read_image(path, file):
+    """Reads image from given path."""
     # Image
     f = os.path.join(path, file)
     image = cv2.imread(f, cv2.IMREAD_GRAYSCALE)
@@ -109,6 +121,7 @@ def read_image(path, file):
 
 
 def read_image_bbox(path, file):
+    """Reads image from given path and calculates bounding box for the sample."""
     # Image
     f = os.path.join(path, file)
     image = cv2.imread(f, cv2.IMREAD_GRAYSCALE)
@@ -122,10 +135,16 @@ def save(path, file_name, data, n_jobs=12):
     """
     Save a volumetric 3D dataset in given directory.
 
-    :param path: Directory for dataset.
-    :param file_name: Prefix for the image filenames.
-    :param data: Volumetric data to be saved (as numpy array).
-    :param n_jobs: Number of parallel workers. Check N of CPU cores.
+    Parameters
+    ----------
+    path : str
+        Directory for dataset.
+    file_name : str
+        Prefix for the image filenames.
+    data : 3D numpy array
+        Volumetric data to be saved.
+    n_jobs : int
+        Number of parallel workers. Check N of CPU cores.
     """
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
@@ -235,28 +254,8 @@ def write_binary_image(path, image, dtype='int'):
                     f.write(pack('<i', image[i, j]))
 
 
-def load_h5(impath, file):
-    # Image loading
-    h5 = h5py.File(os.path.join(impath, file), 'r')
-    name = list(h5.keys())[0]
-    ims = h5[name][:]
-    h5.close()
-    return ims
-
-
-def load_dataset_h5(pth, flist):
-    # Image loading
-    images = []
-
-    for file in flist:
-        h5 = h5py.File(os.path.join(pth, file), 'r')
-        ims = h5['sum'][:]
-        h5.close()
-        images.append(ims)
-    return images
-
-
 def load_vois_h5(pth, sample):
+    """Loads results of Preprocess pipeline (mean + std images from each zone)."""
     # Image loading
     h5 = h5py.File(os.path.join(pth, sample), 'r')
     surf = h5['surf'][:]
@@ -266,15 +265,8 @@ def load_vois_h5(pth, sample):
     return surf, deep, calc
 
 
-def save_h5(impath, flist, dsetname="dataset"):
-    if not os.path.exists(impath.rsplit('\\', 1)[0]):
-        os.makedirs(impath.rsplit('\\', 1)[0], exist_ok=True)
-    f = h5py.File(impath, "w")
-    f.create_dataset(dsetname, data=flist)
-    f.close()
-
-
 def load_excel(path, titles=None):
+    """Loads data from excel table. If list of titles is given, loads only selected columns."""
     # Load array and header
     array = []
     if titles is not None:
@@ -297,6 +289,7 @@ def load_excel(path, titles=None):
 
 
 def save_excel(array, save_path, files=None):
+    """Save array as excel file."""
     if not os.path.exists(save_path.rsplit('\\', 1)[0]):
         os.makedirs(save_path.rsplit('\\', 1)[0], exist_ok=True)
     writer = pd.ExcelWriter(save_path)
