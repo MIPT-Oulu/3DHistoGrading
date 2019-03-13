@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 
 
 def return_args(root, choice):
-    """Returns arguments needed in grading pipeline.
+    """Returns arguments needed in preprocessing pipeline.
     Sample rotation options: 1=Bounding box, 2=PCA, 3=Gradient descent, 4=Average of the methods, 0=No rotation.
     VOI options: width=ROI width, surface, deep, calcified=corresponding VOI depth, offset=VOI offset from BCI."""
 

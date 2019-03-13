@@ -11,10 +11,9 @@ from scipy.stats import spearmanr, wilcoxon
 
 from components.grading.local_binary_pattern import local_normalize_abs as local_standard, MRELBP, Conv_MRELBP
 from components.utilities.load_write import save_excel, load_vois_h5
-from components.utilities.misc import print_images, auto_corner_crop
 from components.grading.pca_regression import scikit_pca, regress_logo, regress_loo, logistic_logo, logistic_loo, standardize
 from components.utilities.load_write import load_binary_weights, write_binary_weights, load_excel
-from components.utilities.misc import duplicate_vector, plot_array_3d, plot_array_2d, plot_array_3d_animation
+from components.utilities.misc import plot_array_3d, plot_array_2d, plot_array_3d_animation, print_images, auto_corner_crop, plot_histograms
 
 
 def pipeline_lbp(args, files, parameters, grade_used):
@@ -135,7 +134,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
 
                 # Regression
                 pred_linear_sub, weights, intercept_lin = lin_regressor(score_sub, grades, groups=pat_groups,
-                                                                    method=args.regression)
+                                                                    method=args.regression, convert=args.convert_grades)
                 pred_logistic_sub, weights_log, intercept_log = log_regressor(score_sub, grades > bound, groups=pat_groups)
 
                 # Append to lists
@@ -166,7 +165,8 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
             singular_values = pca.singular_values_ / np.sqrt(features.shape[1] - 1)
 
             # Regression
-            pred_linear, weights, intercept_lin = lin_regressor(score, grades, groups=pat_groups, method=args.regression)
+            pred_linear, weights, intercept_lin = lin_regressor(score, grades, groups=pat_groups,
+                                                                method=args.regression, convert=args.convert_grades)
             pred_logistic, weights_log, intercept_log = log_regressor(score, grades > bound, groups=pat_groups)
 
         # Save calculated weights
@@ -248,9 +248,12 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     save_pca_ani = args.save_path + '\\pca_animation_' + grade_name + '_' + args.split
     if score.shape[1] == 3:
         plot_array_3d(score, savepath=save_pca, plt_title=grade_name, grades=grades)
-        plot_array_3d_animation(score, save_pca_ani, plt_title=grade_name, grades=grades)
+        #plot_array_3d_animation(score, save_pca_ani, plt_title=grade_name, grades=grades)
     elif score.shape[1] == 2:
         plot_array_2d(score, savepath=save_pca, plt_title=grade_name, grades=grades)
+
+    # Plot grade distributions
+    plot_histograms(grades, plt_title=grade_name, savepath=args.save_path + '//distribution_' + grade_name)
     return grades, pred_logistic, mse_linear
 
 
@@ -343,10 +346,13 @@ def plot_linear(grades, pred_linear, text_string, plt_title, savepath=None, anno
     # Choose color
     if plt_title[:4] == 'deep':
         color = (128 / 225, 160 / 225, 60 / 225)
+        plt_title = 'Deep zone'
     elif plt_title[:4] == 'calc':
         color = (225 / 225, 126 / 225, 49 / 225)
+        plt_title = 'Calcified zone'
     else:
         color = (132 / 225, 102 / 225, 179 / 225)
+        plt_title = 'Surface zone'
 
     # Scatter plot actual vs prediction
     [slope, intercept] = np.polyfit(grades, pred_linear.flatten(), 1)
@@ -356,10 +362,11 @@ def plot_linear(grades, pred_linear, text_string, plt_title, savepath=None, anno
     ax.plot(grades, slope * grades + intercept, '--', color='black')
     ax.set_xlabel('Actual grade', fontsize=24)
     ax.set_ylabel('Predicted', fontsize=24)
-    start, end = ax.get_xlim()
-    ax.xaxis.set_ticks(np.arange(np.round(start), np.round(end) + 1, step=1.0))
+    ax.xaxis.set_ticks(np.arange(0, 3 + 1, step=1.0))
     plt.xticks(fontsize=24)
     plt.yticks(fontsize=24)
+    plt.xlim([-0.1, 3.1])
+    plt.ylim([-0.1, 3.1])
     plt.title(plt_title)
 
     ax.text(0.05, 0.95, text_string, transform=ax.transAxes, fontsize=14, verticalalignment='top')

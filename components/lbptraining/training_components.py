@@ -75,9 +75,11 @@ def fit_model(imgs, grades, parameters, args, loss=mean_squared_error, groups=No
 
     # Groups
     if groups is not None:
-        preds, _, _ = regress_logo(score, grades, groups, method=args.regression, standard=False, use_intercept=True)
+        preds, _, _ = regress_logo(score, grades, groups, method=args.regression,
+                                   standard=False, use_intercept=True, convert=args.convert_grades)
     else:
-        preds, _, _ = regress_loo(score, grades, method=args.regression, standard=False, use_intercept=True)
+        preds, _, _ = regress_loo(score, grades, method=args.regression,
+                                  standard=False, use_intercept=True, convert=args.convert_grades)
     
     return loss(preds, grades)
 

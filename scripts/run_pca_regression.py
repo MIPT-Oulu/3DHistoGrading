@@ -17,6 +17,7 @@ if __name__ == '__main__':
     arguments = arg.return_args(datapath, choice, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
     arguments.train_regression = False
     combinator = np.mean
+    arguments.convert_grades = 'none'
     # LOGO for 2mm samples
     if choice == '2mm':
         arguments.split = 'logo'
@@ -25,7 +26,7 @@ if __name__ == '__main__':
         groups = groups.flatten()
     elif choice == 'Isokerays' or choice == 'Isokerays_sub':
         arguments.n_subvolumes = 9
-        arguments.save_path = arguments.save_path + '_' + str(arguments.n_subvolumes) + 'subs'
+        arguments.save_path = arguments.save_path + '_' + str(arguments.n_subvolumes) + 'subs_calcified'
         arguments.feature_path = arguments.save_path + '/Features'
         os.makedirs(arguments.save_path, exist_ok=True)
         os.makedirs(arguments.save_path + '/' + 'Images', exist_ok=True)

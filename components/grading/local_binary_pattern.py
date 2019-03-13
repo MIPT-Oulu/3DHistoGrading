@@ -207,7 +207,7 @@ def image_padding(im, padlength):
     return im_pad
 
 
-def local_standard(image, parameters, eps=1e-09):
+def local_standard(image, parameters, eps=1e-09, normalize='gaussian'):
     """Centers local grayscales with Gaussian weighted mean using given kernel sizes and gaussian variances."""
     # Unpack parameters
     w1 = parameters['ks1']
@@ -216,8 +216,8 @@ def local_standard(image, parameters, eps=1e-09):
     sigma2 = parameters['sigma2']
 
     # Gaussian kernels
-    kernel1 = gauss_kernel(w1, sigma1)
-    kernel2 = gauss_kernel(w2, sigma2)
+    kernel1 = gauss_kernel(w1, sigma1, normalize=normalize)
+    kernel2 = gauss_kernel(w2, sigma2, normalize=normalize)
     # Calculate mean and standard deviation images
     mean = convolve(image, kernel1)
     std = convolve(image ** 2, kernel2) ** 0.5
@@ -227,7 +227,7 @@ def local_standard(image, parameters, eps=1e-09):
     return image_centered / (std + eps)
 
 
-def gauss_kernel(w, sigma):
+def gauss_kernel(w, sigma, normalize='gaussian'):
     """Generates 2d gaussian kernel"""
     kernel = np.zeros((w, w))
     # Constant for centering
@@ -237,7 +237,10 @@ def gauss_kernel(w, sigma):
             x = -((ii - r) ** 2 + (jj - r) ** 2) / (2 * sigma ** 2)
             kernel[ii, jj] = np.exp(x)
     # Normalizing the kernel
-    return kernel / np.sum(kernel)
+    if normalize == 'sum':
+        return kernel / np.sum(kernel)
+    else:
+        return kernel / (2 * np.pi * sigma ** 2)
 
 
 def Conv_MRELBP(image, pars, savepath=None, sample=None, normalize=True):
@@ -356,6 +359,7 @@ def Conv_MRELBP(image, pars, savepath=None, sample=None, normalize=True):
 
 
 def make_2d_gauss(ks, sigma):
+    """Gaussian kernel used in OARSI abstract"""
     # Mean indices
     c = ks // 2
 
@@ -382,6 +386,7 @@ def make_2d_gauss(ks, sigma):
 
 
 def local_normalize_abs(image, parameters, eps=1e-09):
+    """Standardization used in OARSI abstract"""
     # Unpack
     ks1 = parameters['ks1']
     ks2 = parameters['ks2']

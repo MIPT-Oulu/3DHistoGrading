@@ -345,8 +345,8 @@ def plot_array_3d(array, plt_title=None, savepath=None, grades=None):
     """
 
     if grades is not None:
-        colors = ['green', 'greenyellow', 'orangered', 'darkred']
-        labels = ['Grade 0', 'Grade 1', 'Grade 2', 'Grade 3']
+        colors = ['green', 'darkred']
+        labels = ['Low degeneration', 'High degeneration']
     # Choose color and title
     if plt_title[:4] == 'deep':
         color = (128 / 225, 160 / 225, 60 / 225)
@@ -366,8 +366,9 @@ def plot_array_3d(array, plt_title=None, savepath=None, grades=None):
     fig.suptitle(plt_title)
     axes = plt.axes(projection='3d')
     if grades is not None:
-        for g in range(len(labels)):
-            axes.scatter3D(array[0, grades == g], array[1, grades == g], array[2, grades == g],
+        for g in range(0, len(labels)):
+            choice = np.array([any(tup) for tup in zip(grades == g * 2, grades == g * 2 + 1)])
+            axes.scatter3D(array[0, choice], array[1, choice], array[2, choice],
                            s=80, color=colors[g], label=labels[g], depthshade=False)
         axes.legend()
     else:
@@ -377,6 +378,7 @@ def plot_array_3d(array, plt_title=None, savepath=None, grades=None):
     axes.set_zlabel('Component 3')
     if savepath is not None:
         plt.savefig(savepath, bbox_inches='tight')
+    plt.show()
 
 
 def plot_array_3d_animation(array, savepath, plt_title=None, grades=None):
@@ -401,8 +403,8 @@ def plot_array_3d_animation(array, savepath, plt_title=None, grades=None):
     """
 
     if grades is not None:
-        colors = ['green', 'greenyellow', 'orangered', 'darkred']
-        labels = ['Grade 0', 'Grade 1', 'Grade 2', 'Grade 3']
+        colors = ['green', 'darkred']
+        labels = ['Low degeneration', 'High degeneration']
     # Choose color and title
     if plt_title[:4] == 'deep':
         color = (128 / 225, 160 / 225, 60 / 225)
@@ -425,8 +427,9 @@ def plot_array_3d_animation(array, savepath, plt_title=None, grades=None):
     axes = plt.axes(projection='3d')
     # axes.scatter3D(array[0, :], array[1, :], array[2, :], s=80, c=array[2, :], cmap=color, depthshade=False)
     if grades is not None:
-        for g in range(len(labels)):
-            axes.scatter3D(array[0, grades == g], array[1, grades == g], array[2, grades == g],
+        for g in range(0, len(labels)):
+            choice = np.array([any(tup) for tup in zip(grades == g * 2, grades == g * 2 + 1)])
+            axes.scatter3D(array[0, choice], array[1, choice], array[2, choice],
                            s=80, color=colors[g], label=labels[g], depthshade=False)
         axes.legend()
     else:
@@ -464,8 +467,8 @@ def plot_array_2d(array, plt_title=None, savepath=None, grades=None):
     """
     # Choose color
     if grades is not None:
-        colors = ['green', 'greenyellow', 'orangered', 'darkred']
-        labels = ['Grade 0', 'Grade 1', 'Grade 2', 'Grade 3']
+        colors = ['green', 'darkred']
+        labels = ['Low degeneration', 'High degeneration']
     # Choose color and title
     if plt_title[:4] == 'deep':
         color = (128 / 225, 160 / 225, 60 / 225)
@@ -484,8 +487,9 @@ def plot_array_2d(array, plt_title=None, savepath=None, grades=None):
     plt.figure(dpi=300)
     plt.title(plt_title)
     if grades is not None:
-        for g in range(len(labels)):
-            plt.scatter(array[0, grades == g], array[1, grades == g], s=80, color=colors[g], label=labels[g])
+        for g in range(0, len(labels)):
+            choice = np.array([any(tup) for tup in zip(grades == g * 2, grades == g * 2 + 1)])
+            plt.scatter(array[0, choice], array[1, choice], s=80, color=colors[g], label=labels[g])
         plt.legend()
     else:
         plt.scatter(array[0, :], array[1, :], color=color, s=80)
@@ -494,3 +498,26 @@ def plot_array_2d(array, plt_title=None, savepath=None, grades=None):
     plt.grid()
     if savepath is not None:
         plt.savefig(savepath, bbox_inches='tight')
+    plt.show()
+
+
+def plot_histograms(grades, plt_title=None, savepath=None):
+    # Choose color and title
+    if plt_title[:4] == 'deep':
+        color = (128 / 225, 160 / 225, 60 / 225)
+        plt_title = 'Deep zone'
+    elif plt_title[:4] == 'calc':
+        color = (225 / 225, 126 / 225, 49 / 225)
+        plt_title = 'Calcified zone'
+    else:
+        color = (132 / 225, 102 / 225, 179 / 225)
+        plt_title = 'Surface zone'
+
+    n, bins, patches = plt.hist(grades, bins=4, range=[0, 4], facecolor=color, rwidth=0.9)
+    plt.title(plt_title)
+    plt.xlabel('Grades')
+    plt.ylabel('Number of samples')
+    plt.xticks(np.arange(0, 3 + 1, step=1) + 0.5, ['0', '1', '2', '3'])
+    if savepath is not None:
+        plt.savefig(savepath, bbox_inches='tight')
+    plt.show()

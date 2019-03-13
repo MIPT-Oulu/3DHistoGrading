@@ -7,8 +7,17 @@ from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
 from sklearn.decomposition import PCA
 
 
-def regress_loo(features, grades, method='ridge', standard=False, use_intercept=True, groups=None):
+def regress_loo(features, grades, method='ridge', standard=False, use_intercept=True, groups=None, convert='none'):
     """Calculates linear regression with leave-one-out split."""
+
+    # Convert grades
+    if convert == 'exp':
+        grades = np.exp(grades)
+    elif convert == 'log':
+        grades = np.log(grades)
+    else:
+        pass
+
     predictions = []
     # Get leave-one-out split
     loo = LeaveOneOut()
@@ -41,8 +50,17 @@ def regress_loo(features, grades, method='ridge', standard=False, use_intercept=
     return np.array(predictions).squeeze(), model.coef_, model.intercept_
 
 
-def regress_logo(features, grades, groups, method='ridge', standard=False, use_intercept=True):
+def regress_logo(features, grades, groups, method='ridge', standard=False, use_intercept=True, convert='none'):
     """Calculates linear regression with leave-one-group-out split."""
+
+    # Convert grades
+    if convert == 'exp':
+        grades = np.exp(grades)
+    elif convert == 'log':
+        grades = np.log(grades)
+    else:
+        pass
+
     predictions = []
     # Leave one out split
     logo = LeaveOneGroupOut()
@@ -74,9 +92,15 @@ def regress_logo(features, grades, groups, method='ridge', standard=False, use_i
         for p in group:
             predictions_flat.append(p)
 
-    # print('Linear model score: {0}'.format(model.score(features, grades)))
+    # Convert grades back
+    if convert == 'exp':
+        predictions = np.log(np.array(predictions_flat))
+    elif convert == 'log':
+        predictions = np.exp(np.array(predictions_flat))
+    else:
+        predictions = np.array(predictions_flat)
 
-    return np.array(predictions_flat), model.coef_, model.intercept_
+    return predictions, model.coef_, model.intercept_
 
 
 def logistic_loo(features, targets, standard=False, seed=42, use_intercept=False, groups=None):

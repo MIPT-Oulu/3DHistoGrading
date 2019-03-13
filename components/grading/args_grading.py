@@ -32,12 +32,13 @@ deep_cell_sum = {'ks1': 11, 'sigma1': 3, 'ks2': 25, 'sigma2': 1, 'N': 8, 'R': 22
 surf_loo = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'sigma1': 4, 'sigma2': 7, 'wc': 15, 'wl': 15, 'ws': 13}
 deep_loo = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'sigma1': 4, 'sigma2': 7, 'wc': 15, 'wl': 15, 'ws': 13}
 calc_loo = {'N': 8, 'R': 12, 'ks1': 23, 'ks2': 21, 'r': 11, 'sigma1': 4, 'sigma2': 6, 'wc': 9, 'wl': 9, 'ws': 15}
-calc_loo_iso = {'N': 8, 'R': 10, 'ks1': 7, 'ks2': 23, 'r': 8, 'sigma1': 2, 'sigma2': 13, 'wc': 7, 'wl': 5, 'ws': 9}
 
 surf_4mm_loo = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'seed': 42, 'sigma1': 4, 'sigma2': 7, 'wc': 15, 'wl': 15, 'ws': 13}
 surf_4mm_loo2 = {'N': 8, 'R': 12, 'ks1': 23, 'ks2': 21, 'r': 11, 'seed': 42, 'sigma1': 4, 'sigma2': 6, 'wc': 9, 'wl': 9, 'ws': 15}
 surf_4mm_loo = {'N': 8, 'R': 12, 'ks1': 23, 'ks2': 21, 'r': 11, 'seed': 42, 'sigma1': 4, 'sigma2': 6, 'wc': 9, 'wl': 9, 'ws': 15}
 calc_4mm_loo = {'N': 8, 'R': 10, 'ks1': 7, 'ks2': 23, 'r': 8, 'seed': 42, 'sigma1': 2, 'sigma2': 13, 'wc': 7, 'wl': 5, 'ws': 9}
+
+surf_loo_exp = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'seed': 42, 'sigma1': 4, 'sigma2': 7, 'wc': 15, 'wl': 15, 'ws': 13}
 
 # Grades pipeline is tested against
 grades = ['surf_sub', 'deep_mat', 'deep_cell', 'deep_sub', 'calc_mat', 'calc_vasc', 'calc_sub']
@@ -81,6 +82,7 @@ def return_args(root, choice, pars=set_2m_loo_cut, grade_list=grades_cut):
     parser.add_argument('--auto_crop', type=bool, default=True)
     parser.add_argument('--GUI', type=bool, default=False)
     parser.add_argument('--median_filter', type=bool, default=False)
+    parser.add_argument('--convert_grades', type=str, choices=['exp', 'log', 'none'], default='none')
     parser.add_argument('--pars', type=dict, default=pars)
     parser.add_argument('--grades_used', type=str, default=grade_list)
     parser.add_argument('--seed', type=int, default=42)  # Random seed
