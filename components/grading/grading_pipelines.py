@@ -1,3 +1,5 @@
+"""Contains pipelines for calculating MRELBP features and training/evaluating regression models."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -17,8 +19,32 @@ from components.utilities.misc import plot_array_3d, plot_array_2d, plot_array_3
 
 
 def pipeline_lbp(args, files, parameters, grade_used):
-    """Calculates LBP features from mean and standard deviation images.
-    Supports parallelization for decreased processing times."""
+    """Calculates LBP features from input image (mean + standard deviation).
+
+    Performs local contrast normalization, calculates MRELBP and saves features to .xlsx file.
+
+    Supports parallelization for decreased processing times.
+
+    Parameters
+    ----------
+    args : Namespace
+        All grading arguments parsed into a namespace:
+        n_subvolumes = Amount of subvolumes input image is splitted into.
+        n_jobs = Number of parallel workers.
+        save_images = Choice whether to save LBP and input images.
+        auto_crop = Choice whether to automatically crop deep and calcified input images.
+        convolution = Choice whether to use MRELBP pipeline with or without convolution.
+        normalize_hist = Choice whether to normalize MRELBP histograms by sum.
+        convert_grades = Choice whether to predict optionally exp or log of grades.
+        save_path = Path to save images and features.
+
+    files : list
+        List of input image datasets (as .h5)
+    parameters : dict
+        MRELBP parameters used. See MRELBP and local_standard
+    grade_used : str
+        Title of the predicted grade (should be given on first row of the Excel file).
+    """
     # Start time
     start_time = time()
 
@@ -67,13 +93,50 @@ def pipeline_lbp(args, files, parameters, grade_used):
 
 
 def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, combiner=np.mean):
+    """Gets predictions from saved MRELBP features.
+
+    1. Loads features and ground truth from .xlsx file
+
+    2. Sort samples alphabetically and remove zero features. Optional centering for features.
+
+    3. PCA dimensionality reduction.
+
+    4. Linear and logistic regression.
+
+    5. Create result plots.
+
+    Parameters
+    ----------
+    args : Namespace
+        All grading arguments parsed into a namespace:
+        n_subvolumes = Amount of subvolumes input image is splitted into.
+        grade_path = Path to ground truth.
+        feature_path = Path to MRELBP features.
+        save_path = Path to save results.
+        train_regression = Choice whether to train a new model or evaluate on an existing one.
+        standardization = Choice whether to center features before PCA.
+        split = Cross-validation split used in training the model.
+        logistic_limit = Limit used to make logistic prediction.
+        convert_grades = Choice whether to predict optionally exp or log of grades.
+
+    grade_name : str
+        Title of the predicted grade (should be given on first row of the Excel file).
+    pat_groups : ndarray (1-dimensional)
+        patient groups for training with leave-one-group-out -split.
+    check_samples : bool
+        Choice whether to print all names of ground truth and features.
+        Used to make sure that features and ground truth match (debugging)
+    combiner : function
+        Method to combine predictions of multiple subimages. Defaults to mean of predictions.
+        Other possibilities: np.max, np.median
+    Returns
+    -------
+    Ground truth, logistic predictions (for ROC curves), mean standard error.
+    """
 
     # Load grades to array
     grades, hdr_grades = load_excel(args.grade_path, titles=[grade_name])
 
-    # Duplicate grades for subvolumes
-    # grades = duplicate_vector(grades.squeeze(), args.n_subvolumes)
-    # hdr_grades = duplicate_vector(hdr_grades, args.n_subvolumes)
     # Sort grades based on alphabetical order
     grades = np.array([grade for _, grade in sorted(zip(hdr_grades, grades.squeeze()), key=lambda var: var[0])])
 
@@ -122,7 +185,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
             lin_regressor = regress_loo
             log_regressor = logistic_loo
         else:
-            raise Exception('No valid regression method selected (see arguments)!')
+            raise Exception('No valid cross-validation split selected (see arguments)!')
 
         # PCA and Regression
         if subvolumes:
@@ -239,6 +302,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     # Display results
     text_string = 'MSE: {0:.2f}\nSpearman, p: {1:.2f}, {2:.2f}\nWilcoxon: {3:.2f}\n$R^2$: {4:.2f}' \
         .format(mse_linear, rho, pval, wilc[1], r2)
+    print(text_string)
     save_lin = args.save_path + '\\linear_' + grade_name + '_' + args.split
     # Draw linear plot
     plot_linear(grades, pred_linear, text_string, plt_title=grade_name, savepath=save_lin)
@@ -258,6 +322,20 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
 
 
 def evaluate_model(features, args, model_path):
+    """Evaluates features on saved model.
+
+    Parameters
+    ----------
+    features : ndarray
+        MRELBP features used for predictions.
+    args : Namespace
+        standardization = Centering or centering and standardization of features.
+    model_path : str
+        Path to saved model.
+    Returns
+    -------
+    Linear predictions, logistic predicitons, PCA components.
+    """
     # Load model
 
     _, n_comp, eigen_vectors, sv_scaled, weights, weights_log, mean_feature, [intercept_lin, intercept_log] \
@@ -282,6 +360,7 @@ def evaluate_model(features, args, model_path):
 
 
 def reference_regress(features, args, pca_components, model, linear, logistic):
+    """Shows differences between model evaluation and training."""
     _, _, eigenvec, singular_values, weight_lin, weight_log, m, std = load_binary_weights(args.save_path + '\\' + model)
     dataadjust = features.T - m
     pcaref = np.matmul(dataadjust,
@@ -343,6 +422,7 @@ def load_voi(args, file, grade, par, save_images=False, autocrop=True):
 
 
 def plot_linear(grades, pred_linear, text_string, plt_title, savepath=None, annotate=False, headers=None):
+    """Plots linear predictions against ground truth."""
     # Choose color
     if plt_title[:4] == 'deep':
         color = (128 / 225, 160 / 225, 60 / 225)
@@ -367,7 +447,7 @@ def plot_linear(grades, pred_linear, text_string, plt_title, savepath=None, anno
     plt.yticks(fontsize=24)
     plt.xlim([-0.1, 3.1])
     plt.ylim([-0.1, 3.1])
-    plt.title(plt_title)
+    plt.title(plt_title, fontsize=24)
 
     ax.text(0.05, 0.95, text_string, transform=ax.transAxes, fontsize=14, verticalalignment='top')
     if annotate and headers is not None:
@@ -380,6 +460,7 @@ def plot_linear(grades, pred_linear, text_string, plt_title, savepath=None, anno
 
 
 def print_crop(image, image_crop, title=None, savepath=None):
+    """Prints original and cropped images in 2 subplots."""
     fig = plt.figure(dpi=500)
     ax1 = fig.add_subplot(121)
     cax1 = ax1.imshow(image, cmap='gray')

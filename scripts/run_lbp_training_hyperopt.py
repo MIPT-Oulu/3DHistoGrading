@@ -11,6 +11,8 @@ import sys
 import components.grading.args_grading as arg
 
 from glob import glob
+from datetime import date
+from time import strftime
 from sklearn.metrics import mean_squared_error
 from components.lbptraining.training_components import optimization_hyperopt_loo
 from components.utilities import listbox
@@ -72,7 +74,6 @@ if __name__ == '__main__':
     arguments = arg.return_args(data_path, dataset_name, grade_list=arg.grades_cut)
     arguments.split = 'logo'
     arguments.n_pars = 5
-    arguments.convert_grades = 'exp'
     loss_function = mean_squared_error
     arguments.image_path = arguments.image_path + '_large'
     groups, _ = load_excel(arguments.grade_path, titles=['groups'])
@@ -87,7 +88,9 @@ if __name__ == '__main__':
 
     # Print output to log file
     os.makedirs(arguments.save_path, exist_ok=True)
-    sys.stdout = open(arguments.save_path + '/' + 'optimization_log.txt', 'w')
+    os.makedirs(arguments.save_path + '/Logs', exist_ok=True)
+    sys.stdout = open(arguments.save_path + '/Logs/' + 'optimization_log_'
+                      + str(date.today()) + str(strftime("-%H-%M")) + '.txt', 'w')
 
     print('Selected files')
     for f in range(len(files)):

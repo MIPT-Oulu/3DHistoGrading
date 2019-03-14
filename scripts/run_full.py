@@ -1,6 +1,8 @@
 import numpy as np
 import os
-from time import time
+import sys
+from time import time, strftime
+from datetime import date
 
 import components.processing.args_processing as arg_process
 import components.grading.args_grading as arg_grading
@@ -15,7 +17,7 @@ from scripts.run_pca_regression import pipeline_prediction
 if __name__ == '__main__':
 
     # Arguments
-    choice = 'Isokerays:test'
+    choice = 'Isokerays'
     data_path = r'Y:\3DHistoData'
     arguments_p = arg_process.return_args(data_path, choice)
     arguments_g = arg_grading.return_args(data_path, choice, pars=arg_grading.set_90p, grade_list=arg_grading.grades)
@@ -31,6 +33,10 @@ if __name__ == '__main__':
 
     # Use listbox to select samples (Result is saved in listbox.file_list)
     listbox.GetFileSelection(arguments_p.data_path)
+
+    os.makedirs(arguments_g.save_path + '/Logs', exist_ok=True)
+    sys.stdout = open(arguments_g.save_path + '/Logs/' + 'images_log_'
+                      + str(date.today()) + str(strftime("-%H-%M")) + '.txt', 'w')
 
     # Extract samples based on listbox
     samples = os.listdir(arguments_p.data_path)

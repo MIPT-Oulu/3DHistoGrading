@@ -138,7 +138,6 @@ def optimization_hyperopt_loo(imgs, grades, args, loss, groups=None):
 
     # Show results
     for i in range(len(best_pars)):
-        print('Loss: {0}'.format(error_list[i]))
         print(best_pars[i])
 
     return best_pars, error_list

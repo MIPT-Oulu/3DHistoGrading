@@ -1,3 +1,8 @@
+"""Contains parameters used in grading pipeline.
+
+Includes also a "library" of different LBP parameters.
+"""
+
 import numpy as np
 from argparse import ArgumentParser
 
@@ -40,6 +45,8 @@ calc_4mm_loo = {'N': 8, 'R': 10, 'ks1': 7, 'ks2': 23, 'r': 8, 'seed': 42, 'sigma
 
 surf_loo_exp = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'seed': 42, 'sigma1': 4, 'sigma2': 7, 'wc': 15, 'wl': 15, 'ws': 13}
 
+surf_best_pars = {'N': 8, 'R': 24, 'ks1': 21, 'ks2': 17, 'r': 19, 'seed': 42, 'sigma1': 9, 'sigma2': 8, 'wc': 3, 'wl': 15, 'ws': 15}
+
 # Grades pipeline is tested against
 grades = ['surf_sub', 'deep_mat', 'deep_cell', 'deep_sub', 'calc_mat', 'calc_vasc', 'calc_sub']
 grades_cut = ['surf_sub', 'deep_mat', 'calc_mat']
@@ -54,13 +61,15 @@ set_2m_loo_cut = [surf_loo, deep_loo, calc_loo]
 set_2m_rnsearch_cut = [surf_loo, deep_loo, calc_loo]
 set_4mm_loo = [surf_4mm_loo, surf_4mm_loo, calc_4mm_loo]
 
+surf_test = [surf_best_pars, surf_best_pars, surf_best_pars]  # Optimized for exp
+
 # Patient groups
 groups_2mm = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
                       15, 16, 16, 17, 18, 19, 19])  # 2mm, 34 patients
 
 
 def return_args(root, choice, pars=set_2m_loo_cut, grade_list=grades_cut):
-    """Returns arguments needed in grading pipeline."""
+    """Returns arguments needed in grading pipeline. See grading_pipelines for specifications."""
 
     parser = ArgumentParser()
     parser.add_argument('--image_path', type=str, default=root + r'/MeanStd_' + choice)

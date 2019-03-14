@@ -12,7 +12,8 @@ To see more detailed grading parameters or change default settings go to args_gr
 import numpy as np
 import os
 import sys
-from time import time
+from time import time, strftime
+from datetime import date
 from glob import glob
 import components.grading.args_grading as arg
 import components.utilities.listbox as listbox
@@ -68,7 +69,9 @@ if __name__ == '__main__':
     os.makedirs(arguments.save_path + '/' + 'Images', exist_ok=True)
 
     # Print output to log file
-    sys.stdout = open(arguments.save_path + '/' + 'log.txt', 'w')
+    os.makedirs(arguments.save_path + '/Logs', exist_ok=True)
+    sys.stdout = open(arguments.save_path + '/Logs/' + 'grading_log_'
+                      + str(date.today()) + str(strftime("-%H-%M")) + '.txt', 'w')
 
     # Call Grading pipelines for different grade evaluations
     gradelist = []

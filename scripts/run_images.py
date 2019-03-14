@@ -1,6 +1,7 @@
 import os
-from time import time
-from glob import glob
+import sys
+from time import time, strftime
+from datetime import date
 
 import components.processing.args_processing as arg
 import components.utilities.listbox as listbox
@@ -21,6 +22,11 @@ if __name__ == '__main__':
         # Use listbox (Result is saved in listbox.file_list)
         listbox.GetFileSelection(arguments.data_path)
         samples = [samples[i] for i in listbox.file_list]
+
+    # Create log
+    os.makedirs(arguments.save_image_path + '/Logs', exist_ok=True)
+    sys.stdout = open(arguments.save_image_path + '/Logs/' + 'images_log_'
+                      + str(date.today()) + str(strftime("-%H-%M")) + '.txt', 'w')
 
     # Find paths for image stacks
     file_paths = find_image_paths(arguments.data_path, samples)

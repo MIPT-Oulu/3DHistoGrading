@@ -1,3 +1,5 @@
+"""Contains resources for calculating MRELBP features."""
+
 import numpy as np
 
 from scipy.signal import medfilt2d
@@ -6,9 +8,28 @@ from components.utilities.misc import print_images
 
 
 def image_bilinear(im, col, x, row, y, eps=1e-12):
-    """Takes bilinear interpolation from image.
+    """Calculates bilinear interpolation from image.
     Starts from coordinates [y,x], ends at row,col.
-    See Wikipedia article for bilinear interpolation."""
+    See Wikipedia article for bilinear interpolation.
+
+    Parameters
+    ----------
+    im : ndarray
+        Input image for interpolation.
+    row : int
+        Width of output image
+    col : int
+        Height of output image
+    x : float
+        x-direction for image interpolation location
+    y : float
+        y-direction for image interpolation location
+    eps : float
+        Error residual. Defaults to 1e-6
+
+    Returns
+    -------
+    Image interpolated to given x, y location with shape (row, col)."""
     x1 = int(np.floor(x))
     x2 = int(np.ceil(x))
     y1 = int(np.floor(y))
@@ -29,6 +50,33 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=
     Median filter uses kernel sizes weight_center for center pixels, w_r[0] for larger radius and w_r[1]
     #or smaller radius
     Grayscale values are centered at their mean and scales with global standad deviation
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image. Standardized to local contrast in the pipelines.
+    parameters : dict
+        Dictionary containing LBP parameters:
+        N = Number of neighbours used in MRELBP (4 orthogonal and 4 diagonal neighbours).
+        R = Distance of center pixel from neighbours used in obtaining large image.
+        r = Distance of center pixel from neighbours used in obtaining small image.
+        wc = Kernel size used in median filtering center image.
+        wl = Kernel size used in median filtering large LBP image.
+        ws = Kernel size used in median filtering small LBP image.
+    eps : float
+        Error residual. Defaults to 1e-6
+    normalize : bool
+        Choice whether to normalize LBP histograms by sum.
+    savepath : str
+        Path for saving LBP images.
+    sample : str
+        Name of the sample used in saving images.
+    save_images : bool
+        Choice whether to save LBP images.
+    Returns
+    -------
+    MRELBP histograms calculated with rotation invariant uniform mapping.
+    Length of 32 (2 center + 10 large + 10 small + 10 radial).
     """
 
     n = parameters['N']
@@ -157,8 +205,19 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=
     return hist
 
 
-def get_mapping(n):
-    """Defines rotation invariant uniform mapping for lbp of N neighbours."""
+def get_mapping(n=8):
+    """Gets table for rotation invariant uniform mapping (riu2).
+
+    Reduce histogram length by combining values with (assumed) similar information.
+
+    Parameters
+    ----------
+    n : int
+        Number of LBP neighbours. Defaults to eight.
+    Returns
+    -------
+    Calculated mapping table with values from 0 to n + 1 and length of 2 ^ n.
+    """
     table = np.zeros((1, 2 ** n))
     for k in range(2 ** n):
         # Binary representation of bin number
@@ -184,7 +243,18 @@ def get_mapping(n):
 
 
 def map_lbp(bin_original, mapping):
-    """Applies mapping to lbp bin."""
+    """Applies mapping to lbp bin.
+
+    Parameters
+    ----------
+    bin_original : ndarray
+        Histogram of LBP features. Length of histogram should be 2 ^ n.
+    mapping : ndarray
+        Mapping table for the histogram. This repository contains implementation for rotation invariant uniform mapping.
+    Returns
+    -------
+    Mapped histogram with length of n + 2
+    """
     # Number of bins in output
     n = int(np.max(mapping))
     # Empty array
@@ -198,7 +268,18 @@ def map_lbp(bin_original, mapping):
 
 
 def image_padding(im, padlength):
-    """Returns image with zero padding."""
+    """Returns image with zero padding.
+
+    Parameters
+    ----------
+    im : ndarray
+        Input image.
+    padlength : int
+        Length of zero padding.
+    Returns
+    -------
+    Zero padded image with shape of (row + 2 * padlength, col + 2 * padlength).
+    """
     row, col = np.shape(im)
     im_pad = np.zeros((row + 2 * padlength, col + 2 * padlength))
 
@@ -208,7 +289,27 @@ def image_padding(im, padlength):
 
 
 def local_standard(image, parameters, eps=1e-09, normalize='gaussian'):
-    """Centers local grayscales with Gaussian weighted mean using given kernel sizes and gaussian variances."""
+    """Centers and standardizes local grayscales with Gaussian weighted mean.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image to be standardized.
+    parameters : dict
+        Dictionary of parameters containing:
+        ks1 = centering kernel size (odd)
+        ks2 = standardizing kernel size (odd)
+        sigma1 = standard deviation for Gaussian kernel 1
+        sigma2 = standard deviation for Gaussian kernel 2
+    eps : float
+        Residual term added to std image division (used to avoid division by zero)
+    normalize : str
+        Normalizing method used to create Gaussian kernels.
+        Defaults to division by 2 * Pi * sigma ^ 2, but division by kernel sum is also possible.
+    Returns
+    -------
+    Image normalized to local contrast.
+    """
     # Unpack parameters
     w1 = parameters['ks1']
     w2 = parameters['ks2']
@@ -228,7 +329,21 @@ def local_standard(image, parameters, eps=1e-09, normalize='gaussian'):
 
 
 def gauss_kernel(w, sigma, normalize='gaussian'):
-    """Generates 2d gaussian kernel"""
+    """Generates 2d gaussian kernel.
+
+    Parameters
+    ----------
+    w : int
+        Kernel width.
+    sigma : int
+        Standard deviation of Gaussian kernel.
+    normalize : str
+        Normalizing method used to create Gaussian kernels.
+        Defaults to division by 2 * Pi * sigma ^ 2, but division by kernel sum is also possible.
+    Returns
+    -------
+    Gaussian kernel with shape (w, w).
+    """
     kernel = np.zeros((w, w))
     # Constant for centering
     r = (w - 1) / 2
@@ -244,6 +359,7 @@ def gauss_kernel(w, sigma, normalize='gaussian'):
 
 
 def Conv_MRELBP(image, pars, savepath=None, sample=None, normalize=True):
+    """Calculates MRELBP using convolutions. Alternate method for calculating LBP features."""
     # Unpack parameters
     n = pars['N']
     r_large = pars['R']
@@ -407,6 +523,7 @@ def local_normalize_abs(image, parameters, eps=1e-09):
 
 
 def weight_matrix_bilin(r, theta, val=-1):
+    """Bilinear interpolation used in Conv_MRELBP."""
     # Center of the matrix
     x = r + 1
     y = r + 1

@@ -6,6 +6,7 @@ Contains various functions utilised in the repository.
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from matplotlib.ticker import MaxNLocator
 from mpl_toolkits import mplot3d
 from matplotlib.animation import FuncAnimation
 import os
@@ -514,10 +515,13 @@ def plot_histograms(grades, plt_title=None, savepath=None):
         plt_title = 'Surface zone'
 
     n, bins, patches = plt.hist(grades, bins=4, range=[0, 4], facecolor=color, rwidth=0.9)
-    plt.title(plt_title)
-    plt.xlabel('Grades')
-    plt.ylabel('Number of samples')
+    plt.title(plt_title, fontsize=24)
+    plt.xlabel('Grades', fontsize=24)
+    plt.ylabel('Number of samples', fontsize=24)
     plt.xticks(np.arange(0, 3 + 1, step=1) + 0.5, ['0', '1', '2', '3'])
+    plt.yticks(np.arange(0, n.max(), np.round(n.max() / 6)))
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
     if savepath is not None:
         plt.savefig(savepath, bbox_inches='tight')
     plt.show()
