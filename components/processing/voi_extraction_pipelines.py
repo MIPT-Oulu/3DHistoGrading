@@ -1,3 +1,5 @@
+"""Contains full preprocessing pipelines for PTA-stained µCT reconstructions."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -14,7 +16,32 @@ from components.processing.extract_volume import get_interface, deep_depth, mean
 
 
 def pipeline_subvolume_mean_std(args, sample, render=False):
-    """Calculates volume and calls subvolume or mean + std pipeline"""
+    """Calculates volume and calls subvolume or mean + std pipeline
+
+    1. Loads µCT stack
+
+    2. Orients sample
+
+    3. Crops sample edges
+
+    4. Calls mean+std pipeline (or processes subvolumes individually).
+
+    Parameters
+    ----------
+    sample : str
+        Sample name.
+    args : Namespace
+        Namespace containing processing arguments:
+        data_path = Directory containing µCT datasets.
+        save_image_path = Path for saving processed datasets.
+        rotation = Selected rotation method. See rotations/orient.
+        size = Dictionary including saved VOI dimensions. See extract_volume.
+        size_wide = Different width for edge crop. Used for Test set 1.
+        crop_method = Method for finding sample center.
+        n_jobs = Number of parallel workers.
+    render : bool
+        Choice whether to save render images of the processed sample.
+    """
 
     # 1. Load sample
     # Unpack paths
@@ -49,10 +76,36 @@ def pipeline_subvolume_mean_std(args, sample, render=False):
 
 
 def calculate_mean_std(data, sample, args, render=False):
-    """Run final part of processing pipeline.
-    Called from volume or subvolume pipeline."""
+    """Runs final part of processing pipeline.
+
+    1. Segments calcified tissue mask
+
+    2. Extracts volumes of interest
+
+    3. Calculates mean + standard deviation along depth axis and saves results as .h5 dataset.
+
+    Called from volume or subvolume pipeline.
+
+    Parameters
+    ----------
+    data : ndarray (3-dimensional)
+        Edge cropped input data.
+    sample : str
+        Sample name.
+    args : Namespace
+        Namespace containing processing arguments:
+        segmentation = Segmentation method. Choices = "cntk", "torch", "kmeans".
+        See segmentation_pipelines for detailed description of each method.
+        save_image_path = Path for saving datasets.
+        snapshots = Path for model snapshots. Used in Pytorch segmentation.
+        size = Dictionary including saved VOI dimensions. See extract_volume.
+        n_jobs = Number of parallel workers.
+    render : bool
+        Choice whether to save render images of the processed sample.
+    """
+
     save_path = args.save_image_path
-    # 4. Segment BCI mask
+    # 1. Segment BCI mask
     print('4. Segment BCI mask')
     if args.snapshots is not None and args.segmentation is not 'cntk':
         # Bottom offset
@@ -79,7 +132,7 @@ def calculate_mean_std(data, sample, args, render=False):
         render_volume((mask > 0.7) * data, save_path + "\\Images\\" + sample + "_mask_render.png")
     save(save_path + '\\Mask\\' + sample, sample, mask)
 
-    # 5. Get VOIs
+    # 2. Get VOIs
     # Crop
     crop = args.size['crop']
     data = data[crop:-crop, crop:-crop, :]
@@ -105,14 +158,15 @@ def calculate_mean_std(data, sample, args, render=False):
         render_volume(np.flip(deep_voi, 2), save_path + "\\Images\\" + sample + "_deep_render.png")
         render_volume(np.flip(calc_voi, 2), save_path + "\\Images\\" + sample + "_cc_render.png")
 
-    # 6. Calculate mean and std
+    # 3. Calculate mean and std
     print('6. Save mean and std images')
     mean_std(surf_voi, save_path, sample, deep_voi, calc_voi, otsu_thresh)
 
 
 def create_subvolumes(data, sample, args, method='calculate', show=False):
-    """Either saves subvolumes or calculates mean + std based on subvolumes."""
-    # TODO better indexing for subvolumes
+    """Either saves subvolumes or calculates mean + std from them. Takes edge cropped sample as input.
+    Not necessary, since subimages can be calculated from mean+std images."""
+
     dims = [448, data.shape[2] // 2]
     print_orthogonal(data)
 
@@ -143,7 +197,25 @@ def create_subvolumes(data, sample, args, method='calculate', show=False):
                 calculate_mean_std(subdata, subsample, args)
 
 
-def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
+def crop_center(data, sizex=400, sizey=400, method='cm'):
+    """Performs edge crop for input data.
+
+    Parameters
+    ----------
+    data : ndarray (3-dimensional)
+        Input data for edge cropping.
+    sizex : int
+        Width of edge cropped sample.
+    sizey : int
+        Height of edge cropped sample.
+    method : str
+        Method for finding sample center. Choices = "cm", "mass".
+        Defaults to center moment but center of mass can be also used.
+
+    Returns
+    -------
+    Edge cropped data, cropping coordinates.
+    """
     dims = np.shape(data)
     center = np.zeros(2)
 
@@ -204,8 +276,6 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
     print('Center of mass (red): x = {0}, y = {1}'.format(center[0], center[1]))
 
     # Select method
-    if individual:
-        method = input('Select center moment (cm) or center of mass (mass)')
     if method == 'mass':
         print('Center of mass selected')
         return data[x1:x2, y1:y2, :], (x1, x2, y1, y2)
@@ -215,6 +285,8 @@ def crop_center(data, sizex=400, sizey=400, individual=False, method='cm'):
 
 
 def pipeline_mean_std(image_path, args, sample, mask_path=None):
+    """Runs full processing pipeline on single function. No possibility for subvolumes. Used in run_mean_std."""
+
     # 1. Load sample
     print('1. Load sample')
     save_path = args.save_image_path
@@ -281,6 +353,7 @@ def pipeline_mean_std(image_path, args, sample, mask_path=None):
 
 
 def pipeline_subvolume(args, sample, individual=False):
+    """Pipeline for saving subvolumes. Used in run_subvolume script."""
     # 1. Load sample
     # Unpack paths
     save_path = args.save_image_path

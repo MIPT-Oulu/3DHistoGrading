@@ -12,6 +12,23 @@ from components.utilities.misc import auto_corner_crop
 
 
 def pipeline(arguments, files, loss, pat_groups=None):
+    """Pipeline for random search optimization.
+    1. Loads images and ground truth.
+    2. Calls the optimization function and displays result.
+
+    Parameters
+    ----------
+    arguments : Namespace
+        Namespace containing grading arguments. See grading_pipelines for detailed description.
+    files : list
+        List of sample datasets containing mean+std images.
+    loss : function
+        Loss function used for optimization.
+        Defaults to sklearn.metrics.mean_squared error
+        Possible to use for example 1 - spearman correlation or other custom loss functions.
+    pat_groups : ndarray
+        Groups for leave-one-group-out split.
+    """
     # Load images
     images_surf = []
     images_deep = []

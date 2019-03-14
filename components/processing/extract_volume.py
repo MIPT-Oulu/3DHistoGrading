@@ -1,3 +1,5 @@
+"""Contains resources for extracting volumes of interest."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -11,9 +13,29 @@ from scipy.signal import medfilt
 from components.utilities.misc import otsu_threshold
 
 
-def get_interface(data, size, mask=None, n_jobs=12):
-    """Give string input to interface variable as 'surface' or 'bci'.
-    Input data should be a thresholded, cropped volume of the sample"""
+def get_interface(data, size, mask, n_jobs=12):
+    """Extracts surface, deep and calcified volumes of interest (VOI) from input data.
+
+    Parameters
+    ----------
+    data : ndarray (3-dimensional)
+        Input data with edge crop.
+    size : dict
+        Dictionary containing dimensions for volumes of interest:
+        surface = Surface VOI depth.
+        deep = Deep VOI depth.
+        calcified = Calcifies VOI depth.
+        offset = Offset from segmentation mask for deep and calcified VOI border.
+    mask : ndarray
+        Segmented calcified tissue mask.
+    n_jobs : int
+        Number of parallel workers.
+
+    Returns
+    -------
+    Surface VOI, deep VOI, calcified VOI, background threshold value.
+    """
+
     dims = np.shape(data)
 
     # Threshold data
@@ -45,6 +67,23 @@ def get_interface(data, size, mask=None, n_jobs=12):
 
 
 def calculate_surf(image, interface, thickness, threshold):
+    """ Extracts straightened surface region of interest (ROI) from input image.
+
+    Parameters
+    ----------
+    image : ndarray (2-dimensional)
+        Input image (coronal or sagittal slice)
+    interface : ndarray (1-dimensional)
+        Thresholded surface interface depth values.
+    thickness : int
+        Depth of surface ROI.
+    threshold : int
+        Background threshold. Pixels from background are skipped and not included in the ROI.
+
+    Returns
+    -------
+    Surface ROI image with shape (image width, ROI depth)
+    """
     dims = image.shape
     voi = np.zeros((dims[0], thickness))
     for y in range(dims[0]):
@@ -60,6 +99,29 @@ def calculate_surf(image, interface, thickness, threshold):
 
 
 def calculate_bci(image, interface, s_deep, s_calc, offset, threshold):
+    """ Extracts straightened deep and calcified cartilage regions of interest (ROI) from input image.
+
+    Parameters
+    ----------
+    image : ndarray (2-dimensional)
+        Input image (coronal or sagittal slice)
+    interface : ndarray (1-dimensional)
+        Thresholded calcified tissue mask interface depth values.
+    s_deep : int
+        Depth of deep cartilage ROI.
+    s_calc : int
+        Depth of calcified cartilage ROI.
+    offset : int
+        Deep and calcified border offset from interface coordinates.
+    threshold : int
+        Background threshold. Pixels from background are skipped and not included in the ROI.
+
+    Returns
+    -------
+    Concatenated deep and calcified image ROI with shape (image width, deep depth + calcified depth).
+    Single image is returned to enable parallel processing.
+    """
+
     dims = image.shape
     depths = []
     deep_voi = np.zeros((dims[0], s_deep))
@@ -115,7 +177,18 @@ def calculate_bci(image, interface, s_deep, s_calc, offset, threshold):
 
 
 def deep_depth(data, mask):
-    """ Returns mean distance between surface and calcified cartilage interface.
+    """ Returns average distance between surface and calcified cartilage interface.
+
+    Parameters
+    ----------
+    data : ndarray (3-dimensional)
+        Input data.
+    mask : ndarray (3-dimensional)
+        Thresholded calcified tissue mask.
+
+    Returns
+    -------
+    Average distance between cartilage surface and calficied cartilage interface.
     """
     # Threshold data
     surfmask, val = otsu_threshold(data)
@@ -128,6 +201,23 @@ def deep_depth(data, mask):
 
 
 def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=None):
+    """ Calculates mean + standard deviation images from given volumes of interest (VOI) and saves them as .h5 dataset.
+
+    Parameters
+    ----------
+    surfvoi : ndarray (3-dimensional)
+        Surface VOI.
+    deepvoi : ndarray (3-dimensional)
+        Deep cartilage VOI.
+    ccvoi : ndarray (3-dimensional)
+        Calcified cartilage VOI.
+    savepath : str
+        Directory for saving mean + std images
+    sample : str
+        Sample name.
+    otsu_thresh : int
+        Background threshold. Thresholded voxels are not included in mean or std calculation.
+    """
     # Create save paths
     if not os.path.exists(savepath):
         os.makedirs(savepath, exist_ok=True)

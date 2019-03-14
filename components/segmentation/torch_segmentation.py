@@ -84,7 +84,7 @@ def inference(data, args, splits, mu, sd):
     
     # Import model
     sys.path.append(args["modelpath"])
-    from Segmentation.torch_model import UNet
+    from components.segmentation.torch_model import UNet
 
     # # Get sample fold
     # idx = 0
@@ -189,7 +189,7 @@ if __name__ == "__main__":
 
     # Import model
     sys.path.append(args.modelpath)
-    from Segmentation.torch_model import UNet
+    from components.segmentation.torch_model import UNet
     
     # Get contents of snapshot directory, should contain pretrained models, session file and mean/sd vector
     snaps = os.listdir(args.snapshot)

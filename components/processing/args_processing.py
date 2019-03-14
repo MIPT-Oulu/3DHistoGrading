@@ -1,3 +1,5 @@
+"""Contains arguments used for preprocessing pipelines."""
+
 from argparse import ArgumentParser
 
 

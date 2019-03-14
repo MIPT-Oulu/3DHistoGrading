@@ -1,8 +1,8 @@
 """ LBP parameter optimizer
 
-Optimizes MRELBP parameters using Bayesian optimization algorithm.
+Optimizes MRELBP parameters using Bayesian optimization algorithm (Tree of Parzen estimators).
 
-Check script arguments before running.
+Check script arguments before running (first section of main).
 """
 
 import numpy as np
@@ -21,6 +21,24 @@ from components.utilities.misc import auto_corner_crop
 
 
 def pipeline_hyperopt(args, files, metric, pat_groups=None):
+    """Pipeline for Bayesian optimization.
+    1. Loads images and ground truth.
+    2. Calls the optimization function and displays result.
+
+    Parameters
+    ----------
+    args : Namespace
+        Namespace containing grading arguments. See grading_pipelines for detailed description.
+    files : list
+        List of sample datasets containing mean+std images.
+    metric : function
+        Loss function used for optimization.
+        Defaults to sklearn.metrics.mean_squared error
+        Possible to use for example 1 - spearman correlation or other custom loss functions.
+    pat_groups : ndarray
+        Groups for leave-one-group-out split.
+    """
+
     # Load images
     images_surf = []
     images_deep = []
@@ -62,7 +80,7 @@ def pipeline_hyperopt(args, files, metric, pat_groups=None):
     # Optimize parameters
     pars, error = optimization_hyperopt_loo(np.array(images), grades, args, metric, groups=pat_groups)
 
-    print('Results for grades: ' + args.grade_keys)
+    print('Results for grades: ' + args.grades_used)
     print("Minimum errors:\n", error)
     print("Parameters are:\n", pars)
 
@@ -99,7 +117,7 @@ if __name__ == '__main__':
 
     # Surface subgrade
     arguments.grades_used = 'surf_sub'
-    pipeline_hyperopt(arguments, files, loss_function, groups)
+   # pipeline_hyperopt(arguments, files, loss_function, groups)
 
     # Deep ECM
     arguments.grades_used = 'deep_mat'

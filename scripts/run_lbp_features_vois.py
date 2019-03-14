@@ -1,3 +1,4 @@
+"""Calculates MRELBP features from mean+std images for given parameters (see return_args(pars))."""
 import components.grading.args_grading as arg
 from components.utilities import listbox
 from components.grading.grading_pipelines import pipeline_lbp

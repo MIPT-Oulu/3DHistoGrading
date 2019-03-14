@@ -13,7 +13,7 @@ from components.grading.pca_regression import scikit_pca, regress_logo, regress_
 
 
 def make_pars(n_pars):
-    """Generate random LBP parameters."""
+    """Generates n_pars sets of random MRELBP parameters."""
     pars = []
 
     for k in range(n_pars):
@@ -34,7 +34,7 @@ def make_pars(n_pars):
 
 
 def make_pars_hyperopt(seed):
-    """Generate LBP parameter space for hyperopt."""
+    """Generates MRELBP parameter space for hyperopt."""
 
     par_set = dict()
     # par_set['N'] = hp.choice('N', [8, 16])
@@ -54,7 +54,7 @@ def make_pars_hyperopt(seed):
 
 
 def fit_model(imgs, grades, parameters, args, loss=mean_squared_error, groups=None):
-    """Runs LBP, PCA and regression on given parameters and return error metric."""
+    """Runs MRELBP, PCA and regression on given parameters and returns error metric."""
     
     # LBP features
     features = []
@@ -94,7 +94,25 @@ def evaluate(parameters, imgs, grades, args, loss, groups=None):
 
 
 def optimization_hyperopt_loo(imgs, grades, args, loss, groups=None):
-    """Parameter optimization with Leave-one-out."""
+    """Optimizes hyperparameters for MRELBP and local standardization using tree of Parzen estimators
+    and leave-one-out split for training multiple optimizations.
+
+    Parameters
+    ----------
+    imgs : list
+        List of input images.
+    grades : ndarray
+        Ground truth
+    args : Namespace
+        Contains arguments for grading pipeline. See grading_pipelines for description.
+    loss : funciton
+        Loss function used in optimization. (e.g. mean squared error)
+    groups : ndarray
+        Patient groups used in leave-one-group-out split.
+    Returns
+    -------
+    List of best parameters, errors
+    """
     # Get leave-one-out split
     loo = LeaveOneOut()
     loo.get_n_splits(grades)
@@ -144,6 +162,25 @@ def optimization_hyperopt_loo(imgs, grades, args, loss, groups=None):
 
 
 def optimization_randomsearch_loo(imgs, grades, args, loss, groups=None):
+    """Optimizes hyperparameters for MRELBP and local standardization using random search
+    and leave-one-out split for training multiple optimizations.
+
+    Parameters
+    ----------
+    imgs : list
+        List of input images.
+    grades : ndarray
+        Ground truth
+    args : Namespace
+        Contains arguments for grading pipeline. See grading_pipelines for description.
+    loss : funciton
+        Loss function used in optimization. (e.g. mean squared error)
+    groups : ndarray
+        Patient groups used in leave-one-group-out split.
+    Returns
+    -------
+    List of best parameters, errors
+    """
     # Unpack parameters
     n_pars = args.n_pars
     n_jobs = args.n_jobs
@@ -190,6 +227,24 @@ def optimization_randomsearch_loo(imgs, grades, args, loss, groups=None):
 
 
 def optimization_randomsearch(imgs, grades, args, loss, groups=None):
+    """Optimizes hyperparameters for MRELBP and local standardization using random search.
+
+    Parameters
+    ----------
+    imgs : list
+        List of input images.
+    grades : ndarray
+        Ground truth
+    args : Namespace
+        Contains arguments for grading pipeline. See grading_pipelines for description.
+    loss : funciton
+        Loss function used in optimization. (e.g. mean squared error)
+    groups : ndarray
+        Patient groups used in leave-one-group-out split.
+    Returns
+    -------
+    Best parameters, error
+    """
     # Unpack parameters
     n_pars = args.n_pars
     n_jobs = args.n_jobs

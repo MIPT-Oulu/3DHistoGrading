@@ -1,8 +1,10 @@
+"""Contains resources for segmenting calcified cartilage interface."""
+
 import numpy as np
 import torch
 import os
 import pickle
-#import cntk as C
+import cntk as C
 
 from components.segmentation.torch_segmentation import get_split, inference
 from components.processing.clustering import kmeans_opencv, kmeans_scikit
@@ -14,6 +16,28 @@ from joblib import Parallel, delayed
 
 
 def segmentation_kmeans(array, n_clusters=3, offset=0, method='scikit', zoom_factor=4.0, n_jobs=12):
+    """Pipeline for segmentation using kmeans clustering.
+
+    Parameters
+    ----------
+    array : ndarray (3-dimensional)
+        Input data.
+    n_clusters : int
+        Number of kmeans clusters.
+    offset : int
+        Bottom offset for segmentation. Used to exclude part of large bone plate.
+    method : str
+        Algorithm for kmeans segmentation. Choices = "scikit", "opencv". Defaults to scikit-learn.
+    zoom_factor : float
+        Factor for downscaling input data for segmentation.
+    n_jobs : int
+        Number of parallel workers.
+
+    Returns
+    -------
+    Segmented calcified tissue mask.
+    """
+
     # Segmentation
     dims = array.shape
     array = zoom(array[:, :, offset:], 1 / zoom_factor, order=3)  # Downscale images
@@ -52,36 +76,44 @@ def segmentation_kmeans(array, n_clusters=3, offset=0, method='scikit', zoom_fac
 
 
 def segmentation_cntk(data, path):
-    """
-    Segments bone-cartilage interface using saved CNTK models.
+    """Pipeline for segmentation using saved CNTK convolutional neural network with UNet architecture.
 
-    :param data: 3D volume to be segmented. Size should be 448x448xZ
-    :param path: Path to models.
-    :return: Segmented mask as numpy array.
+    Parameters
+    ----------
+    data : ndarray (3-dimensional)
+        Input data.
+    path : str
+        Path to CNTK model
+
+    Returns
+    -------
+    Segmented calcified tissue mask.
     """
     maskarray = np.zeros(data.shape)
     dims = np.array(data.shape)
+    mean = 113.05652141
+    sd = 39.87462853
     if data.shape[0] != 448 or data.shape[1] != 448:
         print('Data shape: {0}, {1}, {2}'.format(dims[0], dims[1], dims[2]))
         raise Exception('Invalid input shape for model!')
     if dims[2] < 1000:
         z = C.load_model(path[0])
         for i in range(data.shape[1]):
-            sliced = (data[:, i, :384] - 113.05652141) / 39.87462853
+            sliced = (data[:, i, :384] - mean) / sd
             sliced = np.ascontiguousarray(sliced, dtype=np.float32)
             mask = z.eval(sliced.reshape(1, sliced.shape[0], sliced.shape[1]))
             maskarray[:, i, :384] = mask[0].squeeze()
     elif 1000 <= dims[2] < 1600:
         z = C.load_model(path[1])
         for i in range(data.shape[1]):
-            sliced = (data[:, i, 20:468] - 113.05652141) / 39.87462853
+            sliced = (data[:, i, 20:468] - mean) / sd
             sliced = np.ascontiguousarray(sliced, dtype=np.float32)
             mask = z.eval(sliced.reshape(1, sliced.shape[0], sliced.shape[1]))
             maskarray[:, i, 20:468] = mask[0].squeeze()
     elif dims[2] >= 1600:
         z = C.load_model(path[2])
         for i in range(data.shape[1]):
-            sliced = (data[:, i, 50:562] - 113.05652141) / 39.87462853
+            sliced = (data[:, i, 50:562] - mean) / sd
             sliced = np.ascontiguousarray(sliced, dtype=np.float32)
             mask = z.eval(sliced.reshape(1, sliced.shape[0], sliced.shape[1]))
             maskarray[:, i, 50:562] = mask[0].squeeze()
@@ -89,6 +121,25 @@ def segmentation_cntk(data, path):
 
 
 def segmentation_pytorch(data, modelpath, snapshots, cropsize=512, offset=700):
+    """Pipeline for segmentation using trained Pytorch model.
+
+    Parameters
+    ----------
+    data : ndarray (3-dimensional)
+        Input data.
+    modelpath : str
+        Path to the Pytorch model
+    snapshots : str
+        Path to the training snapshots.
+    cropsize : int
+        Height of model input image.
+    offset : int
+        Bottom offset for making the crop.
+    Returns
+    -------
+    Segmented calcified tissue mask.
+    """
+
     # Check for gpu
     device = "auto"
     if device == "auto":

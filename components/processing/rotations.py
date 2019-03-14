@@ -1,3 +1,5 @@
+"""Contains resources for sample orientation detection and rotation."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -8,6 +10,26 @@ from components.utilities.misc import print_orthogonal
 
 
 def orient(data, bounds, choice=1):
+    """Detects sample orientation and rotates it along the z-axis.
+
+    Parameters
+    ----------
+    data : ndarray
+        Input data.
+    bounds : list
+        List of bounding box coordinates for the sample. Obtained during sample loading.
+    choice : int
+        Method to detect orientation:
+        0 = No rotation.
+        1 = Bounding box angles.
+        2 = PCA angles
+        3 = Circle fitting (gradient descent optimization)
+        4 = Average of 1, 2 and 3.
+
+    Returns
+    -------
+    Rotated data, rotation angles
+    """
     # Sample dimensions
     dims = np.array(np.shape(data))
 
@@ -83,26 +105,11 @@ def orient(data, bounds, choice=1):
         data = opencv_rotate(data, 1, angle2)
     print_orthogonal(data)
 
-    # Rotate array (affine transform)
-    # xangle = RotationMatrix(0.5 * (theta_x1 + theta_x2), 1)
-    # yangle = RotationMatrix(-0.5 * (theta_y1 + theta_y2), 0)
-    # data = affine_transform(data, xangle)
-    # data = affine_transform(data, yangle)
-
     return data, (angle1, angle2)
 
 
-def orient_mask(mask, angles):
-    # 1st rotation
-    mask = opencv_rotate(mask, 0, angles[0])
-
-    # 2nd rotation
-    mask = opencv_rotate(mask, 1, angles[1])
-    print_orthogonal(mask)
-    return mask
-
-
 def pca_angle(image, axis, threshold=80, radians=bool(0)):
+    """Calculates sample orientations using Principal component analysis."""
     # Threshold
     mask = image > threshold
     # Get nonzero indices from BW image
@@ -139,29 +146,8 @@ def pca_angle(image, axis, threshold=80, radians=bool(0)):
     return ori
 
 
-def rotation_matrix(angle, axis):
-    rotate = np.identity(3)
-    if axis == 0:
-        rotate[1, 1] = np.cos(angle)
-        rotate[2, 2] = np.cos(angle)
-        rotate[1, 2] = np.sin(angle)
-        rotate[2, 1] = - np.sin(angle)
-    elif axis == 1:
-        rotate[0, 0] = np.cos(angle)
-        rotate[2, 2] = np.cos(angle)
-        rotate[2, 0] = np.sin(angle)
-        rotate[0, 2] = - np.sin(angle)
-    elif axis == 2:
-        rotate[0, 0] = np.cos(angle)
-        rotate[1, 1] = np.cos(angle)
-        rotate[0, 1] = np.sin(angle)
-        rotate[1, 0] = - np.sin(angle)
-    else:
-        raise Exception('Invalid axis!')
-    return rotate
-
-
 def get_angle(data, radians=bool(0)):
+    """Detects sample orientation using bounding boxes."""
     # Calculate mean value
     mean = 0.0
     for k in range(len(data)):
@@ -190,6 +176,7 @@ def get_angle(data, radians=bool(0)):
 
 
 def cv_rotate(image, theta):
+    """Rotates 2D image for angle theta."""
     # Get image shape
     h, w = image.shape
 
@@ -204,6 +191,7 @@ def cv_rotate(image, theta):
 
 
 def opencv_rotate(stack, axis, theta):
+    """Rotates 3D image stack for angle theta along given axis."""
     h, w, d = stack.shape
     if axis == 0:
         for k in range(h):
@@ -218,15 +206,19 @@ def opencv_rotate(stack, axis, theta):
 
 
 class FindOriGrad(object):
+    """Class for finding sample orientation using circle fitting algorithm (gradient descent optimization)."""
     def __init__(self, alpha=1.0, h=5, n_iter=20):
+        """Initialize parameters."""
         self.a = alpha
         self.h = h
         self.n = n_iter
 
     def __call__(self, sample):
+        """Call pipeline."""
         return self.get_angle(sample)
 
     def circle_loss(self, sample):
+        """Evaluate loss."""
         h, w = sample.shape
         # Find nonzero indices
         inds = np.array(np.nonzero(sample)).T
@@ -246,6 +238,7 @@ class FindOriGrad(object):
         return 1 - dice
 
     def get_angle(self, sample):
+        """Pipeline for orienting downscaled sample data, calculating orientation and loss."""
         ori = np.array([0, 0]).astype(np.float32)
 
         for k in range(1 + self.n + 1):

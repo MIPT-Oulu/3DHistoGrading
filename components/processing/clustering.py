@@ -1,3 +1,5 @@
+"""Contains resources for segmenting calcified cartilage -interface using clustering methods."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -13,6 +15,20 @@ cv2.setNumThreads(0)
 
 
 def kmeans(image, clusters=2, scale=True):
+    """Clusters input image to using kmeans algorithm.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image to be clustered
+    clusters : int
+        Number of clusters.
+    scale : bool
+        Choice whether to scale clusters to center values (on uint8 range) or return cluster labels (0, 1, 2...)
+    Returns
+    -------
+    Clustered image.
+    """
 
     # Reshape image
     image_vector = image.flatten()
@@ -34,7 +50,19 @@ def kmeans(image, clusters=2, scale=True):
         return result
 
 
-def spectral_clusters_scikit(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3, limit=4, method='loop'):
+def spectral_clusters_scikit(image, clusters=3):
+    """Performs spectral clustering for input image. Not very suitable for cartilage segmentation.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image to be clustered
+    clusters : int
+        Number of clusters.
+    Returns
+    -------
+    Clustered image.
+    """
     image = zoom(image, (0.125, 0.125))
     plt.imshow(image)
     plt.show()
@@ -61,18 +89,35 @@ def spectral_clusters_scikit(image, clusters=3, scale=True, kernel_median=5, ker
     plt.show()
 
 
-def kmeans_opencv(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3, limit=4, method='loop'):
+def kmeans_opencv(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3, limit=4, method='loop', show=False):
+    """Calculates bone mask from PTA images using opencv kmeans algorithm.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image to be clustered
+    clusters : int
+        Number of clusters.
+    scale : bool
+        Output either uint8 (True) or bool (False)
+    kernel_median : int
+        Kernel size for median filter.
+    kernel_morph : int
+        Kernel size for erosion/dilation.
+    limit : int
+        Limit for setting background relative to deep cartilage layer. Used in floodfill method.
+    method : str
+        Clustering method. Use "loop" or "floodfill" method.
+        Defaults to loop (Checks interface starting from image bottom)
+    show : bool
+        Choose whether to display segmentation bounding box. Use only for 2D images.
+        Defaults to false.
+
+    Returns
+    -------
+    Segmented bone mask.
     """
-    Calculates bone mask from PTA images
-    :param image: input 2D image
-    :param clusters: Number of clusters
-    :param scale: Output either uint8 (True) or bool (False)
-    :param kernel_median: Kernel size for median filter
-    :param kernel_morph: Kernel size for erosion/dilation
-    :param limit: Limit for setting background relative to deep cartilage layer.
-    :param method: Clustering method. Use loop or filling method.
-    :return: Bone mask
-    """
+
     # Image dimensions
     dims = image.shape
 
@@ -145,20 +190,21 @@ def kmeans_opencv(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3
     bone_mask = cv2.erode(bone_mask, kernel, iterations=1)
     bone_mask = cv2.dilate(bone_mask, kernel, iterations=1)
 
-    # # Visualize rectangle
-    # fig = plt.figure(dpi=300)
-    # ax = fig.add_subplot(121)
-    # ax.imshow(image)
-    # rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
-    # ax.add_patch(rect)
-    # ax2 = fig.add_subplot(122)
-    # ax2.imshow(c)
-    # rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
-    # ax2.add_patch(rect)
-    # plt.show()
+    # Visualize rectangle
+    if show:
+        fig = plt.figure(dpi=300)
+        ax = fig.add_subplot(121)
+        ax.imshow(image)
+        rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
+        ax.add_patch(rect)
+        ax2 = fig.add_subplot(122)
+        ax2.imshow(c)
+        rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
+        ax2.add_patch(rect)
+        plt.show()
 
-    # Check values in mask
-    # print(np.unique(bone_mask))
+        # Check values in mask
+        print(np.unique(bone_mask))
 
     # Get result
     if scale:
@@ -167,7 +213,34 @@ def kmeans_opencv(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3
         return bone_mask.astype(np.bool)
 
 
-def kmeans_scikit(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3, limit=4, method='loop'):
+def kmeans_scikit(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3, limit=4, method='loop', show=False):
+    """Calculates bone mask from PTA images using scikit-learn kmeans algorithm.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image to be clustered
+    clusters : int
+        Number of clusters.
+    scale : bool
+        Output either uint8 (True) or bool (False)
+    kernel_median : int
+        Kernel size for median filter.
+    kernel_morph : int
+        Kernel size for erosion/dilation.
+    limit : int
+        Limit for setting background relative to deep cartilage layer. Used in floodfill method.
+    method : str
+        Clustering method. Use "loop" or "floodfill" method.
+        Defaults to loop (Checks interface starting from image bottom)
+    show : bool
+        Choose whether to display segmentation bounding box. Use only for 2D images.
+        Defaults to false.
+
+    Returns
+    -------
+    Segmented bone mask.
+    """
 
     # Dimensions
     dims = image.shape
@@ -260,20 +333,21 @@ def kmeans_scikit(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3
     bone_mask = cv2.erode(bone_mask, kernel, iterations=1)
     bone_mask = cv2.dilate(bone_mask, kernel, iterations=1)
 
-    # # Visualize rectangle
-    # fig = plt.figure(dpi=300)
-    # ax = fig.add_subplot(121)
-    # ax.imshow(image)
-    # rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
-    # ax.add_patch(rect)
-    # ax2 = fig.add_subplot(122)
-    # ax2.imshow(c)
-    # rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
-    # ax2.add_patch(rect)
-    # plt.show()
+    # Visualize rectangle
+    if show:
+        fig = plt.figure(dpi=300)
+        ax = fig.add_subplot(121)
+        ax.imshow(image)
+        rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
+        ax.add_patch(rect)
+        ax2 = fig.add_subplot(122)
+        ax2.imshow(c)
+        rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='g', facecolor='none')
+        ax2.add_patch(rect)
+        plt.show()
 
-    # Check values in mask
-    # print(np.unique(bone_mask))
+        # Check values in mask
+        print(np.unique(bone_mask))
 
     # Get result
     if scale:
@@ -283,7 +357,7 @@ def kmeans_scikit(image, clusters=3, scale=True, kernel_median=5, kernel_morph=3
 
 
 def recreate_image(labels, w, h, centers=None):
-    """Recreate the (compressed) image from the code book & labels"""
+    """Creates the cluster image from cluster labels and centers."""
     if centers is not None:
         d = centers.shape[1]
         image = np.zeros((w, h, d))
