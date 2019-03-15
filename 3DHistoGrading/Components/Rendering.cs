@@ -180,9 +180,9 @@ namespace HistoGrading.Components
                     vol.SetMapper(GPUmapper);
                 vol.Update();
                 //Renderer back ground
-                //renderer.GradientBackgroundOn();
-                //renderer.SetBackground(0.0, 0.0, 0.0);
-                renderer.SetBackground(1.0, 1.0, 1.0);
+                renderer.GradientBackgroundOn();
+                renderer.SetBackground(0.0, 0.0, 0.0);
+                renderer.SetBackground2(1.0, 1.0, 1.0);
                 renderer.AddVolume(vol);                
                 //Set Camera
                 renderer.GetActiveCamera().SetPosition(0.5, 1, 0);

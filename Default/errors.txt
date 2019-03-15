@@ -1,28 +1,4 @@
-Debug: In ..\..\..\..\vtksource-prefix\src\vtksource\Common\vtkObject.cxx, line 871
-vtkFixedPointVolumeRayCastMapper (000001A7806E5040): UnRegistered by NULL, ReferenceCount = 1
-
-
 Debug: In ..\..\..\..\vtksource-prefix\src\vtksource\Common\vtkObject.cxx, line 846
-vtkFixedPointVolumeRayCastMapper (000001A7806E5040): Registered by vtkGarbageCollectorImpl (00000041773FDD20), ReferenceCount = 3
-
-
-Debug: In ..\..\..\..\vtksource-prefix\src\vtksource\Common\vtkObject.cxx, line 866
-vtkFixedPointVolumeRayCastMapper (000001A7806E5040): UnRegistered by vtkStreamingDemandDrivenPipeline (000001A7EC8140C0), ReferenceCount = 2
-
-
-Debug: In ..\..\..\..\vtksource-prefix\src\vtksource\Common\vtkObject.cxx, line 866
-vtkFixedPointVolumeRayCastMapper (000001A7806E5040): UnRegistered by vtkGarbageCollectorImpl (00000041773FDD20), ReferenceCount = 0
-
-
-Debug: In ..\..\..\..\vtksource-prefix\src\vtksource\Filtering\vtkAlgorithm.cxx, line 48
-vtkAlgorithm (000001A7806E5040): vtkAlgorithm (000001A7806E5040): setting Information to 0000000000000000
-
-
-Debug: In ..\..\..\..\vtksource-prefix\src\vtksource\Common\vtkObject.cxx, line 154
-vtkObject (000001A7806E5040): Destructing!
-
-
-Debug: In ..\..\..\..\vtksource-prefix\src\vtksource\Common\vtkObject.cxx, line 846
-vtkFixedPointVolumeRayCastMapper (000001A7806E5040): Registered by vtkStreamingDemandDrivenPipeline (000001A7EE3A9250), ReferenceCount = 2
+vtkFixedPointVolumeRayCastMapper (00000201373BF040): Registered by vtkStreamingDemandDrivenPipeline (00000201369B9C90), ReferenceCount = 2
 
 
