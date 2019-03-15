@@ -29,6 +29,7 @@ if __name__ == '__main__':
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     dataset_name = '2mm'
     data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
+    data_path = r"Y:\3DHistoData"
     arguments = arg.return_args(data_path, dataset_name, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
     combinator = np.mean
     arguments.save_images = True

@@ -12,8 +12,9 @@ from components.utilities.load_write import load_excel
 
 if __name__ == '__main__':
     # Arguments
-    choice = 'Isokerays'
+    choice = '2mm'
     datapath = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
+    datapath = r"Y:\3DHistoData"
     arguments = arg.return_args(datapath, choice, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
     arguments.train_regression = False
     combinator = np.mean

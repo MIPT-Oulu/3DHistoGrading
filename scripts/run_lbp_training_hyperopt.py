@@ -88,7 +88,8 @@ def pipeline_hyperopt(args, files, metric, pat_groups=None):
 if __name__ == '__main__':
     # Arguments
     dataset_name = '2mm'
-    data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
+    #data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
+    data_path = r"Y:\3DHistoData"
     arguments = arg.return_args(data_path, dataset_name, grade_list=arg.grades_cut)
     arguments.split = 'logo'
     arguments.n_pars = 5
