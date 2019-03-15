@@ -285,10 +285,10 @@
             // 
             this.logistic.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.logistic.AutoSize = true;
-            this.logistic.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.logistic.Location = new System.Drawing.Point(545, 17);
+            this.logistic.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.logistic.Location = new System.Drawing.Point(545, 21);
             this.logistic.Name = "logistic";
-            this.logistic.Size = new System.Drawing.Size(0, 25);
+            this.logistic.Size = new System.Drawing.Size(0, 18);
             this.logistic.TabIndex = 21;
             this.logistic.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
