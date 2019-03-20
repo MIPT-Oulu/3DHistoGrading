@@ -187,15 +187,18 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=
     small_hist = map_lbp(small_hist, mapping)
     radial_hist = map_lbp(radial_hist, mapping)
 
-    # Histogram normalization
-    if normalize:
-        center_hist /= np.sum(center_hist)
-        large_hist /= np.sum(large_hist)
-        small_hist /= np.sum(small_hist)
-        radial_hist /= np.sum(radial_hist)
+    # # Individual histogram normalization
+    # if  normalize:
+    #     center_hist /= np.sum(center_hist)
+    #     large_hist /= np.sum(large_hist)
+    #     small_hist /= np.sum(small_hist)
+    #     radial_hist /= np.sum(radial_hist)
 
     # Concatenate histograms
     hist = np.concatenate((center_hist, large_hist, small_hist, radial_hist), 1)
+
+    if normalize:
+        hist /= np.sum(hist)
 
     if save_images and savepath is not None and sample is not None:
         print_images([lbp_large, lbp_small, lbp_radial], subtitles=['Large', 'Small', 'Radial'], title=sample,
