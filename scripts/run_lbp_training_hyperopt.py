@@ -9,6 +9,7 @@ import numpy as np
 import os
 import sys
 import components.grading.args_grading as arg
+from time import time
 
 from glob import glob
 from datetime import date
@@ -81,14 +82,16 @@ def pipeline_hyperopt(args, files, metric, pat_groups=None):
     pars, error = optimization_hyperopt_loo(np.array(images), grades, args, metric, groups=pat_groups)
 
     print('Results for grades: ' + args.grades_used)
-    print("Minimum errors:\n", error)
     print("Parameters are:\n", pars)
+    for i in range(len(pars)):
+        print(pars[i])
 
 
 if __name__ == '__main__':
+    start_time = time()
     # Arguments
     dataset_name = '2mm'
-    data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
+    data_path = r'/media/dios/dios2/3DHistoData'
     arguments = arg.return_args(data_path, dataset_name, grade_list=arg.grades_cut)
     arguments.split = 'logo'
     arguments.n_pars = 5
@@ -108,7 +111,7 @@ if __name__ == '__main__':
     os.makedirs(arguments.save_path, exist_ok=True)
     os.makedirs(arguments.save_path + '/Logs', exist_ok=True)
     sys.stdout = open(arguments.save_path + '/Logs/' + 'optimization_log_'
-                      + str(date.today()) + str(strftime("-%H-%M")) + '.txt', 'w')
+                      + str(date.today()) + str(strftime("-%H%M")) + '.txt', 'w')
 
     print('Selected files')
     for f in range(len(files)):
@@ -117,7 +120,7 @@ if __name__ == '__main__':
 
     # Surface subgrade
     arguments.grades_used = 'surf_sub'
-   # pipeline_hyperopt(arguments, files, loss_function, groups)
+    #pipeline_hyperopt(arguments, files, loss_function, groups)
 
     # Deep ECM
     arguments.grades_used = 'deep_mat'
@@ -127,5 +130,8 @@ if __name__ == '__main__':
     arguments.grades_used = 'calc_mat'
     pipeline_hyperopt(arguments, files, loss_function, groups)
 
+    # Display spent time
+    t = time() - start_time
+    print('Elapsed time: {0}s'.format(t))
 
-
+    print('Parameters:\n', arguments)

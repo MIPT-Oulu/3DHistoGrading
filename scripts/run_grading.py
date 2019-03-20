@@ -12,23 +12,25 @@ To see more detailed grading parameters or change default settings go to args_gr
 import numpy as np
 import os
 import sys
+import warnings
 from time import time, strftime
 from datetime import date
 from glob import glob
+from sklearn.metrics import roc_auc_score, roc_curve
+
 import components.grading.args_grading as arg
 import components.utilities.listbox as listbox
-import warnings
 
 from components.grading.grading_pipelines import pipeline_lbp, pipeline_prediction
-from components.grading.roc_curve import roc_curve_single, roc_curve_multi
+from components.grading.roc_curve import roc_curve_single, roc_curve_multi, calc_curve_bootstrap
 from components.utilities.load_write import load_excel
 
 if __name__ == '__main__':
     # Arguments
     start_time = time()
     warnings.filterwarnings("ignore", category=DeprecationWarning)
-    dataset_name = '2mm'
-    data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
+    dataset_name = 'Isokerays'
+    data_path = r'/media/dios/dios2/3DHistoData'
     arguments = arg.return_args(data_path, dataset_name, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
     combinator = np.mean
     arguments.save_images = True
@@ -40,7 +42,6 @@ if __name__ == '__main__':
         groups = groups.flatten()
     elif dataset_name == 'Isokerays' or dataset_name == 'Isokerays_sub':
         arguments.train_regression = True
-        arguments.split = 'logo'
         arguments.n_subvolumes = 9
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
@@ -71,7 +72,7 @@ if __name__ == '__main__':
     # Print output to log file
     os.makedirs(arguments.save_path + '/Logs', exist_ok=True)
     sys.stdout = open(arguments.save_path + '/Logs/' + 'grading_log_'
-                      + str(date.today()) + str(strftime("-%H-%M")) + '.txt', 'w')
+                      + str(date.today()) + str(strftime("-%H%M")) + '.txt', 'w')
 
     # Call Grading pipelines for different grade evaluations
     gradelist = []
@@ -89,19 +90,37 @@ if __name__ == '__main__':
         gradelist.append(grade)
         preds.append(pred)
 
-        # ROC curve
-        if len(arguments.grades_used) != 3:
-            lim = (np.min(grade) + np.max(grade)) // 2
-            split = arguments.split
-            save_path = arguments.save_path + '\\roc_' + grade_selection + '_' + split
-            roc_curve_single(pred, grade, lim, savepath=save_path, title=grade_selection)
-
-    # Multi ROC curve
-    if len(arguments.grades_used) == 3:
+    # Create ROC curves
+    if len(gradelist) == 3:
         split = arguments.split
         lim = 1
-        save_path = arguments.save_path + '\\roc_multi_' + split
-        roc_curve_multi(preds, gradelist, lim, savepath=save_path)
+        save_path = arguments.save_path + '/roc_multi_' + split
+
+        # AUC stratified bootstrapping
+        aucs, aucs_l, aucs_h = [], [], []
+        for i in range(len(arguments.grades_used)):
+            metric_val, ci_l, ci_h, _, _ \
+                = calc_curve_bootstrap(roc_curve, roc_auc_score, gradelist[i] > lim, preds[i],
+                                       arguments.n_bootstrap,
+                                       arguments.seed, stratified=True, alpha=95)
+            aucs.append(metric_val)
+            aucs_l.append(ci_l)
+            aucs_h.append(ci_h)
+
+        # Display ROC curves
+        roc_curve_multi(preds, gradelist, lim, savepath=save_path, ci_l=aucs_l, ci_h=aucs_h, aucs=aucs)
+    else:
+        split = arguments.split
+        for i in range(len(arguments.grades_used)):
+            lim = (np.min(gradelist[i]) + np.max(gradelist[i])) // 2
+            grade_used = arguments.grades_used[i]
+            save_path = arguments.save_path + '/roc_' + grade_used + '_' + split
+            # ROC curves
+            roc_curve_single(preds[i], gradelist[i], lim, savepath=save_path)
+            metric_val, ci_l, ci_h, _, _ \
+                = calc_curve_bootstrap(roc_curve, roc_auc_score, gradelist[i] > lim, preds[i],
+                                       arguments.n_bootstrap,
+                                       arguments.seed, stratified=True, alpha=95)
 
     # Display spent time
     t = time() - start_time

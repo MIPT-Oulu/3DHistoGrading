@@ -96,4 +96,5 @@ def return_args(root, choice, pars=set_2m_loo_cut, grade_list=grades_cut):
     parser.add_argument('--grades_used', type=str, default=grade_list)
     parser.add_argument('--seed', type=int, default=42)  # Random seed
     parser.add_argument('--n_pars', type=int, default=100)  # Parameter optimization
+    parser.add_argument('--n_bootstrap', type=int, default=2000)  # Bootstrapping AUC
     return parser.parse_args()

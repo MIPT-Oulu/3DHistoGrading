@@ -64,7 +64,8 @@ def orient(data, bounds, choice=1):
     plt.subplot(144)
     plt.plot(xpoints, bounds[3])
     plt.plot(xpoints, (xpoints - line_y2[2]) * (line_y2[1] / line_y2[0]) + line_y2[3], 'r--')
-    plt.show()
+    plt.suptitle('BBox angles: {0}, {1}'.format(angle1, angle2))
+    plt.show(bbox_inches="tight")
 
     # PCA angles
     xangle = pca_angle(data[dims[0] // 2, :, :], 1, 80)
@@ -72,7 +73,7 @@ def orient(data, bounds, choice=1):
 
     # Select rotation
     if choice == 1:
-        print('BBox angles: {0}, {1}'.format(angle1, angle2))
+        pass
     elif choice == 2:
         print('PCA angles: {0}, {1}'.format(xangle, yangle))
         angle1 = xangle

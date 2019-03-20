@@ -21,7 +21,7 @@ def return_args(root, choice):
     parser.add_argument('--n_subvolumes', type=int, default=1)
     parser.add_argument('--subvolumes_x', type=int, default=1)
     parser.add_argument('--subvolumes_y', type=int, default=1)
-    parser.add_argument('--n_jobs', type=int, default=12)
+    parser.add_argument('--n_jobs', type=int, default=10)
     parser.add_argument('--render', type=bool, default=False)
     parser.add_argument('--GUI', type=bool, default=False)
     return parser.parse_args()

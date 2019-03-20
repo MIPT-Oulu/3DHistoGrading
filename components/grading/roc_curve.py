@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score, roc_curve, mean_squared_error
 from tqdm.auto import tqdm
 
 
-def roc_curve_multi(preds, targets, lim, savepath=None, title=None):
+def roc_curve_multi(preds, targets, lim, aucs=None, ci_l=None, ci_h=None, savepath=None, title=None):
     """ROC curve for three logistic regression predictions.
 
     Parameters
@@ -41,9 +41,16 @@ def roc_curve_multi(preds, targets, lim, savepath=None, title=None):
     plt.plot(fpr_deep, tpr_deep, color=green, linewidth=5)
     plt.plot(fpr_calc, tpr_calc, color=red, linewidth=5)
     plt.plot([0, 1], [0, 1], '--', color='black')
-    plt.legend(['surface, AUC: {:0.3f}'.format(auc_surf),
-                'deep, AUC: {:0.3f}'.format(auc_deep),
-                'calcified, AUC: {:0.3f}'.format(auc_calc)], loc='lower right', fontsize=30)
+    if aucs is None or ci_h is None or ci_l is None:
+        plt.legend(['surface, AUC: {:0.3f}'.format(auc_surf),
+                    'deep, AUC: {:0.3f}'.format(auc_deep),
+                    'calcified, AUC: {:0.3f}'.format(auc_calc)], loc='lower right', fontsize=30)
+    # Confidence intervals
+    else:
+        plt.legend(['surface, AUC: {:0.3f}, [{:1.3f}, {:2.3f}]'.format(aucs[0], ci_l[0], ci_h[0]),
+                    'deep, AUC: {:0.3f}, [{:1.3f}, {:2.3f}]'.format(aucs[1], ci_l[1], ci_h[1]),
+                    'calcified, AUC: {:0.3f}, [{:1.3f}, {:2.3f}]'.format(aucs[2], ci_l[2], ci_h[2])],
+                   loc='lower right', fontsize=22)
     plt.ylabel('True Positive Rate', fontsize=36)
     plt.xlabel('False Positive Rate', fontsize=36)
     plt.xticks(fontsize=24)
@@ -175,6 +182,94 @@ def roc_curve_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42, lim=
     print('AUC:', np.round(auc, 5))
     print(f'CI [{CI_l:.5f}, {CI_h:.5f}]')
     return auc, CI_l, CI_h
+
+
+def calc_curve_bootstrap(curve, metric, y, preds, n_bootstrap, seed, stratified=True, alpha=95):
+    """
+    Method adapted from Aleksei Tiulpin, university of Oulu.
+    Source: https://github.com/MIPT-Oulu/OAProgression
+
+    Parameters
+    ----------
+    curve : function
+        Function, which computes the curve.
+    metric : fucntion
+        Metric to compute, e.g. AUC for ROC curve or AP for PR curve
+    y : numpy.array
+        Ground truth
+    preds : numpy.array
+        Predictions
+    n_bootstrap:
+        Number of bootstrap samples to draw
+    seed : int
+        Random seed
+    stratified : bool
+        Whether to do a stratified bootstrapping
+    alpha : float
+        Confidence intervals width
+    """
+
+    np.random.seed(seed)
+    metric_vals = []
+    ind_pos = np.where(y == 1)[0]
+    ind_neg = np.where(y == 0)[0]
+
+    for _ in range(n_bootstrap):
+        if stratified:
+            ind_pos_bs = np.random.choice(ind_pos, ind_pos.shape[0])
+            ind_neg_bs = np.random.choice(ind_neg, ind_neg.shape[0])
+            ind = np.hstack((ind_pos_bs, ind_neg_bs))
+        else:
+            ind = np.random.choice(y.shape[0], y.shape[0])
+
+        if y[ind].sum() == 0:
+            continue
+        metric_vals.append(metric(y[ind], preds[ind]))
+
+    metric_val = np.mean(metric_vals)
+    x_curve_vals, y_curve_vals, _ = curve(y, preds)
+    ci_l = np.percentile(metric_vals, (100 - alpha) // 2)
+    ci_h = np.percentile(metric_vals, alpha + (100 - alpha) // 2)
+
+    print('Values for bootstrapped metric: {0}, [{1}, {2}]'.format(metric_val, ci_l, ci_h))
+
+    return metric_val, ci_l, ci_h, x_curve_vals, y_curve_vals
+
+
+def display_bootstraps(x_vals, y_vals, aucs, aucs_l, aucs_h, title=None, savepath=None):
+    """
+    Displays result of three bootstrapped ROC curves.
+    See calc_curve_bootstrap.
+    """
+    # Check for three predictions
+    if len(x_vals) != 3:
+        raise Exception('Function optimized for three predictions!')
+
+    # Plot figure
+    plt.figure(figsize=(11, 11))
+    red = (225 / 225, 126 / 225, 49 / 225)
+    green = (128 / 225, 160 / 225, 60 / 225)
+    blue = (132 / 225, 102 / 225, 179 / 225)
+    plt.plot(x_vals[0], y_vals[0], color=blue, linewidth=5)
+    plt.plot(x_vals[1], y_vals[1], color=green, linewidth=5)
+    plt.plot(x_vals[2], y_vals[2], color=red, linewidth=5)
+    plt.plot([0, 1], [0, 1], '--', color='black')
+    plt.legend(['surface, AUC: {:0.3f}, [{:1.3f}, {:2.3f}]'.format(aucs[0], aucs_l[0], aucs_h[0]),
+                'deep, AUC: {:0.3f}, [{:1.3f}, {:2.3f}]'.format(aucs[1], aucs_l[1], aucs_h[1]),
+                'calcified, AUC: {:0.3f}, [{:1.3f}, {:2.3f}]'.format(aucs[2], aucs_l[2], aucs_h[2])],
+               loc='lower right', fontsize=30)
+    plt.ylabel('True Positive Rate', fontsize=36)
+    plt.xlabel('False Positive Rate', fontsize=36)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
+    plt.xlim([-0.01, 1.01])
+    plt.ylim([-0.01, 1.01])
+    if title is not None:
+        plt.title(title)
+    plt.grid()
+    if savepath is not None:
+        plt.savefig(savepath, bbox_inches='tight')
+    plt.show()
 
 
 def mse_bootstrap(y, preds, savepath=None, n_bootstrap=1000, seed=42):

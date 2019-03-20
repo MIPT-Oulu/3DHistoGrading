@@ -65,14 +65,14 @@ def pipeline_lbp(args, files, parameters, grade_used):
             features = (Parallel(n_jobs=args.n_jobs)(delayed(Conv_MRELBP)  # Initialize
                         (images_norm[i], parameters,  # LBP parameters
                          normalize=args.normalize_hist,
-                         savepath=args.save_path + '\\Images\\LBP\\',
+                         savepath=args.save_path + '/Images/LBP/',
                          sample=files_input[i][:-3] + '_' + grade_used)  # Save paths
                           for i in tqdm(range(len(files_input)), desc='Calculating LBP features')))  # Iterable
         else:
             features = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)  # Initialize
                         (images_norm[i], parameters,  # LBP parameters
                          normalize=args.normalize_hist,
-                         savepath=args.save_path + '\\Images\\LBP\\',
+                         savepath=args.save_path + '/Images/LBP/',
                          sample=files_input[i][:-3] + '_' + grade_used,  # Save paths
                          save_images=args.save_images)
                           for i in tqdm(range(len(files_input)), desc='Calculating LBP features')))  # Iterable
@@ -82,9 +82,9 @@ def pipeline_lbp(args, files, parameters, grade_used):
 
         # Save features
         if args.n_subvolumes > 1:
-            save = args.save_path + r'\Features\\' + grade_used + '_' + str(vol) + '.xlsx'
+            save = args.save_path + '/Features/' + grade_used + '_' + str(vol) + '.xlsx'
         else:
-            save = args.save_path + r'\Features\\' + grade_used + '.xlsx'
+            save = args.save_path + '/Features/' + grade_used + '.xlsx'
         save_excel(features.T, save, files_input)
 
     # Display spent time
@@ -263,12 +263,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
         else:
             pred_linear, pred_logistic, score = evaluate_model(features, args, model_root + '/' + grade_name + '_weights.dat')
 
-    # Handle edge cases
-    for p in range(len(pred_linear)):
-        if pred_linear[p] < 0:
-            pred_linear[p] = 0
-        if pred_linear[p] > max(grades):
-            pred_linear[p] = max(grades)
+
 
     # Reference for pretrained PCA
     # reference_regress(features, args, score, grade_name + '_weights.dat', pred_linear, pred_logistic)
@@ -276,6 +271,8 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     # AUCs
     # auc_linear = auc(fpr, tpr)
     # auc_logistic = roc_auc_score(grades > lim, pred_logistic)
+
+    # Calculate statistics before limiting edge cases
 
     # Spearman corr
     rho, pval = spearmanr(grades, pred_linear)
@@ -285,6 +282,13 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     r2 = r2_score(grades, pred_linear.flatten())
     # Mean squared error
     mse_linear = mean_squared_error(grades, pred_linear)
+
+    # Handle edge cases
+    for p in range(len(pred_linear)):
+        if pred_linear[p] < 0:
+            pred_linear[p] = 0
+        if pred_linear[p] > max(grades):
+            pred_linear[p] = max(grades)
 
     # # Save prediction
     # stats = np.zeros(len(grades))
@@ -300,16 +304,16 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     # writer.save()
 
     # Display results
-    text_string = 'MSE: {0:.2f}\nSpearman, p: {1:.2f}, {2:.2f}\nWilcoxon: {3:.2f}\n$R^2$: {4:.2f}' \
-        .format(mse_linear, rho, pval, wilc[1], r2)
+    text_string = 'MSE: {0:.2f}\nSpearman, p: {1:.2f}, {2:.2f}\nWilcoxon sum, p: {3:.2f}, {4:.2f}\n$R^2$: {5:.2f}' \
+        .format(mse_linear, rho, pval, wilc[0], wilc[1], r2)
     print(text_string)
-    save_lin = args.save_path + '\\linear_' + grade_name + '_' + args.split
+    save_lin = args.save_path + '/linear_' + grade_name + '_' + args.split
     # Draw linear plot
     plot_linear(grades, pred_linear, text_string, plt_title=grade_name, savepath=save_lin)
 
     # Plot PCA components
-    save_pca = args.save_path + '\\pca_' + grade_name + '_' + args.split
-    save_pca_ani = args.save_path + '\\pca_animation_' + grade_name + '_' + args.split
+    save_pca = args.save_path + '/pca_' + grade_name + '_' + args.split
+    save_pca_ani = args.save_path + '/pca_animation_' + grade_name + '_' + args.split
     if score.shape[1] == 3:
         plot_array_3d(score, savepath=save_pca, plt_title=grade_name, grades=grades)
         #plot_array_3d_animation(score, save_pca_ani, plt_title=grade_name, grades=grades)
@@ -417,7 +421,7 @@ def load_voi(args, file, grade, par, save_images=False, autocrop=True):
         titles_norm = ['Mean + Std', '', 'Normalized']
         print_images((image, image, image_norm),
                      subtitles=titles_norm, title=file + ' Input',
-                     save_path=save + r'\Images\Input\\', sample=file[:-3] + '_' + grade + '.png')
+                     save_path=save + '/Images/Input/', sample=file[:-3] + '_' + grade + '.png')
     return image_norm
 
 

@@ -6,11 +6,13 @@ Contains various functions utilised in the repository.
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-from matplotlib.ticker import MaxNLocator
 from mpl_toolkits import mplot3d
+from scipy.signal import medfilt
+from sklearn.metrics import mean_squared_error
 from matplotlib.animation import FuncAnimation
 import os
 import cv2
+from joblib import Parallel, delayed
 
 
 def auto_corner_crop(image_input):
@@ -503,6 +505,7 @@ def plot_array_2d(array, plt_title=None, savepath=None, grades=None):
 
 
 def plot_histograms(grades, plt_title=None, savepath=None):
+    """Plot histograms for grade distributions."""
     # Choose color and title
     if plt_title[:4] == 'deep':
         color = (128 / 225, 160 / 225, 60 / 225)
@@ -525,3 +528,33 @@ def plot_histograms(grades, plt_title=None, savepath=None):
     if savepath is not None:
         plt.savefig(savepath, bbox_inches='tight')
     plt.show()
+
+
+def estimate_noise(array, metric=mean_squared_error, denoise_method=medfilt, kernel_size=5):
+    """Estimate noise from array using a denoising function (e.g. median filtering)."""
+
+    def denoise(image):
+        # Denoise to get reference
+        array_denoise = denoise_method(array, kernel_size=kernel_size)
+
+        # Calculate metric
+        return metric(array_denoise, array)
+
+    if array.ndim > 2:
+        noises = Parallel(n_jobs=8)(delayed(denoise)(array[:, y, :])
+                                    for y in range(array.shape[1]))
+        return np.mean(np.array(noises), axis=0)
+
+    else:
+        return denoise(array)
+
+
+
+def psnr(ground_truth, prediction):
+    """Calculates Peak Signal-to-Noise ratio."""
+    mse = np.mean((ground_truth - prediction) ** 2)
+    if mse == 0:
+        print('Identical images found!')
+        return np.inf
+    max_value = max(np.max(ground_truth), np.max(prediction))
+    return 20 * np.log10(max_value / np.sqrt(mse))

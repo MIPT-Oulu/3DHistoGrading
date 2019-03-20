@@ -290,8 +290,8 @@ def load_excel(path, titles=None):
 
 def save_excel(array, save_path, files=None):
     """Save array as excel file."""
-    if not os.path.exists(save_path.rsplit('\\', 1)[0]):
-        os.makedirs(save_path.rsplit('\\', 1)[0], exist_ok=True)
+    if not os.path.exists(save_path.rsplit('/', 1)[0]):
+        os.makedirs(save_path.rsplit('/', 1)[0], exist_ok=True)
     writer = pd.ExcelWriter(save_path)
     if files is not None:
         try:
