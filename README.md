@@ -13,12 +13,13 @@ User interface components are removed from code coverage analysis.
 Unit testing is focused on software functionalities only.
  --->
 ## Prerequisites
-To avoid memory issues, the software runs on 64-bit systems only. 
+* To avoid memory issues, the software runs on 64-bit systems only. 
+* Until installer file is released, software has to be executed through MS Visual Studio. However, the compiled application can be provided upon request.
+
 
 ## Installation
-* Download and extract the repository to local directory or clone repository
-* Navigate to 3DHistoGrading/bin/64x/Debug and run 3DHistoGrading.exe
-* Software can also be used by opening 3DHistoGrading.sln on MS Visual Studio
+* Currently, software can be used by opening 3DHistoGrading.sln on MS Visual Studio, compiling and running the project.
+* We are planning to create an installer file that allows installing the software without additional dependencies.
 
 ## Application usage
 Currently available features:
@@ -32,9 +33,10 @@ Currently available features:
 * Automatic grading from different osteochondral zones
 
 ## Outputs
-* OA grade from analysed sample volumes-of-interest (prediction of sample degeneration)
+* Result of degeneration detection (logistic regression) and corresponding µCT grade (ridge regression) from analysed sample volumes-of-interest
 * Extracted analysis volumes can be saved as separate datasets
 * Automatically segmented calcified tissue mask can be saved
+* Sample data with performed processing steps
 
 ## Examples
 Example images from 3D rendering and 2D viewing osteochondral sample.
@@ -66,7 +68,7 @@ Example images from 3D grading process.
 ![Calcified grading](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/calc_grading.PNG "Separate windows are created for each zone.")
 
 ## License
-This software is distributed under the MIT License.
+This software is distributed under the MIT License. This software and the pretrained models can be used only for research purposes.
 
 ## Citation
 ```
