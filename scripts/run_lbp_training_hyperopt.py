@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
     # Surface subgrade
     arguments.grades_used = 'surf_sub'
-    #pipeline_hyperopt(arguments, files, loss_function, groups)
+    pipeline_hyperopt(arguments, files, loss_function, groups)
 
     # Deep ECM
     arguments.grades_used = 'deep_mat'

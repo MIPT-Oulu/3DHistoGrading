@@ -214,7 +214,7 @@ def calc_curve_bootstrap(curve, metric, y, preds, n_bootstrap, seed, stratified=
     ind_pos = np.where(y == 1)[0]
     ind_neg = np.where(y == 0)[0]
 
-    for _ in range(n_bootstrap):
+    for _ in tqdm(range(n_bootstrap)):
         if stratified:
             ind_pos_bs = np.random.choice(ind_pos, ind_pos.shape[0])
             ind_neg_bs = np.random.choice(ind_neg, ind_neg.shape[0])

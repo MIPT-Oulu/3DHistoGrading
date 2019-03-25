@@ -14,10 +14,13 @@ from components.utilities.load_write import load_excel
 
 if __name__ == '__main__':
     # Arguments
-    choice = 'Isokerays'
+    choice = '2mm'
     datapath = r'/media/dios/dios2/3DHistoData'
+    #datapath = r'X:/3DHistoData'
     arguments = arg.return_args(datapath, choice, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
+    arguments.save_path = arguments.save_path
     arguments.train_regression = False
+    #arguments.n_components = 0.95
     combinator = np.mean
     arguments.convert_grades = 'none'
     # LOGO for 2mm samples
@@ -27,7 +30,7 @@ if __name__ == '__main__':
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
     elif choice == 'Isokerays' or choice == 'Isokerays_sub':
-        arguments.train_regression = True
+        arguments.train_regression = False
         arguments.split = 'loo'
         arguments.n_subvolumes = 9
         arguments.save_path = arguments.save_path + '_' + str(arguments.n_subvolumes) + 'subs'
@@ -61,6 +64,7 @@ if __name__ == '__main__':
         mses.append(mse)
 
     # Receiver operating characteristics curve
+    print('\nROC curves\n')
     if len(gradelist) == 3:
         split = arguments.split
         lim = 1

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
+import h5py
 import components.grading.args_grading as arg
 import components.processing.args_processing as arg_p
 from glob import glob
@@ -19,7 +20,8 @@ from components.processing.voi_extraction_pipelines import pipeline_subvolume
 
 def load_and_estimate(file, arguments, denoise=medfilt, data=None):
     """Loads mean+std images and evaluates noise. Required for parallelization."""
-    if data is None:
+    # Pipeline for µCT data
+    if data is not None:
         # Evaluate noise on data
         noises = np.zeros(len(metrics))
         for m in range(len(metrics)):
@@ -129,8 +131,8 @@ if __name__ == '__main__':
 
     # Print output to log file
     os.makedirs(data_path + '/Logs', exist_ok=True)
-    sys.stdout = open(data_path + '/Logs/' + 'noise_log_'
-                      + str(date.today()) + str(strftime("-%H%M")) + '.txt', 'w')
+    log_path = data_path + '/Logs/' + 'noise_log_' + str(date.today()) + str(strftime("-%H%M"))
+    sys.stdout = open(log_path + '.txt', 'w')
 
     noise_list, noise_mean_list = [], []
     k = 0
@@ -157,7 +159,7 @@ if __name__ == '__main__':
                 start = time()
                 # Get µCT data
                 arguments.data_path = file_paths[k]
-                data = pipeline_subvolume(arguments, file_list[k], render=arguments.render)
+                data = pipeline_subvolume(arguments, file_list[k], render=arguments.render, save_data=False)
 
                 # Estimate noise
                 noise = load_and_estimate([], arguments, denoise=medfilt, data=data)
@@ -192,6 +194,11 @@ if __name__ == '__main__':
     # Mean result is of shape (dataset, zone, metric)
     noise_list = np.array(noise_list)
     noise_mean_list = np.array(noise_mean_list)
+
+    # Save noise arrays
+    h5 = h5py.File(log_path + "_array" + '.h5', 'w')
+    h5.create_dataset('noises', data=[noise_list, noise_mean_list])
+    h5.close()
 
     # Display results
     print('\nResults\n')

@@ -8,7 +8,7 @@ from time import time
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from scipy.signal import medfilt2d
-from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score
+from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score, precision_recall_fscore_support
 from scipy.stats import spearmanr, wilcoxon
 
 from components.grading.local_binary_pattern import local_normalize_abs as local_standard, MRELBP, Conv_MRELBP
@@ -140,6 +140,9 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     # Sort grades based on alphabetical order
     grades = np.array([grade for _, grade in sorted(zip(hdr_grades, grades.squeeze()), key=lambda var: var[0])])
 
+    # Limit for logistic regression
+    bound = args.logistic_limit
+
     # Load features from subvolumes
     subvolumes = args.n_subvolumes > 1
     if subvolumes:
@@ -173,8 +176,6 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
         else:
             features = standardize(features, axis=0).T
 
-        # Limit for logistic regression
-        bound = args.logistic_limit
         if bound != 1:
             print('Limit is set to {0}'.format(bound))
         # Define split
@@ -270,7 +271,8 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
 
     # AUCs
     # auc_linear = auc(fpr, tpr)
-    # auc_logistic = roc_auc_score(grades > lim, pred_logistic)
+    auc_logistic = roc_auc_score(grades > bound, pred_logistic)
+    prec, recall, f1, support = precision_recall_fscore_support(grades > bound, pred_logistic > args.log_pred_threshold)
 
     # Calculate statistics before limiting edge cases
 
@@ -304,9 +306,12 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     # writer.save()
 
     # Display results
-    text_string = 'MSE: {0:.2f}\nSpearman, p: {1:.2f}, {2:.2f}\nWilcoxon sum, p: {3:.2f}, {4:.2f}\n$R^2$: {5:.2f}' \
+    text_string = 'MSE: {0:.2f}\nSpearman, p: {1:.2f}, {2:.4f}\nWilcoxon sum, p: {3:.2f}, {4:.2f}\n$R^2$: {5:.2f}' \
         .format(mse_linear, rho, pval, wilc[0], wilc[1], r2)
     print(text_string)
+    print('Number of components: ', score.shape[1])
+    print('Logistic AUC {0}, F1 score {1}, precision {2}, recall {3}, support {4}'
+          .format(auc_logistic, f1, prec, recall, support))
     save_lin = args.save_path + '/linear_' + grade_name + '_' + args.split
     # Draw linear plot
     plot_linear(grades, pred_linear, text_string, plt_title=grade_name, savepath=save_lin)

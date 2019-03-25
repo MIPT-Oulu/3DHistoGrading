@@ -78,6 +78,7 @@ def return_args(root, choice, pars=set_2m_loo_cut, grade_list=grades_cut):
     parser.add_argument('--grade_path', type=str, default=root + r'/Grading/trimmed_grades_' + choice + '.xlsx')
     parser.add_argument('--n_subvolumes', type=int, default=1)
     parser.add_argument('--logistic_limit', type=int, default=1)
+    parser.add_argument('--log_pred_threshold', type=int, default=0.5)
     parser.add_argument('--n_jobs', type=int, default=10)
     parser.add_argument('--n_components', type=int, default=0.9)
     parser.add_argument('--str_components', type=str, default='90')

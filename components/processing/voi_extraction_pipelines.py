@@ -349,7 +349,7 @@ def pipeline_mean_std(image_path, args, sample, mask_path=None):
     mean_std(surf_voi, save_path, sample, deep_voi, calc_voi, otsu_thresh)
 
 
-def pipeline_subvolume(args, sample, individual=False, save_data=True, render=False):
+def pipeline_subvolume(args, sample, individual=False, save_data=True, render=False, use_wide=False):
     """Pipeline for saving subvolumes. Used in run_subvolume script."""
     # 1. Load sample
     # Unpack paths
@@ -365,7 +365,11 @@ def pipeline_subvolume(args, sample, individual=False, save_data=True, render=Fa
     print_orthogonal(data)  # , savepath=save_path + "/Images/" + sample + "_orient.png")
 
     # 3. Crop and flip volume
-    data, crop = crop_center(data, args.size['width'], args.size_wide, method=args.crop_method)  # crop data
+    if use_wide:
+        wide = args.size_wide
+    else:
+        wide = args.size['width']
+    data, crop = crop_center(data, args.size['width'], wide, method=args.crop_method)  # crop data
     print_orthogonal(data)  # , savepath=save_path + "/Images/" + sample + "_orient_cropped.png")
     if render:
         render_volume(data, save_path + "/Images/" + sample + "_orient_cropped_render.png")

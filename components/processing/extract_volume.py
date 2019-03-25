@@ -221,8 +221,8 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
     # Create save paths
     if not os.path.exists(savepath):
         os.makedirs(savepath, exist_ok=True)
-    if not os.path.exists(savepath + "\\Images\\MeanStd\\"):
-        os.makedirs(savepath + "\\Images\\MeanStd\\", exist_ok=True)
+    if not os.path.exists(savepath + "/Images/MeanStd/"):
+        os.makedirs(savepath + "/Images/MeanStd/", exist_ok=True)
 
     # Surface
     if otsu_thresh is not None:
@@ -246,9 +246,9 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
 
     # Save
     meansd = mean + std
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_surface_mean_std.png",
+    cv2.imwrite(savepath + "/Images/MeanStd/" + sample + "_surface_mean_std.png",
                 ((meansd - np.min(meansd)) / (np.max(meansd) - np.min(meansd)) * 255))
-    h5 = h5py.File(savepath + "\\" + sample + '.h5', 'w')
+    h5 = h5py.File(savepath + "/" + sample + '.h5', 'w')
     h5.create_dataset('surf', data=meansd)
 
     # Deep
@@ -270,7 +270,7 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
 
     # Save
     meansd = mean + std
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_deep_mean_std.png",
+    cv2.imwrite(savepath + "/Images/MeanStd/" + sample + "_deep_mean_std.png",
                 ((meansd - np.min(meansd)) / (np.max(meansd) - np.min(meansd)) * 255))
     h5.create_dataset('deep', data=meansd)
 
@@ -294,7 +294,7 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
 
     # Save
     meansd = mean + std
-    cv2.imwrite(savepath + "\\Images\\MeanStd\\" + sample + "_cc_mean_std.png",
+    cv2.imwrite(savepath + "/Images/MeanStd/" + sample + "_cc_mean_std.png",
                 ((meansd - np.min(meansd)) / (np.max(meansd) - np.min(meansd)) * 255))
     h5.create_dataset('calc', data=mean + std)
     h5.close()
