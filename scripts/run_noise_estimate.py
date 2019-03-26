@@ -11,7 +11,7 @@ from joblib import Parallel, delayed
 from time import time, strftime
 from sklearn.metrics import mean_squared_error as MSE
 from skimage.measure import compare_ssim as SSIM
-from scipy.signal import medfilt
+from scipy.signal import medfilt, medfilt2d
 
 from components.utilities.misc import estimate_noise, auto_corner_crop, psnr as PSNR
 from components.utilities.load_write import load_vois_h5, find_image_paths
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     data_path = r'/media/dios/dios2/3DHistoData'
     uct_paths = [data_path + '/Isokerays_2mm_Rec', r'/media/santeri/Transcend/PTA1272/Isokerays_PTA_Rec']
     kernel_size = 5
-    denoiser = medfilt
+    denoiser = medfilt2d
     use_3d = True
 
     # Metrics
@@ -155,7 +155,7 @@ if __name__ == '__main__':
             file_paths = [arguments.data_path + '/' + f for f in file_list]
             # Loop for pre-processing samples
             noises = []
-            for k in range(len(file_paths)):
+            for k in tqdm(range(len(file_paths)), desc='Estimating noise on samples'):
                 start = time()
                 # Get µCT data
                 arguments.data_path = file_paths[k]

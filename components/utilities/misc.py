@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from mpl_toolkits import mplot3d
 from scipy.signal import medfilt
+from tqdm import tqdm
 from sklearn.metrics import mean_squared_error
 from matplotlib.animation import FuncAnimation
 import os
@@ -535,19 +536,18 @@ def estimate_noise(array, metric=mean_squared_error, denoise_method=medfilt, ker
 
     def denoise(image):
         # Denoise to get reference
-        array_denoise = denoise_method(array, kernel_size=kernel_size)
+        image_denoise = denoise_method(image, kernel_size=kernel_size)
 
         # Calculate metric
-        return metric(array_denoise, array)
+        return metric(image_denoise, image)
 
     if array.ndim > 2:
-        noises = Parallel(n_jobs=8)(delayed(denoise)(array[:, y, :].squeeze())
+        noises = Parallel(n_jobs=8)(delayed(denoise)(array[:, y, :].squeeze().astype('float'))
                                     for y in range(array.shape[1]))
         return np.mean(np.array(noises), axis=0)
 
     else:
         return denoise(array)
-
 
 
 def psnr(ground_truth, prediction):
