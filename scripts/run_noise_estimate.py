@@ -5,6 +5,7 @@ import sys
 import h5py
 import components.grading.args_grading as arg
 import components.processing.args_processing as arg_p
+from tqdm import tqdm
 from glob import glob
 from datetime import date
 from joblib import Parallel, delayed

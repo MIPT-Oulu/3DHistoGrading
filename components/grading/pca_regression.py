@@ -109,7 +109,9 @@ def regress_logo(features, grades, groups, method='ridge', standard=False, use_i
     else:
         pass
 
-    predictions = []
+    # Lists
+    predictions, coefs, intercepts = [], [], []
+
     # Leave one out split
     logo = LeaveOneGroupOut()
     logo.get_n_splits(features, grades, groups)
@@ -134,6 +136,9 @@ def regress_logo(features, grades, groups, method='ridge', standard=False, use_i
 
         # Predicted score
         predictions.append(model.predict(x_test))
+        # Save weights
+        coefs.append(model.coef_)
+        intercepts.append(model.intercept_)
 
     predictions_flat = []
     for group in predictions:
@@ -148,7 +153,7 @@ def regress_logo(features, grades, groups, method='ridge', standard=False, use_i
     else:
         predictions = np.array(predictions_flat)
 
-    return predictions, model.coef_, model.intercept_
+    return predictions, np.mean(np.array(coefs), axis=0), np.mean(np.array(intercepts), axis=0)
 
 
 def logistic_loo(features, grades, standard=False, seed=42, use_intercept=False, groups=None):
@@ -226,7 +231,9 @@ def logistic_logo(features, grades, groups, standard=False, seed=42, use_interce
     -------
     Array of model prdictions, model coefficients and model intercept term.
     """
-    predictions = []
+
+    # Lists
+    predictions, coefs, intercepts = [], [], []
     # Leave one out split
     logo = LeaveOneGroupOut()
     logo.get_n_splits(features, grades, groups)
@@ -249,6 +256,9 @@ def logistic_logo(features, grades, groups, standard=False, seed=42, use_interce
         # Predicted score
         p = model.predict_proba(x_test)
         predictions.append(p)
+        # Save weights
+        coefs.append(model.coef_)
+        intercepts.append(model.intercept_)
 
     predictions_flat = []
     for group in predictions:
@@ -257,7 +267,7 @@ def logistic_logo(features, grades, groups, standard=False, seed=42, use_interce
 
     # print('Logistic model score: {0}'.format(model.score(features, targets)))
     # print('Intercept: {0}'.format(model.intercept_))
-    return np.array(predictions_flat)[:, 1], model.coef_, model.intercept_
+    return np.array(predictions_flat)[:, 1], np.mean(np.array(coefs), axis=0), np.mean(np.array(intercepts), axis=0)
 
 
 def regress(data_x, data_y, split, method='ridge', standard=False):

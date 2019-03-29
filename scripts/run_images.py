@@ -11,9 +11,9 @@ from components.utilities.load_write import find_image_paths
 if __name__ == '__main__':
     # Arguments
     choice = 'Isokerays'
-    data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData'
+    data_path = r'//media/dios/dios2/3DHistoData'
     arguments = arg.return_args(data_path, choice)
-    arguments.data_path = r'/media/santeri/Transcend/PTA1272/Samples with missing grades'
+    arguments.data_path = r'/media/santeri/Transcend/PTA1272/Isokerays_PTA_Rec'
 
     # Extract sample list
     samples = os.listdir(arguments.data_path)
@@ -29,8 +29,9 @@ if __name__ == '__main__':
                       + str(date.today()) + str(strftime("-%H-%M")) + '.txt', 'w')
 
     # Find paths for image stacks
-    file_paths = find_image_paths(arguments.data_path, samples)
+    # file_paths = find_image_paths(arguments.data_path, samples)
     file_paths = [arguments.data_path + '/' + f for f in samples]
+    file_paths = file_paths[13]
     # Loop for pre-processing samples
     for k in range(len(file_paths)):
         start = time()

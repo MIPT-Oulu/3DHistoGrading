@@ -8,7 +8,8 @@ from time import time
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from scipy.signal import medfilt2d
-from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score, precision_recall_fscore_support
+from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score, \
+    precision_recall_fscore_support, f1_score, accuracy_score
 from scipy.stats import spearmanr, wilcoxon
 
 from components.grading.local_binary_pattern import local_normalize_abs as local_standard, MRELBP, Conv_MRELBP
@@ -146,12 +147,16 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     # Load features from subvolumes
     subvolumes = args.n_subvolumes > 1
     if subvolumes:
-        feature_list = []
+        feature_list, means = [], []
         for vol in range(args.n_subvolumes):
             features, hdr_features = load_excel(args.feature_path + '/' + grade_name + '_' + str(vol) + '.xlsx')
             # Remove zero features
             features = features[~np.all(features == 0, axis=1)]
             feature_list.append(features)
+            # Mean feature
+            mean_sub = np.mean(features, 1)
+            means.append(mean_sub)
+        mean = np.mean(means, axis=0)
     # Load features without subvolumes
     else:
         features, hdr_features = load_excel(args.feature_path + grade_name + '.xlsx')
@@ -167,14 +172,8 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
                 print('g, {0}, \tf {1}\t g_s {2}'.format(hdr_grades[i], hdr_features[i], grades[i]))
 
     # Train regression models
-    if args.train_regression and not subvolumes:
+    if args.train_regression:
         print('\nTraining regression model on: {0}'.format(grade_name))
-
-        # Standardize features
-        if args.standardization == 'centering':
-            features = features.T - mean
-        else:
-            features = standardize(features, axis=0).T
 
         if bound != 1:
             print('Limit is set to {0}'.format(bound))
@@ -193,8 +192,17 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
             preds_lin, preds_log, scores, eigenvecs_list, singulars_list = [], [], [], [], []
             ints_lin, ints_log, w_lin, w_log = [], [], [], []
             for vol in range(args.n_subvolumes):
+                # Standardize features
+                if args.standardization == 'centering':
+                    features = feature_list[vol].T - mean
+                else:
+                    features = standardize(feature_list[vol], axis=0).T
+
                 # PCA
                 pca, score_sub = scikit_pca(features, args.n_components, whitening=True, solver='auto')
+                # Use same number of components for each subimage
+                if vol == 0:
+                    args.n_components = score_sub.shape[1]
 
                 # Regression
                 pred_linear_sub, weights, intercept_lin = lin_regressor(score_sub, grades, groups=pat_groups,
@@ -223,6 +231,12 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
             weights = combiner(np.array(w_lin), axis=0)
             weights_log = combiner(np.array(w_log), axis=0)
         else:
+            # Standardize features
+            if args.standardization == 'centering':
+                features = features.T - mean
+            else:
+                features = standardize(features, axis=0).T
+
             # PCA
             pca, score = scikit_pca(features, args.n_components, whitening=True, solver='auto')
             eigenvectors = pca.components_
@@ -269,12 +283,12 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     # Reference for pretrained PCA
     # reference_regress(features, args, score, grade_name + '_weights.dat', pred_linear, pred_logistic)
 
-    # AUCs
-    # auc_linear = auc(fpr, tpr)
+    # Logistic statistics
     auc_logistic = roc_auc_score(grades > bound, pred_logistic)
-    prec, recall, f1, support = precision_recall_fscore_support(grades > bound, pred_logistic > args.log_pred_threshold)
-
-    # Calculate statistics before limiting edge cases
+    prec, recall, _, support = precision_recall_fscore_support(grades > bound, pred_logistic > args.log_pred_threshold, average='binary')
+    f1 = f1_score(grades > bound, pred_logistic > args.log_pred_threshold)
+    accuracy = accuracy_score(grades > bound, pred_logistic > args.log_pred_threshold)
+    conf_matrix = confusion_matrix(grades > bound, pred_logistic > args.log_pred_threshold)
 
     # Spearman corr
     rho, pval = spearmanr(grades, pred_linear)
@@ -308,10 +322,10 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     # Display results
     text_string = 'MSE: {0:.2f}\nSpearman, p: {1:.2f}, {2:.4f}\nWilcoxon sum, p: {3:.2f}, {4:.2f}\n$R^2$: {5:.2f}' \
         .format(mse_linear, rho, pval, wilc[0], wilc[1], r2)
-    print(text_string)
+    logistic_results = 'AUC: {0:.3f}\nPrecision: {1:.3f}\nRecall/sensitivity: {2:.3f}\nAccuracy: {3:.3f}\nf1 {4:.3f}' \
+        .format(auc_logistic, prec, recall, accuracy, f1)
+    print(text_string, '\n', logistic_results)
     print('Number of components: ', score.shape[1])
-    print('Logistic AUC {0}, F1 score {1}, precision {2}, recall {3}, support {4}'
-          .format(auc_logistic, f1, prec, recall, support))
     save_lin = args.save_path + '/linear_' + grade_name + '_' + args.split
     # Draw linear plot
     plot_linear(grades, pred_linear, text_string, plt_title=grade_name, savepath=save_lin)
@@ -327,7 +341,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
 
     # Plot grade distributions
     plot_histograms(grades, plt_title=grade_name, savepath=args.save_path + '//distribution_' + grade_name)
-    return grades, pred_logistic, mse_linear
+    return grades, pred_logistic, conf_matrix
 
 
 def evaluate_model(features, args, model_path):

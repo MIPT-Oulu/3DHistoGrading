@@ -47,9 +47,9 @@ def roc_curve_multi(preds, targets, lim, aucs=None, ci_l=None, ci_h=None, savepa
                     'calcified, AUC: {:0.3f}'.format(auc_calc)], loc='lower right', fontsize=30)
     # Confidence intervals
     else:
-        plt.legend(['surface, AUC: {:0.3f}, [{:1.3f}, {:2.3f}]'.format(aucs[0], ci_l[0], ci_h[0]),
-                    'deep, AUC: {:0.3f}, [{:1.3f}, {:2.3f}]'.format(aucs[1], ci_l[1], ci_h[1]),
-                    'calcified, AUC: {:0.3f}, [{:1.3f}, {:2.3f}]'.format(aucs[2], ci_l[2], ci_h[2])],
+        plt.legend(['Surface, AUC: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[0], ci_l[0], ci_h[0]),
+                    'Deep, AUC: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[1], ci_l[1], ci_h[1]),
+                    'Calcified, AUC: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[2], ci_l[2], ci_h[2])],
                    loc='lower right', fontsize=22)
     plt.ylabel('True Positive Rate', fontsize=36)
     plt.xlabel('False Positive Rate', fontsize=36)
@@ -61,6 +61,34 @@ def roc_curve_multi(preds, targets, lim, aucs=None, ci_l=None, ci_h=None, savepa
         plt.title(title)
     plt.grid()
     plt.savefig(savepath, bbox_inches='tight')
+    plt.show()
+
+
+def plot_vois(x, y, labels, savepath=None, location='lower right', axis_labels=None, baselines=None):
+    colors = [(132 / 225, 102 / 225, 179 / 225),
+              (128 / 225, 160 / 225, 60 / 225),
+              (225 / 225, 126 / 225, 49 / 225)]
+
+    # Plot figure
+    plt.figure(figsize=(11, 11))
+    for voi in range(3):
+        plt.plot(x[voi], y[voi], color=colors[voi], linewidth=5)
+    plt.legend(labels, loc=location, fontsize=20)
+
+    if baselines is not None:
+        for voi in range(3):
+            plt.plot([0 - np.random.uniform(0, 0.1), 1], [baselines[voi], baselines[voi]], '--', color=colors[voi], alpha=0.5, linewidth=4)
+
+    if axis_labels is not None:
+        plt.xlabel(axis_labels[0], fontsize=36)
+        plt.ylabel(axis_labels[1], fontsize=36)
+    plt.xlim([-0.01, 1.01])
+    plt.ylim([-0.01, 1.01])
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
+    plt.grid()
+    if savepath is not None:
+        plt.savefig(savepath, bbox_inches='tight')
     plt.show()
 
 
