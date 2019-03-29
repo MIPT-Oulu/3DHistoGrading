@@ -238,7 +238,7 @@ def crop_center(data, sizex=400, sizey=400, method='cm'):
     # mask, val = otsuThreshold(data)
     sumarray = mask.sum(2)
     n = 0
-    for i in tqdm(range(dims[0]), desc='Calculating center'):
+    for i in range(dims[0]):
         for j in range(dims[1]):
             if sumarray[i, j] > 0:
                 center[0] += i * sumarray[i, j]

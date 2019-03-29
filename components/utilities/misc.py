@@ -543,7 +543,7 @@ def estimate_noise(array, metric=mean_squared_error, denoise_method=medfilt, ker
 
     if array.ndim > 2:
         noises = Parallel(n_jobs=8)(delayed(denoise)(array[:, y, :].squeeze().astype('float'))
-                                    for y in range(array.shape[1]))
+                                    for y in range(0, array.shape[1], 10))
         return np.mean(np.array(noises), axis=0)
 
     else:
