@@ -87,7 +87,7 @@ def histogram_results(noise_array, plt_title=None, savepath=None, lims=None):
     plt.show()
 
 
-def histogram_samples(noise_array, plt_titles=None, savepath=None, lims=None):
+def histogram_samples_vois(noise_array, plt_titles=None, savepath=None, lims=None):
     """Plot histograms for noise estimation results. Histogram for individual samples."""
     # Choose color and title
     colors = [(132 / 225, 102 / 225, 179 / 225),
@@ -117,12 +117,33 @@ def histogram_samples(noise_array, plt_titles=None, savepath=None, lims=None):
         plt.show()
 
 
+def histogram_samples(noise_array, plt_titles=None, savepath=None, lim=None):
+    """Plot histograms for noise estimation results. Histogram for individual samples."""
+
+    n, bins, patches = plt.hist(noise_array, bins=len(noise_array))
+    plt.xlabel('Noise metric', fontsize=24)
+    plt.ylabel('Number of samples', fontsize=24)
+    #plt.xticks(np.linspace(0, bins.max(), num=6), fontsize=24)
+
+    if bins.max() <= 1.0:
+        plt.xticks(np.linspace(0, 1, num=5), fontsize=24)
+    elif lim is not None:
+        plt.xlim(lim)
+
+    plt.xticks(fontsize=24)
+    plt.yticks(np.arange(0, n.max(), n.max() // 6 + 1), fontsize=24)
+
+    if savepath is not None:
+        plt.savefig(savepath + '_full.png', bbox_inches='tight')
+    plt.show()
+
+
 if __name__ == '__main__':
     # Noise estimation variables
     start_time = time()
-    dataset_names = ['2mm', 'Isokerays']
+    dataset_names = ['Isokerays']
     data_path = r'/media/dios/dios2/3DHistoData'
-    uct_paths = [data_path + '/Isokerays_2mm_Rec', r'/media/santeri/Transcend/PTA1272/Isokerays_PTA_Rec']
+    uct_paths = [r'/media/santeri/Transcend/PTA1272/Isokerays_PTA_Rec']
     kernel_size = 5
     denoiser = medfilt2d
     use_3d = True
@@ -136,21 +157,23 @@ if __name__ == '__main__':
     sys.stdout = open(log_path + '.txt', 'w')
 
     noise_list, noise_mean_list = [], []
-    k = 0
+    path_idx = 0
     for dataset_name in dataset_names:
-
         # Use µCT data
         if use_3d:
             # Get arguments
             arguments = arg_p.return_args(data_path, dataset_name)
-            arguments.data_path = uct_paths[k]
-            k += 1
+            arguments.data_path = uct_paths[path_idx]
+            path_idx += 1
+
             # Get file list
             print('Loading images from path: ', arguments.data_path)
             print('Kernel size: ', kernel_size)
             print('Denoising function: ', denoiser)
             file_list = os.listdir(arguments.data_path)
             file_list.sort()
+            # Truncate for debugging
+            # file_list = file_list[:2]
 
             # Find paths for image stacks
             file_paths = [arguments.data_path + '/' + f for f in file_list]
@@ -192,13 +215,20 @@ if __name__ == '__main__':
         noise_list.append(noises)
         noise_mean_list.append(noises_mean)
 
+        # Save noise arrays
+        h5 = h5py.File(log_path + "_array_" + dataset_name + '.h5', 'w')
+        h5.create_dataset('noises', data=noise_list)
+        h5.create_dataset('noises_mean', data=noise_mean_list)
+        h5.close()
+
     # Mean result is of shape (dataset, zone, metric)
     noise_list = np.array(noise_list)
     noise_mean_list = np.array(noise_mean_list)
 
     # Save noise arrays
     h5 = h5py.File(log_path + "_array" + '.h5', 'w')
-    h5.create_dataset('noises', data=[noise_list, noise_mean_list])
+    h5.create_dataset('noises', data=noise_list)
+    h5.create_dataset('noises_mean', data=noise_mean_list)
     h5.close()
 
     # Display results
@@ -207,16 +237,27 @@ if __name__ == '__main__':
     for m in range(len(metrics)):
 
         # Save to histogram
-        save = os.path.dirname(arguments.save_path) + '/noise_' + metrics[m].__name__
-        histogram_results(noise_mean_list[:, :, m].squeeze(), plt_title=metrics[m].__name__, savepath=save + '.png', lims=None)
+        save = data_path + '/Grading/Results/noise_' + metrics[m].__name__
+        if use_3d:
+            # Print to log
+            print('Metric: ', metrics[m].__name__)
+            for d in range(len(dataset_names)):
+                # Sample histograms
+                histogram_samples(noise_list[d][:, m].squeeze(),
+                                       savepath=save + '_' + dataset_names[d], lim=None)
+                print('Dataset: {0}, metric: {1}\n'
+                      .format(dataset_names[d], noise_mean_list[d, m]))
+        else:
+            # Mean results
+            histogram_results(noise_mean_list[:, :, m].squeeze(), plt_title=metrics[m].__name__, savepath=save + '.png', lims=None)
 
-        # Print to log
-        print('Metric: ', metrics[m].__name__)
-        for d in range(len(dataset_names)):
-            # Sample histograms
-            histogram_samples(noise_list[d][:, :, m].squeeze(), plt_titles=['Surface', 'Deep', 'Calcified'], savepath=save + '_' + dataset_names[d], lims=limits[m])
-            print('Dataset: {0}\nSurface {1},\nDeep {2},\nCalcified {3}\n'
-                  .format(dataset_names[d], noise_mean_list[d, 0, m], noise_mean_list[d, 1, m], noise_mean_list[d, 2, m]))
+            # Print to log
+            print('Metric: ', metrics[m].__name__)
+            for d in range(len(dataset_names)):
+                # Sample histograms
+                histogram_samples_vois(noise_list[d][:, :, m].squeeze(), plt_titles=['Surface', 'Deep', 'Calcified'], savepath=save + '_' + dataset_names[d], lims=limits[m])
+                print('Dataset: {0}\nSurface {1},\nDeep {2},\nCalcified {3}\n'
+                      .format(dataset_names[d], noise_mean_list[d, 0, m], noise_mean_list[d, 1, m], noise_mean_list[d, 2, m]))
 
     # Display spent time
     t = time() - start_time
