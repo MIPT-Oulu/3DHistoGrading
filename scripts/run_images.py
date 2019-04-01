@@ -25,23 +25,24 @@ if __name__ == '__main__':
 
     # Create log
     os.makedirs(arguments.save_image_path + '/Logs', exist_ok=True)
+    os.makedirs(arguments.save_image_path + '/Images', exist_ok=True)
     sys.stdout = open(arguments.save_image_path + '/Logs/' + 'images_log_'
                       + str(date.today()) + str(strftime("-%H-%M")) + '.txt', 'w')
 
     # Find paths for image stacks
     # file_paths = find_image_paths(arguments.data_path, samples)
     file_paths = [arguments.data_path + '/' + f for f in samples]
-    file_paths = file_paths[13]
+    file_paths = [file_paths[13]]
     # Loop for pre-processing samples
     for k in range(len(file_paths)):
         start = time()
         # Initiate pipeline
-        try:
-            arguments.data_path = file_paths[k]
-            pipeline_subvolume_mean_std(arguments, samples[k], render=arguments.render)
-            end = time()
-            print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
-        except Exception:
-            print('Sample {0} failing. Skipping to next one'.format(samples[k]))
-            continue
+        #try:
+        arguments.data_path = file_paths[k]
+        pipeline_subvolume_mean_std(arguments, samples[k], render=arguments.render)
+        end = time()
+        print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
+        #except Exception:
+            #print('Sample {0} failing. Skipping to next one'.format(samples[k]))
+            #continue
     print('Done')

@@ -34,6 +34,7 @@ if __name__ == '__main__':
     # Use listbox to select samples (Result is saved in listbox.file_list)
     listbox.GetFileSelection(arguments_p.data_path)
 
+    os.makedirs(arguments_g.save_path + '/Images', exist_ok=True)
     os.makedirs(arguments_g.save_path + '/Logs', exist_ok=True)
     sys.stdout = open(arguments_g.save_path + '/Logs/' + 'images_log_'
                       + str(date.today()) + str(strftime("-%H-%M")) + '.txt', 'w')

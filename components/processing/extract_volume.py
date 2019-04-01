@@ -168,7 +168,7 @@ def calculate_bci(image, interface, s_deep, s_calc, offset, threshold):
         depths.append(depth)
         try:
             deep_voi[y, :] = image[y, depth - s_deep:depth]
-        except ValueError:
+        except (ValueError, TypeError):
             deep_voi[y, :] = image[y, :s_deep]
     output = np.zeros((dims[0], s_deep + s_calc))
     output[:, :s_deep] = deep_voi
