@@ -306,18 +306,17 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
         if pred_linear[p] > max(grades):
             pred_linear[p] = max(grades)
 
-    # # Save prediction
-    # stats = np.zeros(len(grades))
-    # stats[0] = mse_linear
-    # stats[1] = auc_linear
-    # stats[2] = auc_logistic
-    # stats[3] = r2
-    # tuples = list(zip(hdr_grades, grades, pred_linear, abs(grades - pred_linear), pred_logistic, stats))
-    # writer = pd.ExcelWriter(args.save_path + r'\prediction_' + grade_name + '.xlsx')
-    # df1 = pd.DataFrame(tuples, columns=['Sample', 'Actual grade', 'Prediction', 'Difference', 'Logistic prediction',
-    #                                     'MSE, auc_linear, auc_logistic, r^2'])
-    # df1.to_excel(writer, sheet_name='Prediction')
-    # writer.save()
+    # Save prediction
+    stats = np.zeros(len(grades))
+    stats[0] = mse_linear
+    stats[2] = auc_logistic
+    stats[3] = r2
+    tuples = list(zip(hdr_grades, grades, pred_linear, abs(grades - pred_linear), pred_logistic, stats))
+    writer = pd.ExcelWriter(args.save_path + r'\prediction_' + grade_name + '.xlsx')
+    df1 = pd.DataFrame(tuples, columns=['Sample', 'Actual grade', 'Prediction', 'Difference', 'Logistic prediction',
+                                        'MSE, auc_logistic, r^2'])
+    df1.to_excel(writer, sheet_name='Prediction')
+    writer.save()
 
     # Display results
     text_string = 'MSE: {0:.2f}\nSpearman, p: {1:.2f}, {2:.4f}\nWilcoxon sum, p: {3:.2f}, {4:.2f}\n$R^2$: {5:.2f}' \

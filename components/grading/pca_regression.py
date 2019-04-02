@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from sklearn.linear_model import Ridge, LogisticRegression, Lasso
+from sklearn.linear_model import Ridge, LogisticRegression, Lasso, LinearRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
@@ -130,8 +130,10 @@ def regress_logo(features, grades, groups, method='ridge', standard=False, use_i
         # Linear regression
         if method == 'ridge':
             model = Ridge(alpha=1, normalize=True, random_state=42, fit_intercept=use_intercept)
-        else:
+        elif method == 'lasso':
             model = Lasso(alpha=1, normalize=True, random_state=42, fit_intercept=use_intercept)
+        else:
+            model = LinearRegression(normalize=True, fit_intercept=use_intercept, n_jobs=-1)
         model.fit(x_train, y_train)
 
         # Predicted score
@@ -250,6 +252,7 @@ def logistic_logo(features, grades, groups, standard=False, seed=42, use_interce
             x_train -= x_train.mean(0)
 
         # Linear regression
+        #model = LogisticRegression(solver='newton-cg', max_iter=1000, random_state=seed, fit_intercept=use_intercept)
         model = LogisticRegression(solver='newton-cg', max_iter=1000, random_state=seed, fit_intercept=use_intercept)
         model.fit(x_train, y_train)
 

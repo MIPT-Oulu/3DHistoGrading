@@ -32,8 +32,9 @@ if __name__ == '__main__':
         arguments.train_regression = False
         arguments.split = 'logo'
         arguments.n_subvolumes = 9
-        arguments.save_path = arguments.save_path + '_' + str(arguments.n_subvolumes) + 'subs'
-        arguments.feature_path = arguments.save_path + '/Features'
+        if arguments.n_subvolumes > 1:
+            arguments.save_path = arguments.save_path + '_' + str(arguments.n_subvolumes) + 'subs'
+            arguments.feature_path = arguments.save_path + '/Features'
         os.makedirs(arguments.save_path, exist_ok=True)
         os.makedirs(arguments.save_path + '/' + 'Images', exist_ok=True)
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
