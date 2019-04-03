@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import pandas as pd
 
 from time import time
 from tqdm import tqdm
@@ -171,7 +172,10 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
             for i in range(grades.shape[0]):
                 print('g, {0}, \tf {1}\t g_s {2}'.format(hdr_grades[i], hdr_features[i], grades[i]))
 
+    #
     # Train regression models
+    #
+
     if args.train_regression:
         print('\nTraining regression model on: {0}'.format(grade_name))
 
@@ -187,8 +191,32 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
         else:
             raise Exception('No valid cross-validation split selected (see arguments)!')
 
-        # PCA and Regression
-        if subvolumes:
+        #
+        # Use single images
+        #
+
+        if not subvolumes:
+            # Standardize features
+            if args.standardization == 'centering':
+                features = features.T - mean
+            else:
+                features = standardize(features, axis=0).T
+
+            # PCA
+            pca, score = scikit_pca(features, args.n_components, whitening=True, solver='auto')
+            eigenvectors = pca.components_
+            singular_values = pca.singular_values_ / np.sqrt(features.shape[1] - 1)
+
+            # Regression
+            pred_linear, weights, intercept_lin = lin_regressor(score, grades, groups=pat_groups, alpha=args.alpha,
+                                                                method=args.regression, convert=args.convert_grades)
+            pred_logistic, weights_log, intercept_log = log_regressor(score, grades > bound, groups=pat_groups)
+
+        #
+        # Use subvolumes
+        #
+
+        else:
             preds_lin, preds_log, scores, eigenvecs_list, singulars_list = [], [], [], [], []
             ints_lin, ints_log, w_lin, w_log = [], [], [], []
             for vol in range(args.n_subvolumes):
@@ -205,7 +233,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
                     args.n_components = score_sub.shape[1]
 
                 # Regression
-                pred_linear_sub, weights, intercept_lin = lin_regressor(score_sub, grades, groups=pat_groups,
+                pred_linear_sub, weights, intercept_lin = lin_regressor(score_sub, grades, groups=pat_groups, alpha=args.alpha,
                                                                     method=args.regression, convert=args.convert_grades)
                 pred_logistic_sub, weights_log, intercept_log = log_regressor(score_sub, grades > bound, groups=pat_groups)
 
@@ -230,22 +258,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
             intercept_log = combiner(np.array(ints_log), axis=0)
             weights = combiner(np.array(w_lin), axis=0)
             weights_log = combiner(np.array(w_log), axis=0)
-        else:
-            # Standardize features
-            if args.standardization == 'centering':
-                features = features.T - mean
-            else:
-                features = standardize(features, axis=0).T
 
-            # PCA
-            pca, score = scikit_pca(features, args.n_components, whitening=True, solver='auto')
-            eigenvectors = pca.components_
-            singular_values = pca.singular_values_ / np.sqrt(features.shape[1] - 1)
-
-            # Regression
-            pred_linear, weights, intercept_lin = lin_regressor(score, grades, groups=pat_groups,
-                                                                method=args.regression, convert=args.convert_grades)
-            pred_logistic, weights_log, intercept_log = log_regressor(score, grades > bound, groups=pat_groups)
 
         # Save calculated weights
         print(intercept_log, intercept_lin)
@@ -259,7 +272,10 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
                              mean,
                              [intercept_lin, intercept_log])
 
+    #
     # Use pretrained models
+    #
+
     else:
         print('\nEvaluating with saved model weights on: {0}\n'.format(grade_name))
         model_root = os.path.dirname(args.save_path)
@@ -307,16 +323,19 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
             pred_linear[p] = max(grades)
 
     # Save prediction
-    stats = np.zeros(len(grades))
-    stats[0] = mse_linear
-    stats[2] = auc_logistic
-    stats[3] = r2
-    tuples = list(zip(hdr_grades, grades, pred_linear, abs(grades - pred_linear), pred_logistic, stats))
-    writer = pd.ExcelWriter(args.save_path + r'\prediction_' + grade_name + '.xlsx')
-    df1 = pd.DataFrame(tuples, columns=['Sample', 'Actual grade', 'Prediction', 'Difference', 'Logistic prediction',
-                                        'MSE, auc_logistic, r^2'])
-    df1.to_excel(writer, sheet_name='Prediction')
-    writer.save()
+    try:
+        stats = np.zeros(len(grades))
+        stats[0] = mse_linear
+        stats[2] = auc_logistic
+        stats[3] = r2
+        tuples = list(zip(hdr_grades, grades, pred_linear, abs(grades - pred_linear), pred_logistic, stats))
+        writer = pd.ExcelWriter(args.save_path + r'\prediction_' + grade_name + '.xlsx')
+        df1 = pd.DataFrame(tuples, columns=['Sample', 'Actual grade', 'Prediction', 'Difference', 'Logistic prediction',
+                                            'MSE, auc_logistic, r^2'])
+        df1.to_excel(writer, sheet_name='Prediction')
+        writer.save()
+    except ValueError:
+        print('Could not save predictions')
 
     # Display results
     text_string = 'MSE: {0:.2f}\nSpearman, p: {1:.2f}, {2:.4f}\nWilcoxon sum, p: {3:.2f}, {4:.2f}\n$R^2$: {5:.2f}' \
@@ -327,7 +346,8 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     print('Number of components: ', score.shape[1])
     save_lin = args.save_path + '/linear_' + grade_name + '_' + args.split
     # Draw linear plot
-    plot_linear(grades, pred_linear, text_string, plt_title=grade_name, savepath=save_lin)
+    plot_linear(grades, pred_linear, text_string=text_string, plt_title=grade_name, savepath=save_lin)
+    plot_linear(grades, pred_linear, text_string=None, plt_title=grade_name, savepath=save_lin)
 
     # Plot PCA components
     save_pca = args.save_path + '/pca_' + grade_name + '_' + args.split
@@ -443,7 +463,7 @@ def load_voi(args, file, grade, par, save_images=False, autocrop=True):
     return image_norm
 
 
-def plot_linear(grades, pred_linear, text_string, plt_title, savepath=None, annotate=False, headers=None):
+def plot_linear(grades, pred_linear, text_string=None, plt_title=None, savepath=None, annotate=False, headers=None):
     """Plots linear predictions against ground truth."""
     # Choose color
     if plt_title[:4] == 'deep':
@@ -471,11 +491,17 @@ def plot_linear(grades, pred_linear, text_string, plt_title, savepath=None, anno
     plt.ylim([-0.1, 3.1])
     plt.title(plt_title, fontsize=24)
 
-    ax.text(0.05, 0.95, text_string, transform=ax.transAxes, fontsize=14, verticalalignment='top')
+    if text_string is not None:
+        ax.text(0.05, 0.95, text_string, transform=ax.transAxes, fontsize=14, verticalalignment='top')
+    else:
+        savepath = savepath + '_image'
+
     if annotate and headers is not None:
         for k in range(len(grades)):
             txt = headers[k]
             ax.annotate(txt, xy=(grades[k], pred_linear[k]), color='r')
+
+
     if savepath is not None:
         plt.savefig(savepath, bbox_inches='tight')
     plt.show()

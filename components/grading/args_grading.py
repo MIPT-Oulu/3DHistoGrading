@@ -38,6 +38,7 @@ surf_loo = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'sigma1': 4, 'sigma2'
 deep_loo = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'sigma1': 4, 'sigma2': 7, 'wc': 15, 'wl': 15, 'ws': 13}
 calc_loo = {'N': 8, 'R': 12, 'ks1': 23, 'ks2': 21, 'r': 11, 'sigma1': 4, 'sigma2': 6, 'wc': 9, 'wl': 9, 'ws': 15}
 
+
 surf_4mm_loo = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'seed': 42, 'sigma1': 4, 'sigma2': 7, 'wc': 15, 'wl': 15, 'ws': 13}
 surf_4mm_loo2 = {'N': 8, 'R': 12, 'ks1': 23, 'ks2': 21, 'r': 11, 'seed': 42, 'sigma1': 4, 'sigma2': 6, 'wc': 9, 'wl': 9, 'ws': 15}
 surf_4mm_loo = {'N': 8, 'R': 12, 'ks1': 23, 'ks2': 21, 'r': 11, 'seed': 42, 'sigma1': 4, 'sigma2': 6, 'wc': 9, 'wl': 9, 'ws': 15}
@@ -58,6 +59,7 @@ set_90p_2m = [surf_90p_2m, deep_mat_90p_2m, deep_cell_90p_2m, deep_mat_90p_2m, c
 set_90p_2m_cut_nocrop = [surf_90p_2m, deep_mat_90p_2m, calc_mat_90p_2m_nocrop]
 set_90p_2m_loo = [surf_loo, deep_loo, deep_loo, deep_loo, calc_loo, calc_loo, calc_loo]
 set_2m_loo_cut = [surf_loo, deep_loo, calc_loo]
+set_surf_loo = [surf_loo, surf_loo, surf_loo]
 set_2m_rnsearch_cut = [surf_loo, deep_loo, calc_loo]
 set_4mm_loo = [surf_4mm_loo, surf_4mm_loo, calc_4mm_loo]
 
@@ -82,8 +84,9 @@ def return_args(root, choice, pars=set_2m_loo_cut, grade_list=grades_cut):
     parser.add_argument('--n_jobs', type=int, default=10)
     parser.add_argument('--n_components', type=int, default=0.9)
     parser.add_argument('--str_components', type=str, default='90')
-    parser.add_argument('--split', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='loo')
+    parser.add_argument('--split', type=str, choices=['loo', 'logo', 'train_test', 'max_pool'], default='logo')
     parser.add_argument('--regression', type=str, choices=['lasso', 'ridge'], default='ridge')
+    parser.add_argument('--alpha', type=float, default=0.1)
     parser.add_argument('--standardization', type=str, choices=['standardize', 'centering'], default='centering')
     parser.add_argument('--convolution', type=bool, default=False)
     parser.add_argument('--normalize_hist', type=bool, default=True)

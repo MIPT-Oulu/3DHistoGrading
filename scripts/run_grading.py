@@ -22,7 +22,7 @@ import components.grading.args_grading as arg
 import components.utilities.listbox as listbox
 
 from components.grading.grading_pipelines import pipeline_lbp, pipeline_prediction
-from components.grading.roc_curve import roc_curve_single, roc_curve_multi, calc_curve_bootstrap
+from components.grading.roc_curve import roc_curve_single, roc_curve_multi, calc_curve_bootstrap, plot_vois
 from components.utilities.load_write import load_excel
 
 if __name__ == '__main__':
@@ -31,17 +31,18 @@ if __name__ == '__main__':
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     dataset_name = 'Isokerays'
     data_path = r'/media/dios/dios2/3DHistoData'
-    arguments = arg.return_args(data_path, dataset_name, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
     combinator = np.mean
-    arguments.save_images = True
-    # LOGO for 2mm samples
+
+    # Get arguments as namespace
+    arguments = arg.return_args(data_path, dataset_name, pars=arg.set_surf_loo, grade_list=arg.grades_cut)
+
     if dataset_name == '2mm':
         arguments.train_regression = True
         arguments.split = 'logo'
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
     elif dataset_name == 'Isokerays' or dataset_name == 'Isokerays_sub':
-        arguments.train_regression = True
+        arguments.train_regression = False
         arguments.n_subvolumes = 9
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
@@ -90,25 +91,51 @@ if __name__ == '__main__':
         gradelist.append(grade)
         preds.append(pred)
 
-    # Create ROC curves
-    if len(gradelist) == 3:
-        split = arguments.split
-        lim = 1
-        save_path = arguments.save_path + '/roc_multi_' + split
+        # Receiver operating characteristics curve
+        print('\nROC curves\n')
+        if len(gradelist) == 3:
+            split = arguments.split
+            lim = arguments.logistic_limit
+            save_path = arguments.save_path + '/roc_multi_' + split
 
-        # AUC stratified bootstrapping
-        aucs, aucs_l, aucs_h = [], [], []
-        for i in range(len(arguments.grades_used)):
-            metric_val, ci_l, ci_h, _, _ \
-                = calc_curve_bootstrap(roc_curve, roc_auc_score, gradelist[i] > lim, preds[i],
-                                       arguments.n_bootstrap,
-                                       arguments.seed, stratified=True, alpha=95)
-            aucs.append(metric_val)
-            aucs_l.append(ci_l)
-            aucs_h.append(ci_h)
+            # AUC stratified bootstrapping
+            aucs, aucs_l, aucs_h = [], [], []
+            for i in range(len(arguments.grades_used)):
+                auc, ci_l, ci_h, _, _ \
+                    = calc_curve_bootstrap(roc_curve, roc_auc_score, gradelist[i] > lim, preds[i],
+                                           arguments.n_bootstrap,
+                                           arguments.seed, stratified=True, alpha=95)
+                aucs.append(auc)
+                aucs_l.append(ci_l)
+                aucs_h.append(ci_h)
 
-        # Display ROC curves
-        roc_curve_multi(preds, gradelist, lim, savepath=save_path, ci_l=aucs_l, ci_h=aucs_h, aucs=aucs)
+            # Display ROC curves
+            roc_curve_multi(preds, gradelist, lim, savepath=save_path, ci_l=aucs_l, ci_h=aucs_h, aucs=aucs)
+
+            # Precision recall
+            save_path = arguments.save_path + '/prec_recall_' + split
+            aucs, aucs_l, aucs_h, prec, rec, blines = [], [], [], [], [], []
+            for i in range(len(arguments.grades_used)):
+                auc, ci_l, ci_h, precision, recall \
+                    = calc_curve_bootstrap(precision_recall_curve, average_precision_score,
+                                           gradelist[i] > lim, preds[i], arguments.n_bootstrap,
+                                           arguments.seed, stratified=True, alpha=95)
+                p = np.sum((gradelist[i] > lim).astype('uint'))
+                n = np.sum((gradelist[i] <= lim).astype('uint'))
+                baseline = p / (p + n)
+                aucs.append(auc)
+                aucs_l.append(ci_l)
+                aucs_h.append(ci_h)
+                prec.append(precision)
+                rec.append(recall)
+                blines.append(baseline)
+
+            # Display precision recall curve
+            legend_list = ['Surface, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[0], aucs_l[0], aucs_h[0]),
+                           'Deep, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[1], aucs_l[1], aucs_h[1]),
+                           'Calcified, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[2], aucs_l[2], aucs_h[2])]
+            axis = ['Recall', 'Precision']
+            plot_vois(rec, prec, legend_list, savepath=save_path, axis_labels=axis, baselines=blines)
     else:
         split = arguments.split
         for i in range(len(arguments.grades_used)):

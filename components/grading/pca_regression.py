@@ -75,7 +75,7 @@ def regress_loo(features, grades, method='ridge', standard=False, use_intercept=
     return np.array(predictions).squeeze(), model.coef_, model.intercept_
 
 
-def regress_logo(features, grades, groups, method='ridge', standard=False, use_intercept=True, convert='none'):
+def regress_logo(features, grades, groups, method='ridge', standard=False, use_intercept=True, convert='none', alpha=1.0):
     """Calculates linear regression with leave-one-group-out split and L2 regularization.
 
     Parameters
@@ -96,6 +96,8 @@ def regress_logo(features, grades, groups, method='ridge', standard=False, use_i
         Patients groups. Used in leave-one-group-out split.
     convert : str
         Possibility to predict exp or log of ground truth. Defaults to no conversion.
+    alpha : float
+        Regularization coefficient. c^-1
     Returns
     -------
     Array of model prdictions, model coefficients and model intercept term.
@@ -129,9 +131,9 @@ def regress_logo(features, grades, groups, method='ridge', standard=False, use_i
 
         # Linear regression
         if method == 'ridge':
-            model = Ridge(alpha=1, normalize=True, random_state=42, fit_intercept=use_intercept)
+            model = Ridge(alpha=alpha, normalize=True, random_state=42, fit_intercept=use_intercept)
         elif method == 'lasso':
-            model = Lasso(alpha=1, normalize=True, random_state=42, fit_intercept=use_intercept)
+            model = Lasso(alpha=alpha, normalize=True, random_state=42, fit_intercept=use_intercept)
         else:
             model = LinearRegression(normalize=True, fit_intercept=use_intercept, n_jobs=-1)
         model.fit(x_train, y_train)
@@ -252,7 +254,6 @@ def logistic_logo(features, grades, groups, standard=False, seed=42, use_interce
             x_train -= x_train.mean(0)
 
         # Linear regression
-        #model = LogisticRegression(solver='newton-cg', max_iter=1000, random_state=seed, fit_intercept=use_intercept)
         model = LogisticRegression(solver='newton-cg', max_iter=1000, random_state=seed, fit_intercept=use_intercept)
         model.fit(x_train, y_train)
 

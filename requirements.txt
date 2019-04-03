@@ -9,7 +9,7 @@ matplotlib==2.2.2
 numpy==1.15.2
 opencv-python==4.0.0.21
 openpyxl
-pandas==0.23.4
+pandas==0.24.2
 scikit-image
 scikit-learn==0.20.0
 scipy==1.1.0

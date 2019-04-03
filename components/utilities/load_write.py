@@ -280,10 +280,10 @@ def load_excel(path, titles=None):
         df = pd.DataFrame(file)
         header = df.values[:, 0].astype('str')
     else:
-        file = pd.read_excel(path, skiprows=0)
+        file = pd.read_excel(path, skiprows=0, skipcolumns=0)
         df = pd.DataFrame(file)
-        header = df.columns.values.astype('str')
-        array = df.values.astype('float')
+        header = df.columns.values.astype('str')[1:]
+        array = df.values.astype('float')[:, 1:]
 
     return np.array(array), header
 

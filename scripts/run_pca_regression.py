@@ -16,7 +16,7 @@ if __name__ == '__main__':
     # Arguments
     choice = 'Isokerays'
     datapath = r'/media/dios/dios2/3DHistoData'
-    datapath = r'X:/3DHistoData'
+    # datapath = r'X:/3DHistoData'
     arguments = arg.return_args(datapath, choice, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
     arguments.save_path = arguments.save_path
     arguments.train_regression = False
