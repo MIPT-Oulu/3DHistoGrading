@@ -1,4 +1,8 @@
-ERROR: In ..\..\..\..\vtksource-prefix\src\vtksource\Filtering\vtkImageData.cxx, line 2158
-vtkImageData (0000022D800A4B70): Coordinate (0, 0, 0) out side of array (max = -1998275873
+ERROR: In ..\..\..\..\vtksource-prefix\src\vtksource\Rendering\vtkOpenGLExtensionManager.cxx, line 393
+vtkOpenGLExtensionManager (0000017FABA18A40): Extension GL_VERSION_1_2 could not be loaded.
+
+
+ERROR: In ..\..\..\..\vtksource-prefix\src\vtksource\Rendering\vtkOpenGLExtensionManager.cxx, line 393
+vtkOpenGLExtensionManager (0000017FABA510C0): Extension GL_VERSION_1_2 could not be loaded.
 
 

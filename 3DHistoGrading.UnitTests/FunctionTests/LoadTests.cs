@@ -8,8 +8,6 @@ using HistoGrading.Components;
 using System.Windows.Forms;
 using Accord.Math;
 using System.Drawing;
-using NUnit.Framework;
-using NUnit.Extensions.Forms;
 
 using Kitware.VTK;
 using OpenCvSharp;
@@ -17,7 +15,6 @@ using OpenCvSharp.Extensions;
 
 namespace _3DHistoGrading.UnitTests.FunctionTests
 {
-    [TestFixture]
     public class LoadTests
     {
         TestImage testImg = new TestImage(); // Initialize testimage function
@@ -31,7 +28,7 @@ namespace _3DHistoGrading.UnitTests.FunctionTests
 
             string result = Functions.DirectoryResult(selectedPath, check);
 
-            Xunit.Assert.Empty(result);
+            Assert.Empty(result);
         }
     }
 }
