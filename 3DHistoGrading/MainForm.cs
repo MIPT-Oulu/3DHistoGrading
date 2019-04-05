@@ -203,15 +203,15 @@ namespace HistoGrading
             //Select a file and render volume
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
-                if(is_rendering == 1)
+                if (is_rendering == 1)
                 {
                     //Remove renderer
                     renWin.RemoveRenderer(renWin.GetRenderers().GetFirstRenderer());
-                    volume.Dispose();                    
+                    volume.Dispose();
                     volume = null;
                     GC.Collect();
                 }
-                
+
                 //Initialize new volume
                 volume = new Rendering.renderPipeLine();
 
@@ -252,8 +252,12 @@ namespace HistoGrading
 
                 Console.WriteLine("Connected window fine");
                 //Render
-                volume.renderVolume();
-
+                bool large = volume.renderVolume();
+                if (large)
+                { 
+                Console.WriteLine("Too large sample. Memory limit is 2GB.");
+                return;
+                }
                 Console.WriteLine("rendering..");
 
                 //Flags for GUI components
@@ -289,7 +293,8 @@ namespace HistoGrading
                 maskButton.Enabled = true;
                 panel2.Enabled = true;
                 sliceBar.Enabled = true;
-                renderWindowControl.Enabled = true;
+                if (!large)
+                    renderWindowControl.Enabled = true;
                 cropButton.Enabled = true;
                 rotate_button.Enabled = true;
                 getVoiButton.Enabled = false;

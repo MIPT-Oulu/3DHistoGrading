@@ -114,9 +114,17 @@ namespace HistoGrading
         /// Update final estimated grade.
         /// </summary>
         /// <param name="grade">Estimated grade.</param>
-        public void UpdateGrade(string grade)
+        public void UpdateGrade(string grade, bool degenerated)
         {
             progressBar1.Value = 100;
+            if (degenerated)
+            {
+                logistic.Text = "Logistic regression estimated sample as degenerated.";
+            }
+            else
+            {
+                logistic.Text = "Logistic regression estimated sample as healthy / mildly degenerated.";
+            }
             progressLabel.Text = "Done: Grade estimated (" + grade + ").";
             UseWaitCursor = false;
             Refresh();

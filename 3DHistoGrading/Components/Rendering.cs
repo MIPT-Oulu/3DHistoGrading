@@ -29,12 +29,15 @@ namespace HistoGrading.Components
 
             //VTKVolume
             private vtkVolume vol = vtkVolume.New();
+            /// <summary>
+            /// Boolean to check if volume is too large to render.
+            /// </summary>
+            public bool large;
             //Mapper
             private vtkFixedPointVolumeRayCastMapper mapper = vtkFixedPointVolumeRayCastMapper.New();
             //private vtkGPUVolumeRayCastMapper mapper = vtkGPUVolumeRayCastMapper.New();
             private vtkSmartVolumeMapper GPUmapper = vtkSmartVolumeMapper.New();
             //private vtkOpenGLGPUVolumeRayCastMapper mapper = vtkOpenGLGPUVolumeRayCastMapper.New();
-
 
             //Colortransfer function for gray values
             private vtkColorTransferFunction ctf = vtkColorTransferFunction.New();
@@ -60,11 +63,16 @@ namespace HistoGrading.Components
             {                
                 //Initialize new volume components
                 vol = vtkVolume.New();
+
                 mapper = vtkFixedPointVolumeRayCastMapper.New();
-                GPUmapper = vtkSmartVolumeMapper.New();
-                GPUmapper.SetMaxMemoryInBytes((long)Math.Pow(2,31));  // 2GB limit
+                mapper.DebugOn();
+                mapper.ReleaseDataFlagOn();
+                //mapper = vtkGPUVolumeRayCastMapper.New();
                 //mapper = vtkOpenGLGPUVolumeRayCastMapper.New();
-                //mapper.SetMaxMemoryInBytes((long)4E9);
+                //mapper.SetMaxMemoryInBytes((long)5E9);
+
+                GPUmapper = vtkSmartVolumeMapper.New();
+                GPUmapper.SetMaxMemoryInBytes((long)Math.Pow(2, 31));  // 2GB limit
 
                 ctf = vtkColorTransferFunction.New();
                 spwf = vtkPiecewiseFunction.New();
@@ -137,7 +145,7 @@ namespace HistoGrading.Components
             /// <param name="inputRenderer">Renderer object.</param>
             /// <param name="cmin">Grayscale minimum.</param>
             /// <param name="cmax">Grayscale maximum.</param>
-            public void connectComponents(vtkImageData input, vtkRenderer inputRenderer, int cmin, int cmax, bool large)
+            public void connectComponents(vtkImageData input, vtkRenderer inputRenderer, int cmin, int cmax)
             {
                 /*Arguments: volumetric data and renderer*/
 
@@ -581,7 +589,7 @@ namespace HistoGrading.Components
                 //Add new mask to list
                 imasks.Add(math.GetOutput());
                 //Generate colors                
-                maskcolors.Add(new double[] { 0.9, 0.0, 0.0 });
+                maskcolors.Add(new double[] { 253 / 255, 192 / 255, 134 / 255 });
 
                 has_mask = 1;
             }
@@ -626,17 +634,40 @@ namespace HistoGrading.Components
 
                 //Add colors
                 maskcolors = new List<double[]>();
+                //for (int c = 0; c < input_masks.Count(); c++)
+                //{
+                //    double val = (c / 3 + 1) * 0.25;
+                //    double[] cur = new double[3];
+                //    for (int k = 0; k < 3; k++)
+                //    {
+                //        cur[k] += val;
+                //    }
+                //    cur[c % 3] = 0.8;
+                //    maskcolors.Add(cur);
+                //}
                 for (int c = 0; c < input_masks.Count(); c++)
                 {
-                    double val = (c / 3 + 1) * 0.25;
                     double[] cur = new double[3];
-                    for(int k = 0; k < 3; k++)
+                    if (c == 0)
                     {
-                        cur[k] += val;                        
+                        //cur = new double[3]{ 217 / 255.0, 95 / 255.0, 2 / 255.0 };
+                        cur = new double[3] { 240 / 255.0, 126 / 255.0, 49 / 255.0 };
                     }
-                    cur[c % 3] = 0.8;
-                    maskcolors.Add(cur);                    
+                    else if (c == 1)
+                    {
+                        //cur = new double[3] { 27 / 255.0, 158 / 255.0, 119 / 255.0 };
+                        cur = new double[3] { 128 / 255.0, 160 / 255.0, 60 / 255.0 };
+                    }
+                    else if (c == 2)
+                    {
+                        //cur = new double[3] { 117 / 255.0, 112 / 255.0, 179 / 255.0 };
+                        cur = new double[3] { 132 / 255.0, 102 / 255.0, 179 / 255.0 };
+                    }
+                    maskcolors.Add(cur);
                 }
+                //maskcolors.Add(new double[3] { 253 / 255, 192 / 255, 134 / 255 });
+                //maskcolors.Add(new double[3] { 190 / 255, 174 / 255, 212 / 255 });
+                //maskcolors.Add(new double[3] { 127 / 255, 201 / 255, 127 / 255 });
 
                 has_mask = 1;
             }
@@ -657,7 +688,7 @@ namespace HistoGrading.Components
             /// <summary>
             /// 3D volume rendering.
             /// </summary>
-            public void renderVolume()
+            public bool renderVolume()
             {
                 // Path for error report
                 string errorPath =
@@ -696,12 +727,7 @@ namespace HistoGrading.Components
                 int h = dims[1] - dims[0] + 1;
                 int w = dims[3] - dims[2] + 1;
                 int d = dims[5] - dims[4] + 1;
-
-                bool large;
-                if (h * w * d >= (long)Math.Pow(2, 31))
-                    large = true;
-                else
-                    large = false;
+                volPipe.large = (long)h * w * d >= (long)Math.Pow(2, 31);
 
                 // Initialize pipeline
                 volPipe.Initialize();
@@ -712,7 +738,7 @@ namespace HistoGrading.Components
 
 
                 // Connect input data and renderer to rendering pipeline
-                volPipe.connectComponents(idata, renderer, gray[0], gray[1], large);
+                volPipe.connectComponents(idata, renderer, gray[0], gray[1]);
 
                 // Connect renderer to render window
                 renWin.AddRenderer(renderer);
@@ -721,12 +747,15 @@ namespace HistoGrading.Components
                 has_volume = 1;
                 has_image = 0;
 
-                // Render volume
-                renWin.Render();
+                // Render small volume
+                if (!volPipe.large)
+                    renWin.Render();
 
                 // Update interactor
                 interactor = new Interactors(renWin);
                 interactor.set_default();
+
+                return volPipe.large;
             }       
 
             /// <summary>
@@ -825,7 +854,8 @@ namespace HistoGrading.Components
             public void setVolumeColor()
             {
                 volPipe.setColor(gray[0], gray[1]);
-                renWin.Render();
+                if (!volPipe.large)
+                    renWin.Render();
             }
 
             /// <summary>
@@ -837,7 +867,8 @@ namespace HistoGrading.Components
                 renderer.GetActiveCamera().SetFocalPoint(0, 0, 0);
                 renderer.GetActiveCamera().SetViewUp(0, 0, 1);
                 renderer.ResetCamera();
-                renWin.Render();
+                if (!volPipe.large)
+                    renWin.Render();
             }
 
             /// <summary>

@@ -105,12 +105,15 @@ namespace HistoGrading.Components
             double[,] dataAdjust = new double[0, 0];
             double[] means = new double[w];
 
-            for (int i = 0; i < w; i++)
+            for (int i = 0; i < mean.Length; i++)
             {
                 // Select column
                 double[] vector =
                     LBPLibrary.Functions.ArrayToVector(
                     LBPLibrary.Functions.GetSubMatrix(array, i, i, 0, l - 1));
+
+                // Remove zero features
+                vector = vector.Where(val => val != 0).ToArray();
 
                 // Subtract mean
                 if (mean == null) // Calculate from features, if mean vector not given

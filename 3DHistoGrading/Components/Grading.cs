@@ -106,7 +106,7 @@ namespace HistoGrading.Components
         /// Currently software inputs sum of mean and standard images of surface VOI.
         /// </summary>
         /// <returns>Feature array.</returns>
-        public static int[,] LBP(double[,] inputImage, Parameters param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR, string zone)
+        public static double[,] LBP(double[,] inputImage, Parameters param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR, string zone)
         {
             // LBP calculation
             LBPApplication.PipelineMRELBP(inputImage, param,
@@ -114,9 +114,12 @@ namespace HistoGrading.Components
 
             // Concatenate histograms
             int[] f = Matrix.Concatenate(histCenter, Matrix.Concatenate(histL, Matrix.Concatenate(histS, histR)));
-            int[,] features = new int[0, 0];
 
-            return Matrix.Concatenate(features, f);
+            // Normalize
+            double[] fScaled = Elementwise.Divide(f, f.Sum());
+            double[,] features = new double[0, 0];
+
+            return Matrix.Concatenate(features, fScaled);
         }
 
         /// <summary>
@@ -127,10 +130,10 @@ namespace HistoGrading.Components
         /// <param name="path">Path to save results.</param>
         /// <param name="samplename">Name of analysed sample. This is saved with estimated grade to results.csv</param>
         /// <param name="grade"></param>
-        public static void FeaturesToGrade(int[,] features, Model mod, string path, string samplename, out string grade)
+        public static bool FeaturesToGrade(double[,] features, Model mod, string path, string samplename, out string grade)
         {
             // Centering
-            double[,] dataAdjust = Processing.SubtractMean(features.ToDouble(), mod.mean);
+            double[,] dataAdjust = Processing.SubtractMean(features, mod.mean);
             
             // Whitening and PCA matrix
             int w = mod.eigenVectors.GetLength(0);
@@ -147,13 +150,16 @@ namespace HistoGrading.Components
             // Regression
             double[] grades = PCA.Dot(mod.weights).Add(mod.intercept);
             double[] logistic = PCA.Dot(mod.weightsLog).Add(mod.interceptLog);
+            bool log;
             if (logistic[0] > 0.5)
             {
                 Console.WriteLine("Logistic regression estimated sample as degenerated.");
+                log = true;
             }
             else
             {
                 Console.WriteLine("Logistic regression estimated sample as healthy / mildly degenerated.");
+                log = false;
             }
 
             // Convert estimated grade to string
@@ -163,6 +169,7 @@ namespace HistoGrading.Components
                 grade = "3.00";
             else
                 grade = grades[0].ToString("###0.##", CultureInfo.InvariantCulture);
+            return log;
         }
 
         /// <summary>
@@ -246,7 +253,7 @@ namespace HistoGrading.Components
 
             //Get LBP features
             grading.UpdateParameters(param);
-            int[,] features = LBP(meansd, param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR,zone);
+            double[,] features = LBP(meansd, param, out double[,] LBPIL, out double[,] LBPIS, out double[,] LBPIR,zone);
 
             grading.UpdateLBP(
                 DataTypes.DoubleToBitmap(LBPIL),
@@ -256,9 +263,9 @@ namespace HistoGrading.Components
             
             //Get grade
             // Calculate PCA and regression
-            FeaturesToGrade(features, mod, path, sample, out string grade);
+            bool degenerated = FeaturesToGrade(features, mod, path, sample, out string grade);
             Console.WriteLine(grade);
-            grading.UpdateGrade(grade); grading.Show();
+            grading.UpdateGrade(grade, degenerated); grading.Show();
             SaveResult(grade, path, sample);
 
             return grade;
