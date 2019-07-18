@@ -24,6 +24,8 @@ Detailed describtion for imaging and grading procedure can be found from our pre
 3D histopathological grading of osteochondral tissue using contrast-enhanced micro-computed tomography. 
 Osteoarthritis Cartilage. 2017;25(10):1680-1689.*
 
+The texture analysis methods used for feature extraction are implemented using our [LocalBinaryPattern](https://github.com/MIPT-Oulu/LocalBinaryPattern) repository.
+
 More about the analysis procedure implemented in this repository can be found in our upcoming paper.
 
  
