@@ -1,7 +1,6 @@
 # 3D-Histo-Grading
 
-## About
-Software for 3D grading osteochondral Phosphotungstic acid -stained tissue samples. We currently support only Windows.
+*Software for 3D grading osteochondral Phosphotungstic acid -stained tissue samples. We currently support only Windows.*
 <!---
 Current build status and code coverage:
 
@@ -12,6 +11,22 @@ Current build status and code coverage:
 User interface components are removed from code coverage analysis.
 Unit testing is focused on software functionalities only.
  --->
+<center>
+<img src="https://github.com/sarytky/3DHistoGrading/blob/master/documentation/flowchart.PNG" width="900"/> 
+</center>
+ 
+## Background
+This repository contains a software prototype and training codes used to assess degenerative features of osteochondral samples.
+Samples should be imaged with micro-computed tomography using Phosphotungstic acid stain. 
+Detailed describtion for imaging and grading procedure can be found from our previous paper:
+ 
+*Nieminen HJ, Gahunia HK, Pritzker KPH, et al. 
+3D histopathological grading of osteochondral tissue using contrast-enhanced micro-computed tomography. 
+Osteoarthritis Cartilage. 2017;25(10):1680-1689.*
+
+More about the analysis procedure implemented in this repository can be found in our upcoming paper.
+
+ 
 ## Prerequisites
 * To avoid memory issues, the software runs on 64-bit systems only. 
 * Until installer file is released, software has to be executed through MS Visual Studio. However, the compiled application can be provided upon request.
@@ -39,33 +54,7 @@ Currently available features:
 * Sample data with performed processing steps
 
 ## Examples
-Example images from 3D rendering and 2D viewing osteochondral sample.
-
-![Rendering image](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/rendering.PNG "3D rendered image")
-![Slice image](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/slice.PNG "2D coronal slice")
-
-Oriented sample
-
-![Orient image](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/slice_oriented.PNG "Oriented slice")
-
-Artefact cropping
-
-![Artefact image](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/artefact.PNG "Artefact cropping tool")
-
-Results from automatic calcified zone segmentation.
-
-![Rendering mask](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/rendering_mask.PNG "3D rendered image with mask")
-![Slice mask](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/slice_mask.PNG "2D coronal slice with mask")
-
-All extracted volumes-of-interest.
-
-![VOI render](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/vois_render.PNG "3D rendered image with volumes-of-interest")
-![VOI slice](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/vois.PNG "2D coronal slice with VOIs")
-
-Example images from 3D grading process.
-![Surface grading](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/surf_grading.PNG "Grafing window shows mean and standard deviation images from automatically selected volume-of-interest. Calculated LBP patterns are shown.")
-![Deep grading](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/deep_grading_parameters_zoom.PNG "Used parameters can be checked by hovering mouse over parameters label. Windows support resizing to fullscreen.")
-![Calcified grading](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/calc_grading.PNG "Separate windows are created for each zone.")
+[Screenshots from our softare in action](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/examples.md)
 
 ## License
 This software is distributed under the MIT License. This software and the pretrained models can be used only for research purposes.
@@ -73,7 +62,7 @@ This software is distributed under the MIT License. This software and the pretra
 ## Citation
 ```
 @misc{3DGrading2018,
-  author = {Frondelius, Tuomas and Rytky, Santeri and Tiulpin, Aleksei and Saarakkala Simo},
+  author = {Rytky, Santeri and Tiulpin, Aleksei and Frondelius, Tuomas and Saarakkala, Simo},
   title = {3D Histological grading},
   year = {2018},
   publisher = {GitHub},
