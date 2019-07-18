@@ -1,5 +1,5 @@
-# 3DHistoGrading
-*Contains codes for grading models that are used in 3D-histo-Grading prototype software.*
+# 3DHistoGrading-Training
+*Contains Python codes for grading models that are used in 3D-histo-Grading prototype software.*
 
 (c) Santeri Rytky, University of Oulu, 2018-2019
 
