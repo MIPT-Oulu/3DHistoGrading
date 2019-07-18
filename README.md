@@ -1,4 +1,4 @@
-# 3D-Histo-Grading
+# 3DHistoGrading
 
 *Software for 3D grading osteochondral Phosphotungstic acid -stained tissue samples. We currently support only Windows.*
 <!---
