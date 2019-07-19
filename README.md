@@ -10,7 +10,7 @@ User interface components are removed from code coverage analysis.
 Unit testing is focused on software functionalities only.
 
 
-![Analysis pipeline](https://github.com/MIPT-Oulu/3DHistoGrading/blob/master/training/documentation/flowchart.PNG)
+![Analysis pipeline](../master/training/documentation/flowchart.PNG)
 
  
 ## Background
