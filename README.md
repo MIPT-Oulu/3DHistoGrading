@@ -3,7 +3,6 @@
 *Software for 3D grading osteochondral Phosphotungstic acid -stained tissue samples. We currently support only Windows.*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/6lbb2719xekk5rrx?svg=true "Build status")](https://ci.appveyor.com/project/sarytky/3dhistograding)
-[![codecov](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/branch/master/graph/badge.svg "Code coverage")](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading)
 
 
 User interface components are removed from code coverage analysis.
