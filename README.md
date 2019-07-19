@@ -1,8 +1,6 @@
 # 3DHistoGrading
 
 *Software for 3D grading osteochondral Phosphotungstic acid -stained tissue samples. We currently support only Windows.*
-<!---
-Current build status and code coverage:
 
 [![Build status](https://ci.appveyor.com/api/projects/status/6lbb2719xekk5rrx?svg=true "Build status")](https://ci.appveyor.com/project/sarytky/3dhistograding)
 [![codecov](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading/branch/master/graph/badge.svg "Code coverage")](https://codecov.io/gh/MIPT-Oulu/3D-Histo-Grading)
@@ -10,10 +8,10 @@ Current build status and code coverage:
 
 User interface components are removed from code coverage analysis.
 Unit testing is focused on software functionalities only.
- --->
-<center>
-<img src="https://github.com/sarytky/3DHistoGrading/blob/master/documentation/flowchart.PNG" width="900"/> 
-</center>
+
+
+![Analysis pipeline](https://github.com/sarytky/3DHistoGrading/blob/master/documentation/flowchart.PNG)
+
  
 ## Background
 This repository contains a software prototype and training codes used to assess degenerative features of osteochondral samples.
