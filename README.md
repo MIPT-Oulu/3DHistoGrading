@@ -54,7 +54,7 @@ Currently available features:
 * Sample data with performed processing steps
 
 ## Examples
-[Screenshots from our softare in action](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/examples.md)
+[Screenshots from our software in action](https://github.com/MIPT-Oulu/3D-Histo-Grading/blob/master/pictures/examples.md)
 
 ## License
 This software is distributed under the MIT License. This software and the pretrained models can be used only for research purposes.
