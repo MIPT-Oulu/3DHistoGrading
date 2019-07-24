@@ -5,10 +5,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/6lbb2719xekk5rrx?svg=true "Build status")](https://ci.appveyor.com/project/sarytky/3dhistograding)
 
 
-User interface components are removed from code coverage analysis.
-Unit testing is focused on software functionalities only.
-
-
 ![Analysis pipeline](../master/training/documentation/flowchart.PNG)
 
  
