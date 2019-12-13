@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2015
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3DHistoGrading", "3DHistoGrading\3DHistoGrading.csproj", "{F4E16798-487E-4943-B34A-B25147EF72A2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3DHistoGrading.UnitTests", "3DHistoGrading.UnitTests\3DHistoGrading.UnitTests.csproj", "{FC9CBFB5-4BA5-43B5-976A-E9C4F3968EDB}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "App_setup", "App_setup\App_setup.vdproj", "{1355F7EA-B9EA-4F87-AF36-7B56E0851206}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,12 @@ Global
 		{FC9CBFB5-4BA5-43B5-976A-E9C4F3968EDB}.Release|x64.Build.0 = Release|Any CPU
 		{FC9CBFB5-4BA5-43B5-976A-E9C4F3968EDB}.Release|x86.ActiveCfg = Release|Any CPU
 		{FC9CBFB5-4BA5-43B5-976A-E9C4F3968EDB}.Release|x86.Build.0 = Release|Any CPU
+		{1355F7EA-B9EA-4F87-AF36-7B56E0851206}.Debug|Any CPU.ActiveCfg = Debug
+		{1355F7EA-B9EA-4F87-AF36-7B56E0851206}.Debug|x64.ActiveCfg = Debug
+		{1355F7EA-B9EA-4F87-AF36-7B56E0851206}.Debug|x86.ActiveCfg = Debug
+		{1355F7EA-B9EA-4F87-AF36-7B56E0851206}.Release|Any CPU.ActiveCfg = Release
+		{1355F7EA-B9EA-4F87-AF36-7B56E0851206}.Release|x64.ActiveCfg = Release
+		{1355F7EA-B9EA-4F87-AF36-7B56E0851206}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
