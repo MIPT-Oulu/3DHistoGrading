@@ -48,6 +48,20 @@ surf_loo_exp = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'seed': 42, 'sigm
 
 surf_best_pars = {'N': 8, 'R': 24, 'ks1': 21, 'ks2': 17, 'r': 19, 'seed': 42, 'sigma1': 9, 'sigma2': 8, 'wc': 3, 'wl': 15, 'ws': 15}
 
+# Optimizations in revision
+
+# No PCA parameters (2mm)
+surf_n_PCA = {'N': 8, 'R': 10, 'ks1': 7, 'ks2': 23, 'r': 8, 'seed': 42, 'sigma1': 2, 'sigma2': 13, 'wc': 7, 'wl': 5, 'ws': 9}
+deep_n_PCA = {'N': 8, 'R': 10, 'ks1': 7, 'ks2': 23, 'r': 8, 'seed': 42, 'sigma1': 2, 'sigma2': 13, 'wc': 7, 'wl': 5, 'ws': 9}
+calc_n_PCA = {'N': 8, 'R': 10, 'ks1': 7, 'ks2': 23, 'r': 8, 'seed': 42, 'sigma1': 2, 'sigma2': 13, 'wc': 7, 'wl': 5, 'ws': 9}
+set_n_PCA = [surf_n_PCA, deep_n_PCA, calc_n_PCA]
+
+# Feature scaling
+surf_FS = {'N': 8, 'R': 18, 'ks1': 25, 'ks2': 21, 'r': 4, 'seed': 42, 'sigma1': 4, 'sigma2': 7, 'wc': 15, 'wl': 15, 'ws': 13}
+deep_FS = {'N': 8, 'R': 24, 'ks1': 21, 'ks2': 17, 'r': 19, 'seed': 42, 'sigma1': 9, 'sigma2': 8, 'wc': 3, 'wl': 15, 'ws': 15}
+calc_FS = {'N': 8, 'R': 21, 'ks1': 9, 'ks2': 11, 'r': 12, 'seed': 42, 'sigma1': 7, 'sigma2': 2, 'wc': 7, 'wl': 13, 'ws': 3}
+set_FS = [surf_FS, deep_FS, calc_FS]
+
 # Grades pipeline is tested against
 grades = ['surf_sub', 'deep_mat', 'deep_cell', 'deep_sub', 'calc_mat', 'calc_vasc', 'calc_sub']
 grades_cut = ['surf_sub', 'deep_mat', 'calc_mat']
@@ -101,4 +115,5 @@ def return_args(root, choice, pars=set_2m_loo_cut, grade_list=grades_cut):
     parser.add_argument('--seed', type=int, default=42)  # Random seed
     parser.add_argument('--n_pars', type=int, default=100)  # Parameter optimization
     parser.add_argument('--n_bootstrap', type=int, default=2000)  # Bootstrapping AUC
+    parser.add_argument('--use_PCA', type=bool, default=True)  # Use of dimensionality reduction
     return parser.parse_args()

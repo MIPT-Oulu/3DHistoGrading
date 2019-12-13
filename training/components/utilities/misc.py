@@ -5,6 +5,7 @@ Contains various functions utilised in the repository.
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import matplotlib.ticker as ticker
 from mpl_toolkits import mplot3d
 from scipy.signal import medfilt
@@ -176,7 +177,7 @@ def create_subimages(image, n_x=3, n_y=3, im_size_x=400, im_size_y=400):
     return subimages
 
 
-def print_images(images, title=None, subtitles=None, save_path=None, sample=None, transparent=False):
+def print_images(images, masks=None, title=None, subtitles=None, save_path=None, sample=None, transparent=False):
     """Print three images from list of three 2D images.
 
     Parameters
@@ -195,31 +196,58 @@ def print_images(images, title=None, subtitles=None, save_path=None, sample=None
     transparent : bool
         Choose whether to have transparent image background.
     """
+    alpha = 0.3
+    cmap = plt.cm.tab10  # define the colormap
+    cmap2 = 'Dark2_r'
+    """
+    cmap2 = plt.cm.tab10  # define the colormap
+    # extract all colors from the .jet map
+    cmaplist = [cmap(i) for i in range(cmap.N)]
+    # force the first color entry to be grey
+    cmaplist[0] = (.5, .5, .5, 1.0)
+
+    # create the new map
+    cmap2 = mpl.colors.LinearSegmentedColormap.from_list(
+        'Custom cmap', cmaplist, cmap.N)
+    """
+
     # Configure plot
     fig = plt.figure(dpi=300)
     if title is not None:
         fig.suptitle(title, fontsize=16)
+
     ax1 = fig.add_subplot(131)
-    cax1 = ax1.imshow(images[0], cmap='gray')
+    cax1 = ax1.imshow(images[0], cmap=cmap2)
     if not isinstance(images[0][0, 0], np.bool_):  # Check for boolean image
         cbar1 = fig.colorbar(cax1, ticks=[np.min(images[0]), np.max(images[0])], orientation='horizontal')
         cbar1.solids.set_edgecolor("face")
     if subtitles is not None:
         plt.title(subtitles[0])
+    if masks is not None:
+        m = masks[0]
+        ax1.imshow(np.ma.masked_array(m, m == 0), cmap=cmap, alpha=alpha)
+
     ax2 = fig.add_subplot(132)
-    cax2 = ax2.imshow(images[1], cmap='gray')
+    cax2 = ax2.imshow(images[1], cmap=cmap2)
     if not isinstance(images[1][0, 0], np.bool_):
         cbar2 = fig.colorbar(cax2, ticks=[np.min(images[1]), np.max(images[1])], orientation='horizontal')
         cbar2.solids.set_edgecolor("face")
     if subtitles is not None:
         plt.title(subtitles[1])
+    if masks is not None:
+        m = masks[1]
+        ax2.imshow(np.ma.masked_array(m, m == 0), cmap=cmap, alpha=alpha)
+
     ax3 = fig.add_subplot(133)
-    cax3 = ax3.imshow(images[2], cmap='gray')
+    cax3 = ax3.imshow(images[2], cmap=cmap2)
     if not isinstance(images[2][0, 0], np.bool_):
         cbar3 = fig.colorbar(cax3, ticks=[np.min(images[2]), np.max(images[2])], orientation='horizontal')
         cbar3.solids.set_edgecolor("face")
     if subtitles is not None:
         plt.title(subtitles[2])
+    if masks is not None:
+        m = masks[2]
+        ax3.imshow(np.ma.masked_array(m, m == 0), cmap=cmap, alpha=alpha)
 
     # Save or show
     if save_path is not None and sample is not None:

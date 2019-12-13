@@ -14,7 +14,7 @@ from components.utilities.load_write import load_excel
 
 if __name__ == '__main__':
     # Arguments
-    choice = 'Isokerays'
+    choice = '2mm'
     datapath = r'/media/dios/dios2/3DHistoData'
     # datapath = r'X:/3DHistoData'
     arguments = arg.return_args(datapath, choice, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)

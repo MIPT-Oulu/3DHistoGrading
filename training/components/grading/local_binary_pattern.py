@@ -1,10 +1,12 @@
 """Contains resources for calculating MRELBP features."""
 
 import numpy as np
+import os
+import matplotlib.pyplot as plt
 
 from scipy.signal import medfilt2d
 from scipy.ndimage import convolve, correlate
-from components.utilities.misc import print_images
+#from components.utilities.load_write import load_excel
 
 
 def image_bilinear(im, col, x, row, y, eps=1e-12):
@@ -44,7 +46,7 @@ def image_bilinear(im, col, x, row, y, eps=1e-12):
     return p
 
 
-def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=None, save_images=True):
+def MRELBP(image, parameters, eps=1e-06, normalize=False, args=None, sample=None):
     """ Takes Median Robust Extended Local Binary Pattern from image im
     Uses n neighbours from radii r_large and r_small, r_large must be larger than r_small
     Median filter uses kernel sizes weight_center for center pixels, w_r[0] for larger radius and w_r[1]
@@ -67,12 +69,10 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=
         Error residual. Defaults to 1e-6
     normalize : bool
         Choice whether to normalize LBP histograms by sum.
-    savepath : str
+    args : str
         Path for saving LBP images.
     sample : str
         Name of the sample used in saving images.
-    save_images : bool
-        Choice whether to save LBP images.
     Returns
     -------
     MRELBP histograms calculated with rotation invariant uniform mapping.
@@ -200,12 +200,121 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, savepath=None, sample=
     if normalize:
         hist /= np.sum(hist)
 
-    if save_images and savepath is not None and sample is not None:
+    if args.save_images and args is not None and sample is not None:
+
+        # Map LBP images
+        lbp_large_mapped = map_lbp(lbp_large, mapping)
+        lbp_small_mapped = map_lbp(lbp_small, mapping)
+        lbp_radial_mapped = map_lbp(lbp_radial, mapping)
+        lbp_list = [lbp_large_mapped, lbp_small_mapped, lbp_radial_mapped]
+
+        # Load coefficients
+        coefs, _ = load_excel(args.save_path + '/' + 'weights_surf_sub.xlsx' , titles=['Weights_lin', 'Weights_log'])
+        thresh = 0.1
+        lin = coefs[0]
+        log = coefs[1]
+        lin = np.abs(np.insert(lin, [2, 9, 10, 17], 0)) > thresh
+        log = np.abs(np.insert(log, [2, 9, 10, 17], 0)) > thresh
+
+        masks = [np.zeros(lbp_large.shape), np.zeros(lbp_large.shape), np.zeros(lbp_large.shape)]
+
+        for mask in range(len(masks)):
+            for ind in range(int(np.max(lbp_large_mapped)) + 1):
+                masks[mask] += (ind + 1) * (lbp_list[mask] == ind) * log[2+mask*10:2+(mask+1)*10][ind]
+
+        # No instances in LBP_large (0,8) and LBP_small (0,8)
+        #print_images(masks, subtitles=['Large', 'Small', 'Radial'], title=sample,
+        #             sample=sample + '.png')
+
+        # Print unmapped LBP
         print_images([lbp_large, lbp_small, lbp_radial], subtitles=['Large', 'Small', 'Radial'], title=sample,
-                     save_path=savepath, sample=sample + '.png')
+                     save_path=args.save_path + '/Images/LBP/', sample=sample + '.png')
     
     # return hist.T
     return hist
+
+
+def print_images(images, masks=None, title=None, subtitles=None, save_path=None, sample=None, transparent=False):
+    """Print three images from list of three 2D images.
+
+    Parameters
+    ----------
+    images : list
+        List containing three 2D numpy arrays
+    save_path : str
+        Full file name for the saved image. If not given, Image is only shown.
+        Example: C:/path/images.png
+    subtitles : list
+        List of titles to be shown above each plot.
+    sample : str
+        Name for the image.
+    title : str
+        Title for the image.
+    transparent : bool
+        Choose whether to have transparent image background.
+    """
+    alpha = 0.3
+    cmap = plt.cm.tab10  # define the colormap
+    cmap2 = 'Dark2_r'
+    """
+    cmap2 = plt.cm.tab10  # define the colormap
+    # extract all colors from the .jet map
+    cmaplist = [cmap(i) for i in range(cmap.N)]
+    # force the first color entry to be grey
+    cmaplist[0] = (.5, .5, .5, 1.0)
+
+    # create the new map
+    cmap2 = mpl.colors.LinearSegmentedColormap.from_list(
+        'Custom cmap', cmaplist, cmap.N)
+    """
+
+    # Configure plot
+    fig = plt.figure(dpi=300)
+    if title is not None:
+        fig.suptitle(title, fontsize=16)
+
+    ax1 = fig.add_subplot(131)
+    cax1 = ax1.imshow(images[0], cmap=cmap2)
+    if not isinstance(images[0][0, 0], np.bool_):  # Check for boolean image
+        cbar1 = fig.colorbar(cax1, ticks=[np.min(images[0]), np.max(images[0])], orientation='horizontal')
+        cbar1.solids.set_edgecolor("face")
+    if subtitles is not None:
+        plt.title(subtitles[0])
+    if masks is not None:
+        m = masks[0]
+        ax1.imshow(np.ma.masked_array(m, m == 0), cmap=cmap, alpha=alpha)
+
+    ax2 = fig.add_subplot(132)
+    cax2 = ax2.imshow(images[1], cmap=cmap2)
+    if not isinstance(images[1][0, 0], np.bool_):
+        cbar2 = fig.colorbar(cax2, ticks=[np.min(images[1]), np.max(images[1])], orientation='horizontal')
+        cbar2.solids.set_edgecolor("face")
+    if subtitles is not None:
+        plt.title(subtitles[1])
+    if masks is not None:
+        m = masks[1]
+        ax2.imshow(np.ma.masked_array(m, m == 0), cmap=cmap, alpha=alpha)
+
+    ax3 = fig.add_subplot(133)
+    cax3 = ax3.imshow(images[2], cmap=cmap2)
+    if not isinstance(images[2][0, 0], np.bool_):
+        cbar3 = fig.colorbar(cax3, ticks=[np.min(images[2]), np.max(images[2])], orientation='horizontal')
+        cbar3.solids.set_edgecolor("face")
+    if subtitles is not None:
+        plt.title(subtitles[2])
+    if masks is not None:
+        m = masks[2]
+        ax3.imshow(np.ma.masked_array(m, m == 0), cmap=cmap, alpha=alpha)
+
+    # Save or show
+    if save_path is not None and sample is not None:
+        if not os.path.exists(save_path):
+            os.makedirs(save_path, exist_ok=True)
+        plt.tight_layout()  # Make sure that axes are not overlapping
+        fig.savefig(save_path + sample, transparent=transparent)
+        plt.close(fig)
+    else:
+        plt.show()
 
 
 def get_mapping(n=8):
@@ -260,14 +369,26 @@ def map_lbp(bin_original, mapping):
     """
     # Number of bins in output
     n = int(np.max(mapping))
+
     # Empty array
-    outbin = np.zeros((1, n+1))
-    for k in range(n+1):
-        # RIU indices
-        m = mapping == k
-        # Extract indices from original bin to new bin
-        outbin[0, k] = np.sum(m * bin_original)
-    return outbin
+    if np.ndim(bin_original.squeeze()) > 1:
+        bin_original = bin_original.astype(np.uint8)
+        mapped = np.zeros(bin_original.shape)
+        for k in range(np.max(bin_original)):
+            # RIU indices
+            m = bin_original == k
+            # Extract indices from original bin to new bin
+            mapped += mapping[0, k] * m
+    else:
+        bin_original = bin_original.astype(np.uint32)
+        mapped = np.zeros((1, n + 1))
+        for k in range(n + 1):
+            # RIU indices
+            m = mapping == k
+            # Extract indices from original bin to new bin
+            mapped[0, k] = np.sum(m * bin_original)
+
+    return mapped
 
 
 def image_padding(im, padlength):

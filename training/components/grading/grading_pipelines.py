@@ -14,10 +14,12 @@ from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc
 from scipy.stats import spearmanr, wilcoxon
 
 from components.grading.local_binary_pattern import local_normalize_abs as local_standard, MRELBP, Conv_MRELBP
-from components.utilities.load_write import save_excel, load_vois_h5
-from components.grading.pca_regression import scikit_pca, regress_logo, regress_loo, logistic_logo, logistic_loo, standardize
-from components.utilities.load_write import load_binary_weights, write_binary_weights, load_excel
-from components.utilities.misc import plot_array_3d, plot_array_2d, plot_array_3d_animation, print_images, auto_corner_crop, plot_histograms
+from components.utilities.load_write import save_excel, load_vois_h5, load_binary_weights, write_binary_weights, \
+    load_excel
+from components.grading.pca_regression import scikit_pca, regress_logo, regress_loo, logistic_logo, logistic_loo, \
+    standardize, pca_regress_pipeline_log
+from components.utilities.misc import plot_array_3d, plot_array_2d, plot_array_3d_animation, print_images, \
+    auto_corner_crop, plot_histograms
 
 
 def pipeline_lbp(args, files, parameters, grade_used):
@@ -50,8 +52,9 @@ def pipeline_lbp(args, files, parameters, grade_used):
     # Start time
     start_time = time()
 
-    for vol in range(args.n_subvolumes):
-        if args.n_subvolumes > 1:
+    vols = args.n_subvolumes if not args.train_regression else 1  # Training conducted with one list of samples
+    for vol in range(vols):
+        if args.n_subvolumes > 1 and not args.train_regression:
             print('Loading images from subvolume {0}'.format(vol))
             files_input = files[vol]
         else:
@@ -74,16 +77,15 @@ def pipeline_lbp(args, files, parameters, grade_used):
             features = (Parallel(n_jobs=args.n_jobs)(delayed(MRELBP)  # Initialize
                         (images_norm[i], parameters,  # LBP parameters
                          normalize=args.normalize_hist,
-                         savepath=args.save_path + '/Images/LBP/',
-                         sample=files_input[i][:-3] + '_' + grade_used,  # Save paths
-                         save_images=args.save_images)
+                         args=args,
+                         sample=files_input[i][:-3] + '_' + grade_used)  # Save paths
                           for i in tqdm(range(len(files_input)), desc='Calculating LBP features')))  # Iterable
 
         # Convert to array
         features = np.array(features).squeeze()
 
         # Save features
-        if args.n_subvolumes > 1:
+        if args.n_subvolumes > 1 and not args.train_regression:
             save = args.save_path + '/Features/' + grade_used + '_' + str(vol) + '.xlsx'
         else:
             save = args.save_path + '/Features/' + grade_used + '.xlsx'
@@ -146,8 +148,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     bound = args.logistic_limit
 
     # Load features from subvolumes
-    subvolumes = args.n_subvolumes > 1
-    if subvolumes:
+    if args.n_subvolumes > 1 and not args.train_regression:
         feature_list, means = [], []
         for vol in range(args.n_subvolumes):
             features, hdr_features = load_excel(args.feature_path + '/' + grade_name + '_' + str(vol) + '.xlsx')
@@ -160,11 +161,15 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
         mean = np.mean(means, axis=0)
     # Load features without subvolumes
     else:
-        features, hdr_features = load_excel(args.feature_path + grade_name + '.xlsx')
+        features, hdr_features = load_excel(args.feature_path + '/' + grade_name + '.xlsx')
         # Remove zero features
         features = features[~np.all(features == 0, axis=1)]
         # Mean feature
         mean = np.mean(features, 1)
+
+        if args.n_subvolumes > 1:
+            # Extend grades variable
+            grades = np.array([val for val in grades for _ in range(args.n_subvolumes)])
 
         # Check matching samples
         if check_samples:
@@ -191,74 +196,28 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
         else:
             raise Exception('No valid cross-validation split selected (see arguments)!')
 
-        #
-        # Use single images
-        #
+        # Standardize features
+        if args.standardization == 'centering':
+            features = features.T - mean
+        else:
+            features = standardize(features.T, axis=0)
 
-        if not subvolumes:
-            # Standardize features
-            if args.standardization == 'centering':
-                features = features.T - mean
-            else:
-                features = standardize(features, axis=0).T
-
-            # PCA
+        # PCA
+        if args.use_PCA:
             pca, score = scikit_pca(features, args.n_components, whitening=True, solver='auto')
             eigenvectors = pca.components_
             singular_values = pca.singular_values_ / np.sqrt(features.shape[1] - 1)
-
-            # Regression
-            pred_linear, weights, intercept_lin = lin_regressor(score, grades, groups=pat_groups, alpha=args.alpha,
-                                                                method=args.regression, convert=args.convert_grades)
-            pred_logistic, weights_log, intercept_log = log_regressor(score, grades > bound, groups=pat_groups)
-
-        #
-        # Use subvolumes
-        #
-
         else:
-            preds_lin, preds_log, scores, eigenvecs_list, singulars_list = [], [], [], [], []
-            ints_lin, ints_log, w_lin, w_log = [], [], [], []
-            for vol in range(args.n_subvolumes):
-                # Standardize features
-                if args.standardization == 'centering':
-                    features = feature_list[vol].T - mean
-                else:
-                    features = standardize(feature_list[vol], axis=0).T
+            score = features
+            eigenvectors = np.zeros((features.shape[1], features.shape[1]))
+            singular_values = np.zeros(features.shape[1])
 
-                # PCA
-                pca, score_sub = scikit_pca(features, args.n_components, whitening=True, solver='auto')
-                # Use same number of components for each subimage
-                if vol == 0:
-                    args.n_components = score_sub.shape[1]
+        # Regression
+        pred_linear, weights, intercept_lin = lin_regressor(score, grades, groups=pat_groups, alpha=args.alpha,
+                                                            method=args.regression, convert=args.convert_grades)
+        pred_logistic, weights_log, intercept_log = log_regressor(score, grades > bound, groups=pat_groups)
 
-                # Regression
-                pred_linear_sub, weights, intercept_lin = lin_regressor(score_sub, grades, groups=pat_groups, alpha=args.alpha,
-                                                                    method=args.regression, convert=args.convert_grades)
-                pred_logistic_sub, weights_log, intercept_log = log_regressor(score_sub, grades > bound, groups=pat_groups)
-
-                # Append to lists
-                preds_lin.append(pred_linear_sub)
-                preds_log.append(pred_logistic_sub)
-                scores.append(score_sub)
-                eigenvecs_list.append(pca.components_)
-                singulars_list.append(pca.singular_values_)
-                ints_lin.append(intercept_lin)
-                ints_log.append(intercept_log)
-                w_lin.append(weights)
-                w_log.append(weights_log)
-
-            # Combine lists (e.g. average, max)
-            pred_linear = combiner(np.array(preds_lin), axis=0)
-            pred_logistic = combiner(np.array(preds_log), axis=0)
-            score = combiner(np.array(scores), axis=0)
-            eigenvectors = combiner(np.array(eigenvecs_list), axis=0)
-            singular_values = combiner(np.array(singulars_list), axis=0) / np.sqrt(features.shape[1] - 1)
-            intercept_lin = combiner(np.array(ints_lin), axis=0)
-            intercept_log = combiner(np.array(ints_log), axis=0)
-            weights = combiner(np.array(w_lin), axis=0)
-            weights_log = combiner(np.array(w_log), axis=0)
-
+        pca_regress_pipeline_log(features, grades, pat_groups, n_components=args.n_components)
 
         # Save calculated weights
         print(intercept_log, intercept_lin)
@@ -271,6 +230,27 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
                              weights_log.flatten(),
                              mean,
                              [intercept_lin, intercept_log])
+
+        # Save the weights in excel
+        writer = pd.ExcelWriter(args.save_path + '/weights_' + grade_name + '.xlsx')
+        list_weights = [weights, pca.inverse_transform(weights) + mean, weights_log, pca.inverse_transform(weights_log) + mean]
+        list_w_names = ['Weights_lin_PCA', 'Weights_lin', 'Weights_log_PCA', 'Weights_log']
+
+        dfs = []
+        for w in range(len(list_weights)):
+            dfs.append(pd.DataFrame({list_w_names[w]: list_weights[w]}))
+        df = pd.concat(dfs, axis=1)
+
+        df.to_excel(writer, sheet_name='Weights')
+
+        # Save PCA eigenvectors
+        dfs = []
+        for w in range(eigenvectors.shape[0]):
+            dfs.append(pd.DataFrame({'PC'+str(w+1): eigenvectors[w, :]}))
+        df = pd.concat(dfs, axis=1)
+        df.to_excel(writer, sheet_name='PCA eigenvectors')
+
+        writer.save()
 
     #
     # Use pretrained models
@@ -329,7 +309,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
         stats[2] = auc_logistic
         stats[3] = r2
         tuples = list(zip(hdr_grades, grades, pred_linear, abs(grades - pred_linear), pred_logistic, stats))
-        writer = pd.ExcelWriter(args.save_path + r'\prediction_' + grade_name + '.xlsx')
+        writer = pd.ExcelWriter(args.save_path + '/prediction_' + grade_name + '.xlsx')
         df1 = pd.DataFrame(tuples, columns=['Sample', 'Actual grade', 'Prediction', 'Difference', 'Logistic prediction',
                                             'MSE, auc_logistic, r^2'])
         df1.to_excel(writer, sheet_name='Prediction')
@@ -389,10 +369,13 @@ def evaluate_model(features, args, model_path):
         features = features.T - mean
         # features = features.T - mean_feature
     else:
-        features = standardize(features, axis=0).T
+        features = standardize(features.T, axis=0)
 
     # PCA
-    score = np.matmul(features, eigen_vectors / sv_scaled)
+    if args.use_PCA:
+        score = np.matmul(features, eigen_vectors / sv_scaled)
+    else:
+        score = features
 
     # Regression
     pred_linear = np.matmul(score, weights) + intercept_lin

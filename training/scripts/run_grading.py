@@ -16,7 +16,7 @@ import warnings
 from time import time, strftime
 from datetime import date
 from glob import glob
-from sklearn.metrics import roc_auc_score, roc_curve
+from sklearn.metrics import roc_auc_score, roc_curve, precision_recall_curve, average_precision_score
 
 import components.grading.args_grading as arg
 import components.utilities.listbox as listbox
@@ -29,12 +29,19 @@ if __name__ == '__main__':
     # Arguments
     start_time = time()
     warnings.filterwarnings("ignore", category=DeprecationWarning)
-    dataset_name = 'Isokerays'
+    dataset_name = '2mm'
     data_path = r'/media/dios/dios2/3DHistoData'
     combinator = np.mean
 
     # Get arguments as namespace
-    arguments = arg.return_args(data_path, dataset_name, pars=arg.set_surf_loo, grade_list=arg.grades_cut)
+    arguments = arg.return_args(data_path, dataset_name, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
+    #arguments = arg.return_args(data_path, dataset_name, pars=arg.set_FS, grade_list=arg.grades_cut)
+
+    # !Decline PCA usage!
+    #arguments.use_PCA = False
+    #arguments.alpha = 1.0
+    #arguments.standardization = 'standardize'
+    #arguments.n_components = 0.95
 
     if dataset_name == '2mm':
         arguments.train_regression = True
@@ -42,10 +49,12 @@ if __name__ == '__main__':
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
     elif dataset_name == 'Isokerays' or dataset_name == 'Isokerays_sub':
-        arguments.train_regression = False
+        arguments.train_regression = True
         arguments.n_subvolumes = 9
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
+        if arguments.train_regression:
+            groups = np.array([val for val in groups for _ in range(arguments.n_subvolumes)])
     else:
         arguments.train_regression = False
         groups = None
@@ -56,8 +65,10 @@ if __name__ == '__main__':
         arguments.feature_path = arguments.save_path + '/Features'
         file_list = []
         for sub in range(arguments.n_subvolumes):
-            file_list_sub = [os.path.basename(f) for f in glob(arguments.image_path + '/*sub' + str(sub) + '.h5')]
-            file_list.append(file_list_sub)
+            if arguments.train_regression:
+                file_list.extend([os.path.basename(f) for f in glob(arguments.image_path + '/*sub' + str(sub) + '.h5')])
+            else:
+                file_list.append([os.path.basename(f) for f in glob(arguments.image_path + '/*sub' + str(sub) + '.h5')])
     elif arguments.GUI:
         arguments.image_path = arguments.image_path + '_large'
         # Use listbox (Result is saved in listbox.file_list)

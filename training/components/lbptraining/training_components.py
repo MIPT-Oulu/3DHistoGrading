@@ -5,11 +5,11 @@ from tqdm import tqdm
 from functools import partial
 from hyperopt import hp, fmin, tpe, STATUS_OK, Trials, space_eval
 
-from sklearn.model_selection import LeaveOneOut
+from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
 from sklearn.metrics import mean_squared_error
 
 from components.grading.local_binary_pattern import local_normalize_abs, MRELBP
-from components.grading.pca_regression import scikit_pca, regress_logo, regress_loo, standardize
+from components.grading.pca_regression import scikit_pca, regress_logo, regress_loo, standardize, logistic_logo
 
 
 def make_pars(n_pars):
@@ -60,25 +60,32 @@ def fit_model(imgs, grades, parameters, args, loss=mean_squared_error, groups=No
     features = []
     for img in imgs:
         img = local_normalize_abs(img, parameters)
-        f = MRELBP(img, parameters, normalize=args.normalize_hist)
+        f = MRELBP(img, parameters, args=args, normalize=args.normalize_hist)
         features.append(f)
     features = np.array(features).squeeze()
     # Remove zero features
     features = features[~np.all(features == 0, axis=1)]
 
     # Centering
-    mean = np.mean(features, 1)
-    features = (features.T - mean).T
+    if args.standardization == 'centering':
+        mean = np.mean(features, 1)
+        features = (features.T - mean).T
+    else:
+        features = standardize(features.T, axis=0).T
 
     # PCA
-    _, score = scikit_pca(features, args.n_components, whitening=True, solver='auto')
+    if args.use_PCA:
+        _, score = scikit_pca(features, args.n_components, whitening=True, solver='auto')
+    else:
+        score = features
 
     # Groups
     if groups is not None:
-        preds, _, _ = regress_logo(score, grades, groups, method=args.regression,
+        preds, _, _ = regress_logo(score, grades, groups, method=args.regression, alpha=args.alpha,
                                    standard=False, use_intercept=True, convert=args.convert_grades)
+        # preds, _, _ = logistic_logo(score, grades > 1, groups=groups)
     else:
-        preds, _, _ = regress_loo(score, grades, method=args.regression,
+        preds, _, _ = regress_loo(score, grades, method=args.regression, alpha=args.alpha,
                                   standard=False, use_intercept=True, convert=args.convert_grades)
     
     return loss(preds, grades)

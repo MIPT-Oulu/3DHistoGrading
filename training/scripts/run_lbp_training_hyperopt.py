@@ -68,6 +68,9 @@ def pipeline_hyperopt(args, files, metric, pat_groups=None):
     grades = grades.squeeze()
     # Sort grades based on alphabetical order
     grades = np.array([grade for _, grade in sorted(zip(hdr_grades, grades), key=lambda var: var[0])])
+    if arguments.n_subvolumes > 1:
+        # Extend grades variable
+        grades = np.array([val for val in grades for _ in range(arguments.n_subvolumes)])
 
     # Select VOI
     if args.grades_used[:4] == 'surf':
@@ -93,18 +96,43 @@ if __name__ == '__main__':
     dataset_name = '2mm'
     data_path = r'/media/dios/dios2/3DHistoData'
     arguments = arg.return_args(data_path, dataset_name, grade_list=arg.grades_cut)
+
+    # !Decline PCA usage!
+    #arguments.use_PCA = False
+    arguments.standardization = 'standardize'
+    #arguments.alpha = 1.0
+
     arguments.split = 'logo'
     arguments.n_pars = 5
     loss_function = mean_squared_error
-    arguments.image_path = arguments.image_path + '_large'
-    groups, _ = load_excel(arguments.grade_path, titles=['groups'])
-    groups = groups.flatten()
 
-    if arguments.GUI:
+    # Groups
+    if dataset_name == '2mm':
+        groups, _ = load_excel(arguments.grade_path, titles=['groups'])
+        groups = groups.flatten()
+    elif dataset_name == 'Isokerays' or dataset_name == 'Isokerays_sub':
+        arguments.n_subvolumes = 9
+        groups, _ = load_excel(arguments.grade_path, titles=['groups'])
+        groups = groups.flatten()
+        # Extend groups variable
+        groups = np.array([val for val in groups for _ in range(arguments.n_subvolumes)])
+    else:
+        groups = None
+
+    # Files
+    if arguments.n_subvolumes > 1:
+        arguments.save_path = arguments.save_path + '_' + str(arguments.n_subvolumes) + 'subs'
+        files = []
+        for sub in range(arguments.n_subvolumes):
+            files.extend([os.path.basename(f) for f in glob(arguments.image_path + '/*sub' + str(sub) + '.h5')])
+
+    elif arguments.GUI:
+        arguments.image_path = arguments.image_path + '_large'
         # Use listbox (Result is saved in listbox.file_list)
         listbox.GetFileSelection(arguments.image_path)
         files = listbox.file_list
     else:
+        arguments.image_path = arguments.image_path + '_large'
         files = [os.path.basename(f) for f in glob(arguments.image_path + '/' + '*.h5')]
 
     # Print output to log file

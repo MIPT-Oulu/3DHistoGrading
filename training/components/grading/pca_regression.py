@@ -1,15 +1,17 @@
 """Contains resources for PCA dimensionality reduction and creating regression models."""
 
 import numpy as np
+import shap
 
 from sklearn.linear_model import Ridge, LogisticRegression, Lasso, LinearRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.pipeline import Pipeline
 from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
 from sklearn.decomposition import PCA
 
 
-def regress_loo(features, grades, method='ridge', standard=False, use_intercept=True, groups=None, convert='none'):
+def regress_loo(features, grades, method='ridge', standard=False, use_intercept=True, groups=None, convert='none', alpha=1.0):
     """Calculates linear regression with leave-one-out split and L2 regularization.
 
     Parameters
@@ -59,9 +61,9 @@ def regress_loo(features, grades, method='ridge', standard=False, use_intercept=
 
         # Linear regression
         if method == 'ridge':
-            model = Ridge(alpha=1, normalize=True, random_state=42, fit_intercept=use_intercept)
+            model = Ridge(alpha=alpha, normalize=True, random_state=42, fit_intercept=use_intercept)
         else:
-            model = Lasso(alpha=1, normalize=True, random_state=42, fit_intercept=use_intercept)
+            model = Lasso(alpha=alpha, normalize=True, random_state=42, fit_intercept=use_intercept)
         model.fit(x_train, y_train)
 
         # Evaluate on test sample
@@ -233,7 +235,7 @@ def logistic_logo(features, grades, groups, standard=False, seed=42, use_interce
         Patients groups. Used in leave-one-group-out split.
     Returns
     -------
-    Array of model prdictions, model coefficients and model intercept term.
+    Array of model predictions, model coefficients and model intercept term.
     """
 
     # Lists
@@ -271,7 +273,7 @@ def logistic_logo(features, grades, groups, standard=False, seed=42, use_interce
 
     # print('Logistic model score: {0}'.format(model.score(features, targets)))
     # print('Intercept: {0}'.format(model.intercept_))
-    return np.array(predictions_flat)[:, 1], np.mean(np.array(coefs), axis=0), np.mean(np.array(intercepts), axis=0)
+    return np.array(predictions_flat)[:, 1], np.mean(np.array(coefs), axis=0).squeeze(), np.mean(np.array(intercepts), axis=0).squeeze()
 
 
 def regress(data_x, data_y, split, method='ridge', standard=False):
@@ -305,6 +307,58 @@ def regress(data_x, data_y, split, method='ridge', standard=False):
     r2 = r2_score(y_test, predictions)
 
     return np.array(predictions), model.coef_, mse, r2
+
+
+def pca_regress_pipeline_log(features, grades, groups, n_components=0.9, solver='full', whitening=True, standard=False, seed=42, use_intercept=False):
+
+    # Fit PCA to full data
+    pca = PCA(n_components=n_components, svd_solver=solver, whiten=whitening, random_state=seed)
+    pca.fit(features)
+
+
+    # Lists
+    predictions, coefs, intercepts = [], [], []
+    # Leave one out split
+    logo = LeaveOneGroupOut()
+    logo.get_n_splits(features, grades, groups)
+    logo.get_n_splits(groups=groups)  # 'groups' is always required
+
+    for train_idx, test_idx in logo.split(features, grades, groups):
+        # Indices
+        x_train, x_test = features[train_idx], features[test_idx]
+        y_train, y_test = grades[train_idx], grades[test_idx]
+
+        # Normalize with mean and std
+        if standard:
+            x_test -= x_train.mean(0)
+            x_train -= x_train.mean(0)
+
+        # Linear regression
+        model = LogisticRegression(solver='newton-cg', max_iter=1000, random_state=seed, fit_intercept=use_intercept)
+        model.fit(pca.transform(x_train), y_train)
+
+        # Predicted score
+        p = model.predict_proba(pca.transform(x_test))
+        predictions.append(p)
+        # Save weights
+        coefs.append(model.coef_)
+        intercepts.append(model.intercept_)
+
+        # Interpretability
+
+        pline = Pipeline(steps=[('pca', pca), ('model', model)])
+
+        fit = lambda x: pline.predict_proba(x)
+
+        explainer = shap.KernelExplainer(fit, x_train, link='logit')
+        shap_values = explainer.shap_values(x_test, nsamples=x_test.shape[0])
+
+        shap.force_plot(explainer.expected_value[0], shap_values[0][0, :], x_test[0], link='logit')
+
+    predictions_flat = []
+    for group in predictions:
+        for p in group:
+            predictions_flat.append(p)
 
 
 def scikit_pca(features, n_components, whitening=False, solver='full', seed=42):
