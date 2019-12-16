@@ -17,7 +17,7 @@ from components.grading.local_binary_pattern import local_normalize_abs as local
 from components.utilities.load_write import save_excel, load_vois_h5, load_binary_weights, write_binary_weights, \
     load_excel
 from components.grading.pca_regression import scikit_pca, regress_logo, regress_loo, logistic_logo, logistic_loo, \
-    standardize, pca_regress_pipeline_log
+    standardize, pca_regress_pipeline_log, rforest_logo
 from components.utilities.misc import plot_array_3d, plot_array_2d, plot_array_3d_animation, print_images, \
     auto_corner_crop, plot_histograms
 
@@ -215,9 +215,14 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
         # Regression
         pred_linear, weights, intercept_lin = lin_regressor(score, grades, groups=pat_groups, alpha=args.alpha,
                                                             method=args.regression, convert=args.convert_grades)
-        pred_logistic, weights_log, intercept_log = log_regressor(score, grades > bound, groups=pat_groups)
+        if args.binary_model == 'LOG':
+            pred_logistic, weights_log, intercept_log = log_regressor(score, grades > bound, groups=pat_groups)
+        elif args.binary_model == 'RF':
+            pred_logistic, weights_log, intercept_log = rforest_logo(score, grades > bound, groups=pat_groups,
+                                                                     #savepath=args.save_path, zone=grade_name)
+                                                                     savepath=None, zone=grade_name)
 
-        pca_regress_pipeline_log(features, grades, pat_groups, n_components=args.n_components)
+        pca_regress_pipeline_log(features, grades, pat_groups, n_components=args.n_components, grade_name=grade_name)
 
         # Save calculated weights
         print(intercept_log, intercept_lin)
@@ -327,8 +332,9 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     save_lin = args.save_path + '/linear_' + grade_name + '_' + args.split
     # Draw linear plot
     plot_linear(grades, pred_linear, text_string=text_string, plt_title=grade_name, savepath=save_lin)
-    plot_linear(grades, pred_linear, text_string=None, plt_title=grade_name, savepath=save_lin)
+    #plot_linear(grades, pred_linear, text_string=None, plt_title=grade_name, savepath=save_lin)
 
+    """
     # Plot PCA components
     save_pca = args.save_path + '/pca_' + grade_name + '_' + args.split
     save_pca_ani = args.save_path + '/pca_animation_' + grade_name + '_' + args.split
@@ -340,6 +346,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
 
     # Plot grade distributions
     plot_histograms(grades, plt_title=grade_name, savepath=args.save_path + '//distribution_' + grade_name)
+    """
     return grades, pred_logistic, conf_matrix
 
 

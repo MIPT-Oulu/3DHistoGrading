@@ -19,9 +19,10 @@ if __name__ == '__main__':
     # datapath = r'X:/3DHistoData'
     arguments = arg.return_args(datapath, choice, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
     arguments.save_path = arguments.save_path
-    arguments.train_regression = False
     combinator = np.mean
-    arguments.convert_grades = 'none'
+
+    arguments.binary_model = 'LOG'
+
     # LOGO for 2mm samples
     if choice == '2mm':
         arguments.split = 'logo'

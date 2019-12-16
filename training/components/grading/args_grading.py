@@ -110,6 +110,7 @@ def return_args(root, choice, pars=set_2m_loo_cut, grade_list=grades_cut):
     parser.add_argument('--GUI', type=bool, default=False)
     parser.add_argument('--median_filter', type=bool, default=False)
     parser.add_argument('--convert_grades', type=str, choices=['exp', 'log', 'none'], default='none')
+    parser.add_argument('--binary_model', type=str, choices=['LOG', 'RF'], default='LOG')
     parser.add_argument('--pars', type=dict, default=pars)
     parser.add_argument('--grades_used', type=str, default=grade_list)
     parser.add_argument('--seed', type=int, default=42)  # Random seed
