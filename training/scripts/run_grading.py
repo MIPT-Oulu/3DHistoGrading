@@ -34,7 +34,7 @@ if __name__ == '__main__':
     combinator = np.mean
 
     # Get arguments as namespace
-    arguments = arg.return_args(data_path, dataset_name, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
+    arguments = arg.return_args(data_path, dataset_name, pars=arg.set_surf_loo, grade_list=arg.grades_cut)
     #arguments = arg.return_args(data_path, dataset_name, pars=arg.set_FS, grade_list=arg.grades_cut)
 
     # !Decline PCA usage!
@@ -42,6 +42,7 @@ if __name__ == '__main__':
     #arguments.alpha = 1.0
     #arguments.standardization = 'standardize'
     #arguments.n_components = 0.95
+    #arguments.save_images = False
 
     if dataset_name == '2mm':
         arguments.train_regression = True
@@ -49,7 +50,7 @@ if __name__ == '__main__':
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
     elif dataset_name == 'Isokerays' or dataset_name == 'Isokerays_sub':
-        arguments.train_regression = True
+        arguments.train_regression = False
         arguments.n_subvolumes = 9
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
@@ -147,18 +148,6 @@ if __name__ == '__main__':
                            'Calcified, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[2], aucs_l[2], aucs_h[2])]
             axis = ['Recall', 'Precision']
             plot_vois(rec, prec, legend_list, savepath=save_path, axis_labels=axis, baselines=blines)
-    else:
-        split = arguments.split
-        for i in range(len(arguments.grades_used)):
-            lim = (np.min(gradelist[i]) + np.max(gradelist[i])) // 2
-            grade_used = arguments.grades_used[i]
-            save_path = arguments.save_path + '/roc_' + grade_used + '_' + split
-            # ROC curves
-            roc_curve_single(preds[i], gradelist[i], lim, savepath=save_path)
-            metric_val, ci_l, ci_h, _, _ \
-                = calc_curve_bootstrap(roc_curve, roc_auc_score, gradelist[i] > lim, preds[i],
-                                       arguments.n_bootstrap,
-                                       arguments.seed, stratified=True, alpha=95)
 
     # Display spent time
     t = time() - start_time

@@ -1,6 +1,7 @@
 """Contains resources for calculating MRELBP features."""
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from scipy.signal import medfilt2d
 from scipy.ndimage import convolve, correlate
@@ -199,7 +200,7 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, args=None, sample=None
     if normalize:
         hist /= np.sum(hist)
 
-    if args.save_images and args is not None and sample is not None:
+    if args.save_images and args is not None and (('21_L3L' in sample) or ('20_R2M' in sample)):
 
         # Map LBP images
         lbp_large_mapped = map_lbp(lbp_large, mapping)
@@ -222,14 +223,20 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, args=None, sample=None
                 masks[mask] += (ind + 1) * (lbp_list[mask] == ind) * log[2+mask*10:2+(mask+1)*10][ind]
 
         # No instances in LBP_large (0,8) and LBP_small (0,8)
-        #print_images(masks, subtitles=['Large', 'Small', 'Radial'], title=sample,
-        #             sample=sample + '.png')
+        print_images(lbp_list, subtitles=['Large', 'Small', 'Radial'], title=sample,
+                     sample=sample + '.png')
+
+        # Print center image
+        fig = plt.figure(dpi=300)
+        ax = fig.add_subplot(111)
+        ax.imshow(image_center >= 0)
+        plt.title('Center')
+        plt.show()
 
         # Print unmapped LBP
-        print_images([lbp_large, lbp_small, lbp_radial], subtitles=['Large', 'Small', 'Radial'], title=sample,
-                     save_path=args.save_path + '/Images/LBP/', sample=sample + '.png')
-    
-    # return hist.T
+        #print_images([lbp_large, lbp_small, lbp_radial], subtitles=['Large', 'Small', 'Radial'], title=sample,
+        #             save_path=args.save_path + '/Images/LBP/', sample=sample + '.png')
+
     return hist
 
 

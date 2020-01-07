@@ -1,4 +1,6 @@
 import os
+from glob import glob
+from pathlib import Path
 
 from argparse import ArgumentParser
 from time import time
@@ -6,42 +8,27 @@ from components.processing.voi_extraction_pipelines import pipeline_mean_std
 from components.utilities import listbox
 
 
-def calculate_multiple(arguments, selection=None):
-    # List directories
-    image_path = arguments.path[:]
-    files = os.listdir(image_path)
-    files.sort()
-
-    # Print selection
-    files = [files[i] for i in selection]
-    print('Selected files')
-    for file in files:
-        print(file)
-    print('')
+def calculate_multiple(arguments, files):
 
     # Loop for all selections
     for k in range(len(files)):
         start = time()
         # Data path
-        try:
-            os.listdir(image_path + "\\" + files[k])  # + "\\" + files[k] + "_Rec")
-            pth = image_path + "\\" + files[k]  # + "\\" + files[k] + "_Rec"
-        except FileNotFoundError:  # Case: sample name folder twice
-            print('Could not find images for sample {0}'.format(files[k]))
-            try:
-                os.listdir(image_path + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration")
-                pth = image_path + "\\" + files[k] + "\\" + files[k] + "\\" + "Registration"
-                print(pth)
-            except FileNotFoundError:  # Case: Unusable folder
-                continue
+        sample = files[k].split('/', -1)[-1]
 
-        #try:
-        pipeline_mean_std(pth, arguments, files[k], None)
-        end = time()
-        print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
-        #except Exception:
-        #    print('Sample {0} failing. Skipping to next one'.format(files[k]))
-        #    continue
+        # Run overnight using try-except. This ensures that the long pipeline is not interrupted due to error.
+        if arguments.overnight:
+            try:
+                pipeline_mean_std(files[k], arguments, sample=sample, mask_path=None)
+                end = time()
+                print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
+            except Exception:
+                print('Sample {0} failing. Skipping to next one'.format(sample))
+                continue
+        else:
+            pipeline_mean_std(files[k], arguments, sample=sample, mask_path=None)
+            end = time()
+            print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
 
     print('Done')
 
@@ -49,19 +36,37 @@ def calculate_multiple(arguments, selection=None):
 if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
-    parser.add_argument('--path', type=str, default=r'Y:\3DHistoData\Subvolumes_Insaf_small')
-    #parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10, crop=24))
-    parser.add_argument('--size', type=dict, default=dict(width=368, surface=25, deep=150, calcified=50, offset=10, crop=24))
-    parser.add_argument('--model_path', type=str, default='Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/unet/')
-    parser.add_argument('--snapshots', type=str,
-                        default='Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/')
-    parser.add_argument('--segmentation', type=str, choices=['torch', 'kmeans', 'cntk'], default='torch')
+    #parser.add_argument('--path', type=Path, default='/media/dios/dios2/3DHistoData/Subvolumes_Isokerays_small')
+    parser.add_argument('--path', type=Path, default='/media/dios/dios2/3DHistoData/Subvolumes_2mm')
+    parser.add_argument('--save_image_path', type=Path, default='/media/dios/dios2/3DHistoData/MeanStd_2mm_aug')
+    parser.add_argument('--mask_path', type=Path, default='/media/dios/dios2/3DHistoData/MeanStd_2mm_aug')
+    parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10, crop=24))
+    parser.add_argument('--model_path', type=Path,
+                        # default='/media/santeri/data/3DHistoGrading/training/components/segmentation/pretrained_model')
+                        default='/media/santeri/data/mCTSegmentation/workdir/snapshots/dios-erc-gpu_2019_12_29_13_24')
+    # parser.add_argument('--snapshots', type=str,
+    #                    default='Z:/Santeri/3DGradingModels/PythonGrading/Segmentation/2018_12_03_15_25/')
+    parser.add_argument('--segmentation', type=str, choices=['torch', 'kmeans', 'cntk', 'unet'], default='unet')
+    parser.add_argument('--input_shape', type=tuple, default=(32, 1, 768, 448))
+    parser.add_argument('--listbox', type=bool, default=False)
+    parser.add_argument('--overnight', type=bool, default=False)
+    parser.add_argument('--threshold', type=int, default=0.5)
     parser.add_argument('--n_jobs', type=int, default=12)
     args = parser.parse_args()
 
-    # Use listbox (Result is saved in listbox.file_list)
-    listbox.GetFileSelection(args.path)
+    if args.listbox:
+        # Use listbox (Result is saved in listbox.file_list)
+        listbox.GetFileSelection(str(args.path))
 
-    # Call pipeline
-    # calculate_batch(impath, savepath, size, False, modelpath, snapshots)
-    calculate_multiple(args, listbox.file_list)
+        # Return list of samples
+        file_list = os.listdir(args.path)
+        file_list.sort()
+        file_list = [file_list[i] for i in listbox.file_list]
+
+    # Use glob
+    else:
+        file_list = glob(str(args.path / '*sub*'))
+        if len(file_list) == 0:
+            file_list = glob(str(args.path / '*Rec*'))
+
+    calculate_multiple(args, file_list)

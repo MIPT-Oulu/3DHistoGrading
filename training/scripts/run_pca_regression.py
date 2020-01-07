@@ -17,7 +17,7 @@ if __name__ == '__main__':
     choice = '2mm'
     datapath = r'/media/dios/dios2/3DHistoData'
     # datapath = r'X:/3DHistoData'
-    arguments = arg.return_args(datapath, choice, pars=arg.set_2m_loo_cut, grade_list=arg.grades_cut)
+    arguments = arg.return_args(datapath, choice, pars=arg.set_surf_loo, grade_list=arg.grades_cut)
     arguments.save_path = arguments.save_path
     combinator = np.mean
 
@@ -104,9 +104,9 @@ if __name__ == '__main__':
             blines.append(baseline)
 
         # Display precision recall curve
-        legend_list = ['Surface, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[0], aucs_l[0], aucs_h[0]),
+        legend_list = ['Surface, precision: {:0.2f}, ({:1.2f}, {:2.2f})'.format(aucs[0], aucs_l[0], aucs_h[0]),
                        'Deep, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[1], aucs_l[1], aucs_h[1]),
-                       'Calcified, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[2], aucs_l[2], aucs_h[2])]
+                       'Calcified, precision: {:0.2f}, ({:1.2f}, {:2.2f})'.format(aucs[2], aucs_l[2], aucs_h[2])]
         axis = ['Recall', 'Precision']
         plot_vois(rec, prec, legend_list, savepath=save_path, axis_labels=axis, baselines=blines)
     else:

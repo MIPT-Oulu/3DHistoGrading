@@ -353,6 +353,7 @@ def print_orthogonal(data, invert=True, res=3.2, title=None, cbar=True, savepath
 
     # Save the image
     if savepath is not None:
+        os.makedirs(savepath.rsplit('/', 1)[0], exist_ok=True)
         fig.savefig(savepath, bbox_inches="tight", transparent=True)
     plt.show()
 

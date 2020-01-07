@@ -1,5 +1,6 @@
 import vtk
 import numpy as np
+import os
 
 
 def render_volume(data, savepath=None, white=True, use_outline=False):
@@ -137,6 +138,8 @@ def render_volume(data, savepath=None, white=True, use_outline=False):
     render_window.Render()
 
     if savepath:  # Take a screenshot
+        os.makedirs(savepath.rsplit('/', 1)[0], exist_ok=True)
+
         img = vtk.vtkWindowToImageFilter()
         img.SetInput(render_window)
         img.Update()

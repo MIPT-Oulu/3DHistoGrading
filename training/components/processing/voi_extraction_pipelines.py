@@ -11,7 +11,8 @@ from components.utilities.misc import print_orthogonal, otsu_threshold
 from components.utilities.load_write import load_bbox, save
 from components.utilities.VTKFunctions import render_volume
 from components.processing.rotations import orient
-from components.processing.segmentation_pipelines import segmentation_cntk, segmentation_kmeans, segmentation_pytorch
+from components.processing.segmentation_pipelines import segmentation_cntk, segmentation_kmeans, segmentation_pytorch, \
+    segmentation_unet
 from components.processing.extract_volume import get_interface, deep_depth, mean_std
 
 
@@ -281,21 +282,22 @@ def crop_center(data, sizex=400, sizey=400, method='cm'):
         return data[xx1:xx2, yy1:yy2, :], (xx1, xx2, yy1, yy2)
 
 
-def pipeline_mean_std(image_path, args, sample, mask_path=None):
+def pipeline_mean_std(image_path, args, sample='', mask_path=None):
     """Runs full processing pipeline on single function. No possibility for subvolumes. Used in run_mean_std."""
 
     # 1. Load sample
     print('1. Load sample')
     save_path = args.save_image_path
+    save_path.mkdir(exist_ok=True)
     data, bounds = load_bbox(image_path, n_jobs=args.n_jobs)
-    print_orthogonal(data, savepath=save_path + "/Images/" + sample + "_input.png")
-    render_volume(data, save_path + "/Images/" + sample + "_input_render.png")
+    #print_orthogonal(data, savepath=str(save_path / 'Images' / (sample + '_input.png')))
+    #render_volume(data, savepath=str(save_path / 'Images' / (sample + '_input_render.png')))
     if mask_path is not None:
         mask, _ = load_bbox(mask_path)
         print_orthogonal(mask)
 
     # 2. Segment BCI mask
-    if args.snapshots is not None and args.segmentation is not 'cntk':
+    if args.segmentation is 'torch' or args.segmentation is 'kmeans':
         # Bottom offset
         if data.shape[2] < 1000:
             offset = 0
@@ -312,11 +314,14 @@ def pipeline_mean_std(image_path, args, sample, mask_path=None):
             mask = segmentation_kmeans(data, n_clusters=3, offset=offset, n_jobs=args.n_jobs)
         else:
             raise Exception('Invalid segmentation selection!')
+    elif args.segmentation is 'unet':
+        args.mask_path.mkdir(exist_ok=True)
+        mask = segmentation_unet(data, args, sample)
     # CNTK segmentation
     else:
         mask = segmentation_cntk(data, args.model_path)
-    print_orthogonal(mask * data, savepath=save_path + "/Images/" + sample + "_mask.png")
-    render_volume((mask > 0.7) * data, save_path + "/Images/" + sample + "_mask_render.png")
+    print_orthogonal(mask * data, savepath=str(save_path / 'Images' / (sample + '_mask.png')))
+    render_volume((mask > args.threshold) * data, savepath=str(save_path / 'Images' / (sample + '_mask_render.png')))
     save(save_path + '/' + sample + '/Mask', sample, mask)
 
     # Crop

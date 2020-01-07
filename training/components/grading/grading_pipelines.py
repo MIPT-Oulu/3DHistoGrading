@@ -9,7 +9,7 @@ from time import time
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from scipy.signal import medfilt2d
-from sklearn.metrics import confusion_matrix, mean_squared_error, roc_curve, roc_auc_score, auc, r2_score, \
+from sklearn.metrics import confusion_matrix, mean_squared_error, roc_auc_score, r2_score, \
     precision_recall_fscore_support, f1_score, accuracy_score
 from scipy.stats import spearmanr, wilcoxon
 
@@ -17,9 +17,9 @@ from components.grading.local_binary_pattern import local_normalize_abs as local
 from components.utilities.load_write import save_excel, load_vois_h5, load_binary_weights, write_binary_weights, \
     load_excel
 from components.grading.pca_regression import scikit_pca, regress_logo, regress_loo, logistic_logo, logistic_loo, \
-    standardize, pca_regress_pipeline_log, rforest_logo
-from components.utilities.misc import plot_array_3d, plot_array_2d, plot_array_3d_animation, print_images, \
-    auto_corner_crop, plot_histograms
+    standardize, pca_regress_pipeline_log, rforest_logo, evaluate_model
+from components.utilities.misc import print_images, \
+    auto_corner_crop
 
 
 def pipeline_lbp(args, files, parameters, grade_used):
@@ -220,9 +220,10 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
         elif args.binary_model == 'RF':
             pred_logistic, weights_log, intercept_log = rforest_logo(score, grades > bound, groups=pat_groups,
                                                                      #savepath=args.save_path, zone=grade_name)
-                                                                     savepath=None, zone=grade_name)
+                                                                     zone=grade_name)
 
-        pca_regress_pipeline_log(features, grades, pat_groups, n_components=args.n_components, grade_name=grade_name)
+        pca_regress_pipeline_log(features, grades, pat_groups, n_components=args.n_components, grade_name=grade_name,
+                                 savepath=f'{args.save_path}/Shap_')
 
         # Save calculated weights
         print(intercept_log, intercept_lin)
@@ -268,7 +269,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
             preds_lin, preds_log, scores = [], [], []
             for vol in range(args.n_subvolumes):
                 pred_linear_sub, pred_logistic_sub, score_sub = evaluate_model(feature_list[vol], args,
-                                                                model_root + '/' + grade_name + '_weights.dat')
+                                                                               model_root + '/' + grade_name + '_weights.dat')
                 preds_lin.append(pred_linear_sub)
                 preds_log.append(pred_logistic_sub)
                 scores.append(score_sub)
@@ -348,47 +349,6 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     plot_histograms(grades, plt_title=grade_name, savepath=args.save_path + '//distribution_' + grade_name)
     """
     return grades, pred_logistic, conf_matrix
-
-
-def evaluate_model(features, args, model_path):
-    """Evaluates features on saved model.
-
-    Parameters
-    ----------
-    features : ndarray
-        MRELBP features used for predictions.
-    args : Namespace
-        standardization = Centering or centering and standardization of features.
-    model_path : str
-        Path to saved model.
-    Returns
-    -------
-    Linear predictions, logistic predicitons, PCA components.
-    """
-    # Load model
-
-    _, n_comp, eigen_vectors, sv_scaled, weights, weights_log, mean_feature, [intercept_lin, intercept_log] \
-        = load_binary_weights(model_path)
-
-    # Standardize features
-    if args.standardization == 'centering':
-        mean = np.mean(features, 1)
-        features = features.T - mean
-        # features = features.T - mean_feature
-    else:
-        features = standardize(features.T, axis=0)
-
-    # PCA
-    if args.use_PCA:
-        score = np.matmul(features, eigen_vectors / sv_scaled)
-    else:
-        score = features
-
-    # Regression
-    pred_linear = np.matmul(score, weights) + intercept_lin
-    pred_logistic = np.matmul(score, weights_log) + intercept_log
-
-    return pred_linear, pred_logistic, score
 
 
 def reference_regress(features, args, pca_components, model, linear, logistic):

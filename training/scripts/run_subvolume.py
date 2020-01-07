@@ -43,7 +43,7 @@ def calculate_multiple(arguments, selection=None):
         # Initiate pipeline
         try:
             args.path = pth
-            pipeline_subvolume(arguments, files[k], False)
+            pipeline_subvolume(arguments, files[k], individual=False)
             end = time()
             print('Sample processed in {0} min and {1:.1f} sec.'.format(int((end - start) // 60), (end - start) % 60))
         except Exception:
@@ -56,11 +56,12 @@ if __name__ == '__main__':
     # Arguments
     parser = ArgumentParser()
     parser.add_argument('--path', type=str, default=r'D:\PTA1272\Insaf_PTA\REC')
+    parser.add_argument('--')
     parser.add_argument('--save_path', type=str, default=r'Y:\3DHistoData\Subvolumes_Insaf_small')
-    #parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10))
-    parser.add_argument('--size', type=dict, default=dict(width=368, surface=25, deep=150, calcified=50, offset=10))
-    #parser.add_argument('--size_wide', type=int, default=640)
-    parser.add_argument('--size_wide', type=int, default=480)
+    parser.add_argument('--size', type=dict, default=dict(width=448, surface=25, deep=150, calcified=50, offset=10))
+    #parser.add_argument('--size', type=dict, default=dict(width=368, surface=25, deep=150, calcified=50, offset=10))
+    parser.add_argument('--size_wide', type=int, default=640)
+    #parser.add_argument('--size_wide', type=int, default=480)
     parser.add_argument('--n_jobs', type=int, default=12)
     args = parser.parse_args()
 

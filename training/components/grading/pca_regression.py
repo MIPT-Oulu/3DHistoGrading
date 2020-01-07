@@ -8,12 +8,15 @@ import matplotlib.pyplot as plt
 from joblib import dump
 from pathlib import Path
 from time import strftime
+
+from matplotlib import pyplot as plt
 from sklearn.linear_model import Ridge, LogisticRegression, Lasso, LinearRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.pipeline import Pipeline
 from sklearn.model_selection import LeaveOneOut, LeaveOneGroupOut
 from sklearn.decomposition import PCA
+
+from components.utilities.load_write import load_binary_weights
 
 
 def regress_loo(features, grades, method='ridge', standard=False, use_intercept=True, groups=None, convert='none', alpha=1.0):
@@ -278,8 +281,7 @@ def logistic_logo(features, grades, groups, standard=False, seed=42, use_interce
     return np.array(predictions), coefs, intercepts
 
 
-def rforest_logo(features, grades, groups, standard=False, seed=42, n_trees=400, tree_depth=3, savepath=None,
-                 zone='surf'):
+def rforest_logo(features, grades, groups, standard=False, seed=42, n_trees=50, tree_depth=None, savepath=None, zone=''):
     """Calculates logistic regression with leave-one-group-out split and L2 regularization.
 
     Parameters
@@ -326,7 +328,7 @@ def rforest_logo(features, grades, groups, standard=False, seed=42, n_trees=400,
             x_train -= x_train.mean(0)
 
         # Linear regression
-        model = RandomForestClassifier(n_estimators=n_trees, random_state=seed, max_depth=tree_depth)
+        model = RandomForestClassifier(n_estimators=n_trees, random_state=seed, max_depth=tree_depth, n_jobs=12)
         model.fit(x_train, y_train)
 
         # Predicted score
@@ -385,20 +387,18 @@ def regress(data_x, data_y, split, method='ridge', standard=False):
 
 
 def pca_regress_pipeline_log(features, grades, groups, n_components=0.9, solver='full', whitening=True, standard=False,
-                             seed=42, use_intercept=True, alpha=0.1, grade_name=''):
+                             seed=42, mod_coefs=True, alpha=0.1, grade_name='', savepath=None):
 
-    feature_names = ['Center 1', 'Center 2', 'Large 1', 'Large 2', 'Large 3', 'Large 4', 'Large 5', 'Large 6',
-                     'Large 7', 'Large 8', 'Small 1', 'Small 2', 'Small 3', 'Small 4', 'Small 5', 'Small 6', 'Small 7',
-                     'Small 8', 'Radial 1', 'Radial 2', 'Radial 3', 'Radial 4', 'Radial 5', 'Radial 6', 'Radial 7',
-                     'Radial 8', 'Radial 9', 'Radial 10']
+    feature_names = ['Center +', 'Center -', 'Large U-1', 'Large U-2', 'Large U-3', 'Large U-4', 'Large U-5', 'Large U-6',
+                     'Large U-7', 'Large N-U', 'Small U-1', 'Small U-2', 'Small U-3', 'Small U-4', 'Small U-5', 'Small U-6', 'Small U-7',
+                     'Small N-U', 'Radial U-0', 'Radial U-1', 'Radial U-2', 'Radial U-3', 'Radial U-4', 'Radial U-5', 'Radial U-6',
+                     'Radial U-7', 'Radial U-8', 'Radial N-U']
     grades_log = grades
 
     # Fit PCA to full data
     pca = PCA(n_components=n_components, svd_solver=solver, whiten=whitening, random_state=seed)
     pca.fit(features)
 
-    # Lists
-    predictions, coefs, intercepts = [], [], []
     # Leave one out split
     logo = LeaveOneGroupOut()
     logo.get_n_splits(features, grades_log, groups)
@@ -421,50 +421,77 @@ def pca_regress_pipeline_log(features, grades, groups, n_components=0.9, solver=
         model_lin = Ridge(alpha=alpha, normalize=True, random_state=seed, fit_intercept=True)
         model_lin.fit(pca.transform(x_train), y_train)
 
-        # Predicted score
+        # Predicted score (for logistic regression)
         p = model.predict_proba(pca.transform(x_test))
-        predictions.extend(p[:, 1])  # Add the positive predictions to list
-        # Save weights
-        coefs.append(model.coef_)
-        intercepts.append(model.intercept_)
+        p_lin = model_lin.predict(pca.transform(x_test))
+
+        # Merge PCA into the linear model
+        if mod_coefs:
+            coef = (pca.components_.T / pca.singular_values_) @ model.coef_.T * np.sqrt(pca.n_samples_ - 1)
+            coef_lin = (pca.components_.T / pca.singular_values_) @ model_lin.coef_.T * np.sqrt(pca.n_samples_ - 1)
+
+            # Update models
+            model.coef_ = coef.T
+            model_lin.coef_ = coef_lin.T
+
+            p2_lin = model_lin.predict(x_test)
+            p2 = model.predict_proba(x_test)
+
+            # Inference
+            p_inf = (x_test @ coef).squeeze()
+            p_inf = (1 + np.exp(-p_inf)) ** -1
+
+            eps = 1.0e-10
+            assert np.sum(np.abs(p - p2)) < eps, 'LOGReg results are not equal'
+            assert np.sum(np.abs(p_inf - p[:, 1])) < eps, 'LOGReg results are not equal'
+            assert np.sum(np.abs(p_lin - p2_lin)) < eps, 'LINReg results are not equal'
+        else:  # Otherwise run PCA
+            x_train = pca.transform(x_train)
+            x_test = pca.transform(x_test)
 
         # Interpretability
 
-        pline = Pipeline(steps=[('pca', pca), ('model', model)])
-        pline_lin = Pipeline(steps=[('pca', pca), ('model', model_lin)])
-
-        explainer = shap.LinearExplainer(model, pca.transform(x_train), feature_dependence='independent')
-        shap_values = explainer.shap_values(pca.transform(x_test))
-        #explainer = shap.KernelExplainer(pline.predict_proba, x_train, link='logit')
-        #shap_values = explainer.shap_values(x_test, nsamples=x_test.shape[0], l1_reg='bic')
-
-        #all_shap_values.append(shap_values[1])  # Append positive prediction
-        all_shap_values.append(shap_values)  # Append positive prediction
+        # Logistic regression
+        explainer = shap.LinearExplainer(model, x_train, feature_dependence='correlation', nsamples=x_train.shape[0])
+        shap_values = explainer.shap_values(x_test)
 
         # Linear regression
-        explainer_lin = shap.LinearExplainer(model_lin, pca.transform(x_train),# nsamples=x_test.shape[0],
-                                             feature_dependence='independent')
-        shap_values_lin = explainer_lin.shap_values(pca.transform(x_test))
-        #explainer_lin = shap.KernelExplainer(pline_lin.predict, x_train, link='identity')
-        #shap_values_lin = explainer_lin.shap_values(x_test, nsamples=x_test.shape[0], l1_reg='bic')
+        explainer_lin = shap.LinearExplainer(model_lin, x_train, feature_dependence='correlation',
+                                             nsamples=x_train.shape[0])
+        shap_values_lin = explainer_lin.shap_values(x_test)
 
-        all_shap_values_lin.append(shap_values_lin)  # Append prediction
+        # Append prediction
+        all_shap_values.append(shap_values)
+        all_shap_values_lin.append(shap_values_lin)
 
-
+    # Combine shap values and plot the summary
     all_shap_values = np.vstack(all_shap_values)
     all_shap_values_lin = np.vstack(all_shap_values_lin)
-    #shap.summary_plot(all_shap_values, pca.transform(features), show=False, feature_names=['PC1', 'PC2', 'PC3'])
-    shap.summary_plot(pca.inverse_transform(all_shap_values), features, show=False, feature_names=feature_names)
-    plt.title(f'Logistic Regression ({grade_name})')
 
-    plt.show()
-    #shap.summary_plot(all_shap_values_lin, pca.transform(features), show=False, feature_names=['PC1', 'PC2', 'PC3'])
-    shap.summary_plot(pca.inverse_transform(all_shap_values_lin), features, show=False, feature_names=feature_names)
-    plt.title(f'Linear Ridge Regression ({grade_name})')
-    plt.show()
+    # Inverse PCA for the model without PCA
+    if not mod_coefs:
+        all_shap_values = pca.inverse_transform(all_shap_values)
+        all_shap_values_lin = pca.inverse_transform(all_shap_values_lin)
 
-    predictions = np.array(predictions)
-    return predictions
+    # Force plot
+    # shap.force_plot(explainer.expected_value, all_shap_values, features)
+    # plt.show()
+
+    # Summary plots
+    shap.summary_plot(all_shap_values, features, show=False, feature_names=feature_names)
+    # plt.title(f'Logistic Regression ({grade_name})')
+    if savepath is not None:
+        plt.savefig(f'{savepath}{grade_name}_logistic_cov.png', transparent=False, bbox_inches='tight')
+        plt.show()
+    else:
+        plt.show()
+    shap.summary_plot(all_shap_values_lin, features, show=False, feature_names=feature_names)
+    # plt.title(f'Linear Ridge Regression ({grade_name})')
+    if savepath is not None:
+        plt.savefig(f'{savepath}{grade_name}_linear_cov.png', transparent=False, bbox_inches='tight')
+        plt.show()
+    else:
+        plt.show()
 
 
 def scikit_pca(features, n_components, whitening=False, solver='full', seed=42):
@@ -569,3 +596,45 @@ def get_pca(features, n_components):
         n_components = v[:, :n_components]
         score = np.matmul(u, s).T[:, 1:n_components]
     return n_components, score
+
+
+def evaluate_model(features, args, model_path):
+    """Evaluates features on saved model.
+
+    Parameters
+    ----------
+    features : ndarray
+        MRELBP features used for predictions.
+    args : Namespace
+        standardization = Centering or centering and standardization of features.
+    model_path : str
+        Path to saved model.
+    Returns
+    -------
+    Linear predictions, logistic predicitons, PCA components.
+    """
+    # Load model
+
+    _, n_comp, eigen_vectors, sv_scaled, weights, weights_log, mean_feature, [intercept_lin, intercept_log] \
+        = load_binary_weights(model_path)
+
+    # Standardize features
+    if args.standardization == 'centering':
+        mean = np.mean(features, 1)
+        features = features.T - mean
+        # features = features.T - mean_feature
+    else:
+        features = standardize(features.T, axis=0)
+
+    # PCA
+    if args.use_PCA:
+        score = np.matmul(features, eigen_vectors / sv_scaled)
+    else:
+        score = features
+
+    # Regression
+    pred_linear = np.matmul(score, weights) + intercept_lin
+    pred_logistic = np.matmul(score, weights_log) + intercept_log
+    pred_logistic = (1 + np.exp(-pred_logistic)) ** -1
+
+    return pred_linear, pred_logistic, score
