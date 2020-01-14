@@ -225,8 +225,6 @@ def segmentation_unet(data_xy, arguments, sample):
     """
     kvs = GlobalKVS(None)
 
-    (arguments.mask_path / sample).mkdir(exist_ok=True)
-
     parser = ArgumentParser()
     parser.add_argument('--dataset_root', default='../Data/')
     parser.add_argument('--tta', type=bool, default=False)

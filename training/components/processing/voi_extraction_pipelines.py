@@ -57,8 +57,9 @@ def pipeline_subvolume_mean_std(args, sample):
 
     # 2. Orient array
     print('2. Orient sample')
-    data, angles = orient(data, bounds, args.rotation)
-    print_orthogonal(data, savepath=str(save_path / "Images" / (sample + "_orient.png")))
+    if data.shape[0] * data.shape[1] * data.shape[2] < 3e9:  # Orient samples > 3GB
+        data, angles = orient(data, bounds, args.rotation)
+        print_orthogonal(data, savepath=str(save_path / "Images" / (sample + "_orient.png")))
 
     # 3. Crop and flip volume
     print('3. Crop and flip center volume:')
@@ -82,10 +83,10 @@ def pipeline_mean_std(image_path, args, sample='', mask_path=None, data=None):
     """Runs full processing pipeline on single function. No possibility for subvolumes. Used in run_mean_std."""
 
     # 1. Load sample
+    save_path = args.save_image_path
+    save_path.mkdir(exist_ok=True)
     if data is None:
         print('1. Load sample')
-        save_path = args.save_image_path
-        save_path.mkdir(exist_ok=True)
         data, bounds = load_bbox(image_path, n_jobs=args.n_jobs)
         print_orthogonal(data, savepath=str(save_path / 'Images' / (sample + '_input.png')))
         render_volume(data, savepath=str(save_path / 'Images' / (sample + '_render_input.png')))
@@ -149,6 +150,11 @@ def pipeline_mean_std(image_path, args, sample='', mask_path=None, data=None):
     # 5. Calculate mean and std
     print('5. Save mean and std images')
     mean_std(surf_voi, str(save_path), sample, deep_voi, calc_voi, otsu_thresh)
+    if size_temp['surface'] > 25:
+        mean_std(surf_voi[:, :, :surf_voi.shape[2] // 2], str(save_path), sample + '_25', deep_voi,
+                 calc_voi[:, :, :calc_voi.shape[2] // 2], otsu_thresh)
+        mean_std(surf_voi[:, :, surf_voi.shape[2] // 2:], str(save_path), sample + '_25_backup', deep_voi,
+                 calc_voi[:, :, calc_voi.shape[2] // 2:], otsu_thresh)
 
 
 def pipeline_subvolume(args, sample, individual=False, save_data=True, render=False, use_wide=False):
@@ -222,7 +228,7 @@ def create_subvolumes(data, sample, args, method='calculate', show=False):
                 subpath = str(args.save_image_path / (sample + "_sub" + str(n) + str(nn)))
                 save(subpath, subsample, subdata)
             else:
-                calculate_mean_std(subdata, subsample, args)
+                pipeline_mean_std(subdata, subsample, args)
 
 
 def crop_center(data, sizex=400, sizey=400, method='cm'):

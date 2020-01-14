@@ -33,8 +33,8 @@ def parse(choice='2mm'):
     parser.add_argument('--segmentation', type=str, choices=['torch', 'kmeans', 'cntk', 'unet'], default='unet')
     parser.add_argument('--input_shape', type=tuple, default=(32, 1, 768, 448))
     parser.add_argument('--listbox', type=bool, default=False)
-    parser.add_argument('--overnight', type=bool, default=False)
-    parser.add_argument('--completed', type=int, default=2)
+    parser.add_argument('--overnight', type=bool, default=True)
+    parser.add_argument('--completed', type=int, default=0)
     parser.add_argument('--n_jobs', type=int, default=12)
     parser.add_argument('--rotation', choices=[0, 1, 2, 3, 4], type=int, default=1)
     parser.add_argument('--crop_method', choices=['moment', 'mass'], type=str, default='moment')
@@ -82,13 +82,14 @@ if __name__ == '__main__':
     sys.stdout = open(str(arguments.save_image_path / 'Logs' / ('images_log_'
                       + str(date.today()) + str(strftime("-%H-%M")) + '.txt')), 'w')
 
-
-
     # Skip completed samples
     if arguments.completed > 0:
         file_paths = file_paths[arguments.completed:]
 
+
+
     # Loop for pre-processing samples
+    print(f'Selected {len(file_paths)} samples for analysis:')
     for k in range(len(file_paths)):
         start = time()
         sample = file_paths[k].split('/', -1)[-1]
