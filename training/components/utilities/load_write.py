@@ -155,7 +155,7 @@ def save(path, file_name, data, n_jobs=12):
 
     # Parallel saving (nonparallel if n_jobs = 1)
     Parallel(n_jobs=n_jobs)(delayed(cv2.imwrite)
-                            (path + '\\' + file_name + str(k).zfill(8) + '.png', data[:, :, k].astype(np.uint8))
+                            (path + '/' + file_name + str(k).zfill(8) + '.png', data[:, :, k].astype(np.uint8))
                             for k in tqdm(range(nfiles), 'Saving dataset'))
 
 

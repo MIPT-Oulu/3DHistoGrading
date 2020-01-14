@@ -1,6 +1,7 @@
 """Contains resources for segmenting calcified cartilage interface."""
 
 import numpy as np
+import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader, sampler
 import torch.nn as nn
@@ -20,12 +21,18 @@ from deeppipeline.kvs import GlobalKVS
 from deeppipeline.segmentation.models import init_model
 from deeppipeline.io import read_gs_binary_mask_ocv, read_gs_ocv
 from deeppipeline.segmentation.training.dataset import SegmentationDataset
+from deeppipeline.segmentation.models._unet import UNet
+from deeppipeline.common.normalization import init_mean_std, normalize_channel_wise
+from deeppipeline.common.transforms import apply_by_index, numpy2tens
 
 from glob import glob
 from argparse import ArgumentParser
 from scipy.ndimage import zoom
 from tqdm.auto import tqdm
 from joblib import Parallel, delayed
+from functools import partial
+from torchvision import transforms as tvt
+from skimage import measure
 
 cv2.ocl.setUseOpenCL(False)
 cv2.setNumThreads(0)
@@ -240,6 +247,7 @@ def segmentation_unet(data_xy, arguments, sample):
 
     # Load model
     models = glob(str(arguments.model_path / f'fold_[0-9]*.pth'))
+    #models = glob(str(arguments.model_path / f'fold_3*.pth'))
     models.sort()
 
     # List the models
@@ -259,16 +267,21 @@ def segmentation_unet(data_xy, arguments, sample):
     # Initialize model
     model.eval()
 
+    tmp = np.load(str(arguments.model_path.parent / 'mean_std.npy'), allow_pickle=True)
+    mean, std = tmp[0][0], tmp[1][0]
+
+    # Flip the z-dimension
+    #data_xy = np.flip(data_xy, axis=2)
     # Transpose data
-    data_xz = np.transpose(data_xy, (0, 2, 1))  # X-Z-Y
-    data_yz = np.transpose(data_xy, (1, 2, 0))  # X-Z-Y  # Y-Z-X-Ch
+    data_xz = np.transpose(data_xy, (2, 0, 1))  # X-Z-Y
+    data_yz = np.transpose(data_xy, (2, 1, 0))  # Y-Z-X  # Y-Z-X-Ch
     mask_xz = np.zeros(data_xz.shape)
     mask_yz = np.zeros(data_yz.shape)
-    #res_xz = int(data_xz.shape[2] % args.bs > 0)
-    #res_yz = int(data_yz.shape[2] % args.bs > 0)
+    # res_xz = int(data_xz.shape[2] % args.bs > 0)
+    # res_yz = int(data_yz.shape[2] % args.bs > 0)
 
     with torch.no_grad():
-        #for idx in tqdm(range(data_xz.shape[2] // args.bs + res_xz), desc='Running inference, XZ'):
+        # for idx in tqdm(range(data_xz.shape[2] // args.bs + res_xz), desc='Running inference, XZ'):
         for idx in tqdm(range(data_xz.shape[2]), desc='Running inference, XZ'):
             """
             try:
@@ -279,9 +292,9 @@ def segmentation_unet(data_xy, arguments, sample):
                 mask_xz[:, :, args.bs * idx:] = inference(model, img, shape=arguments.input_shape)
             """
             img = np.expand_dims(data_xz[:, :, idx], axis=2)
-            mask_xz[:, :, idx] = inference(model, img, shape=arguments.input_shape)
+            mask_xz[:, :, idx] = inference_tiles(model, img, shape=arguments.input_shape, mean=mean, std=std)
         # 2nd orientation
-        #for idx in tqdm(range(data_yz.shape[2] // args.bs + res_yz), desc='Running inference, YZ'):
+        # for idx in tqdm(range(data_yz.shape[2] // args.bs + res_yz), desc='Running inference, YZ'):
         for idx in tqdm(range(data_yz.shape[2]), desc='Running inference, YZ'):
             """
             try:
@@ -292,17 +305,20 @@ def segmentation_unet(data_xy, arguments, sample):
                 mask_yz[:, :, args.bs * idx:] = inference(model, img, shape=arguments.input_shape)
             """
             img = np.expand_dims(data_yz[:, :, idx], axis=2)
-            mask_yz[:, :, idx] = inference(model, img, shape=arguments.input_shape)
+            mask_yz[:, :, idx] = inference_tiles(model, img, shape=arguments.input_shape, mean=mean, std=std)
     # Average probability maps
-    mask_final = ((mask_xz + np.transpose(mask_yz, (2, 1, 0))) / 2) >= arguments.threshold
+    mask_final = ((mask_xz + np.transpose(mask_yz, (0, 2, 1))) / 2) >= arguments.threshold
     mask_xz = list()
     mask_yz = list()
     data_xz = list()
 
-    return np.transpose(mask_final, (0, 2, 1))
+    largest = largest_object(np.transpose(mask_final, (1, 2, 0)))
+
+    return largest
 
 
-def inference(inference_model, img_full, device='cuda', shape=(32, 1, 768, 448), weight='mean'):
+def inference_tiles(inference_model, img_full, device='cuda', shape=(32, 1, 768, 448), weight='mean', mean=88.904434,
+                    std=62.048634, plot=False):
     x, y, ch = img_full.shape
 
     input_x = shape[2]
@@ -313,20 +329,30 @@ def inference(inference_model, img_full, device='cuda', shape=(32, 1, 768, 448),
                         tile_step=(input_x // 2, input_y // 2), weight=weight)
 
     # HCW -> CHW. Optionally, do normalization here
-    tiles = [tensor_from_rgb_image(tile) for tile in tiler.split(img_full)]
+    tiles = [tensor_from_rgb_image(tile) for tile in tiler.split(cv2.cvtColor(img_full, cv2.COLOR_GRAY2RGB))]
 
     # Allocate a CUDA buffer for holding entire mask
     merger = CudaTileMerger(tiler.target_shape, channels=1, weight=tiler.weight)
 
     # Run predictions for tiles and accumulate them
     for tiles_batch, coords_batch in DataLoader(list(zip(tiles, tiler.crops)), batch_size=shape[0], pin_memory=True):
+
         # Move tile to GPU
-        tiles_batch = (tiles_batch.float() / 255.).to(device)
+        tiles_batch = ((tiles_batch.float() - mean) / std).to(device)
+        #tiles_batch = (tiles_batch.float() / 255.).to(device)
         # Predict and move back to CPU
         pred_batch = inference_model(tiles_batch)
 
         # Merge on GPU
         merger.integrate_batch(pred_batch, coords_batch)
+
+        if plot:
+            for i in range(pred_batch.to('cpu').numpy().shape[0]):
+                plt.imshow(tiles_batch.to('cpu').numpy()[i, 0, :, :])
+                plt.show()
+                plt.imshow(pred_batch.to('cpu').numpy()[i, 0, :, :])
+                plt.colorbar()
+                plt.show()
 
     # Normalize accumulated mask and convert back to numpy
     merged_mask = np.moveaxis(to_numpy(merger.merge()), 0, -1).astype('float32')
@@ -355,3 +381,31 @@ class InferenceModel(nn.Module):
             res += fold(x).sigmoid()
 
         return res / self.n_folds
+
+
+def largest_object(input_mask):
+    """
+    Keeps only the largest connected component of a binary segmentation mask.
+    """
+
+    output_mask = np.zeros(input_mask.shape, dtype=np.uint8)
+
+    # Label connected components
+    binary_img = input_mask.astype(np.bool)
+    blobs = measure.label(binary_img, connectivity=1)
+
+    # Measure area
+    proportions = measure.regionprops(blobs)
+
+    if not proportions:
+        print('No mask detected! Returning original mask')
+        return input_mask
+
+    area = [ele.area for ele in proportions]
+    largest_blob_ind = np.argmax(area)
+    largest_blob_label = proportions[largest_blob_ind].label
+
+    output_mask[blobs == largest_blob_label] = 255
+
+    return output_mask
+

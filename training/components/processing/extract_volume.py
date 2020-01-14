@@ -161,13 +161,13 @@ def calculate_bci(image, interface, s_deep, s_calc, offset, threshold):
         else:
             # If void not found, calculate ccvoi normally
             try:
-                calcified_voi[y, :] = image[y, depth:depth + s_calc]
+                calcified_voi[y, :] = image[y, depth:int(depth + s_calc)]
             except TypeError:
                 calcified_voi[y, :] = image[y, :s_calc]
 
         depths.append(depth)
         try:
-            deep_voi[y, :] = image[y, depth - s_deep:depth]
+            deep_voi[y, :] = image[y, int(depth - s_deep):depth]
         except (ValueError, TypeError):
             deep_voi[y, :] = image[y, :s_deep]
     output = np.zeros((dims[0], s_deep + s_calc))
