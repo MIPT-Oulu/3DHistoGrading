@@ -19,7 +19,7 @@ Osteoarthritis Cartilage. 2017;25(10):1680-1689.*
 
 The texture analysis methods used for feature extraction are implemented using our [LocalBinaryPattern](https://github.com/MIPT-Oulu/LocalBinaryPattern) repository.
 
-More about the analysis procedure implemented in this repository can be found in [our study currently available on biorXiv.](https://doi.org/10.1101/713800)
+More about the analysis procedure implemented in this repository can be found in [the article published on Osteoarthritis and Cartilage.](https://doi.org/10.1016/j.joca.2020.05.002)
 
  
 ## Prerequisites
@@ -55,12 +55,13 @@ Currently available features:
 This software is distributed under the MIT License. This software and the pretrained models can be used only for research purposes.
 
 ## Citation
-If you use the software or the source code in your work, please cite our paper:
+If you use the software or the source code in your work, please cite [our paper.](https://doi.org/10.1016/j.joca.2020.05.002)
+
 ```
 @article {Rytky713800,
 		title = {Automating Three-dimensional Osteoarthritis Histopathological Grading of Human Osteochondral Tissue using Machine Learning on Contrast-Enhanced Micro-Computed Tomography},
  author = {Rytky, S.J.O. and Tiulpin, A. and Frondelius, T. and Finnil{\"a}, M.A.J. and Karhula, S.S. and Leino, J. and Pritzker, K.P.H. and Valkealahti, M. and Lehenkari, P. and Joukainen, A. and Kr{\"o}ger, H. and Nieminen, H.J. and Saarakkala, S.},
- journal = {bioRxiv}
- year = {2019},
+ journal = {Osteoarthritis and Cartilage}
+ year = {2020},
 }
 ```
