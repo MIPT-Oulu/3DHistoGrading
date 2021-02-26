@@ -11,14 +11,14 @@ from components.utilities.misc import create_subimages
 def load_voi_save_subvolume(args, file, n_x=3, n_y=3, size_x=400, size_y=400):
 
     # Load images
-    image_surf, image_deep, image_calc = load_vois_h5(args.data_path, file)
+    image_surf, image_deep, image_calc = load_vois_h5(str(args.data_path), file)
 
     ims_surf = create_subimages(image_surf, n_x=n_x, n_y=n_y, im_size_x=size_x, im_size_y=size_y)
     ims_deep = create_subimages(image_deep, n_x=n_x, n_y=n_y, im_size_x=size_x, im_size_y=size_y)
     ims_calc = create_subimages(image_calc, n_x=n_x, n_y=n_y, im_size_x=size_x, im_size_y=size_y)
 
     for sub in range(len(ims_surf)):
-        h5 = h5py.File(args.save_image_path + "/" + file[:-3] + '_sub' + str(sub) + '.h5', 'w')
+        h5 = h5py.File(str(args.save_image_path / (file[:-3] + '_sub' + str(sub) + '.h5')), 'w')
         h5.create_dataset('surf', data=ims_surf[sub])
         h5.create_dataset('deep', data=ims_deep[sub])
         h5.create_dataset('calc', data=ims_calc[sub])
@@ -27,17 +27,22 @@ def load_voi_save_subvolume(args, file, n_x=3, n_y=3, size_x=400, size_y=400):
 
 if __name__ == '__main__':
     # Arguments
-    choice = 'Isokerays'
-    data_path = r'/run/user/1003/gvfs/smb-share:server=nili,share=dios2$/3DHistoData/Meanstd_' + choice
-    arguments = arg.return_args(data_path + '_large', choice)
-    arguments.save_image_path = data_path
+    choice = '4mm'
+    data_path = f'/media/santeri/data/MeanStd_{choice}_augmented'
+    # arguments = arg.return_args(data_path + '_large', choice)
+    arguments = arg.return_args(data_path, choice)
+    arguments.save_image_path = arguments.data_path / 'Subimages'
+    arguments.save_image_path.mkdir(exist_ok=True)
     arguments.subvolumes_x = 3
     arguments.subvolumes_y = 3
     arguments.n_subvolumes = 9
 
     if arguments.n_subvolumes > 1:
         # Get file list
-        file_list = [os.path.basename(f) for f in glob(arguments.data_path + '/' + '*.h5')]
+        file_list = [os.path.basename(f) for f in glob(str(arguments.data_path / '*.h5'))]
+
+        # file_list = [f for f in file_list if "_25" not in f]
+        file_list.sort()
 
         # Create subimages
         jobs = arguments.n_jobs

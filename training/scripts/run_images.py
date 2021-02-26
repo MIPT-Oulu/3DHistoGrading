@@ -15,18 +15,18 @@ from components.utilities.load_write import find_image_paths
 def parse(choice='2mm'):
     parser = ArgumentParser()
     if choice == '2mm':
-        parser.add_argument('--data_path', type=Path, default='/media/dios/dios2/3DHistoData/Isokerays_2mm_Rec')
+        parser.add_argument('--data_path', type=Path, default='/media/santeri/data/Isokerays_2mm_Rec')
         parser.add_argument('--save_image_path', type=Path, default='/media/santeri/data/MeanStd_2mm_augmented')
 
         parser.add_argument('--size', type=dict,
                             default=dict(width=448, surface=50, deep=150, calcified=50, offset=10, crop=24))
         parser.add_argument('--threshold', type=int, default=0.5)
     else:
-        parser.add_argument('--data_path', type=Path, default='/media/dios/dios2/3DHistoData/Isokerays_4mm_Rec')
+        parser.add_argument('--data_path', type=Path, default='/media/santeri/data/Isokerays_4mm_Rec')
         parser.add_argument('--save_image_path', type=Path, default='/media/santeri/data/MeanStd_4mm_augmented')
         parser.add_argument('--size', type=dict,
                             default=dict(width=800, surface=50, deep=150, calcified=50, offset=10, crop=24))
-        parser.add_argument('--threshold', type=int, default=0.2)
+        parser.add_argument('--threshold', type=int, default=0.3)
     # Common arguments
     parser.add_argument('--model_path', type=Path,
                         default='/media/santeri/data/mCTSegmentation/workdir/snapshots/dios-erc-gpu_2020_01_13_14_18')
@@ -71,10 +71,13 @@ if __name__ == '__main__':
         file_paths = [file_paths[13]]
     else:
         search = ['*OA*', '*KP*']
+        #search = ['*Rec*']
         file_paths = []
         for term in search:
             file_paths.extend(glob(str(arguments.data_path / term)))
         file_paths.sort()
+        samples = [31]
+        file_paths = [file_paths[i] for i in samples]
 
     # Create log
     os.makedirs(str(arguments.save_image_path / 'Logs'), exist_ok=True)

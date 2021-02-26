@@ -177,7 +177,8 @@ def create_subimages(image, n_x=3, n_y=3, im_size_x=400, im_size_y=400):
     return subimages
 
 
-def print_images(images, masks=None, title=None, subtitles=None, save_path=None, sample=None, transparent=False):
+def print_images(images, masks=None, title=None, subtitles=None, save_path=None, sample=None, transparent=False,
+                 cmap2='Dark2_r'):
     """Print three images from list of three 2D images.
 
     Parameters
@@ -198,7 +199,7 @@ def print_images(images, masks=None, title=None, subtitles=None, save_path=None,
     """
     alpha = 0.3
     cmap = plt.cm.tab10  # define the colormap
-    cmap2 = 'Dark2_r'
+
     """
     cmap2 = plt.cm.tab10  # define the colormap
     # extract all colors from the .jet map

@@ -310,15 +310,17 @@ def segmentation_unet(data_xy, arguments, sample):
     mask_yz = list()
     data_xz = list()
 
-    largest = largest_object(np.transpose(mask_final, (1, 2, 0)))
+    mask_final = np.transpose(mask_final, (1, 2, 0))
+    mask_final[:, :, -mask_final.shape[2] // 3:] = False
+
+    largest = largest_object(mask_final)
 
     return largest
 
 
 def inference_tiles(inference_model, img_full, device='cuda', shape=(32, 1, 768, 448), weight='mean', mean=88.904434,
                     std=62.048634, plot=False):
-    x, y, ch = img_full.shape
-
+    bs = shape[0]
     input_x = shape[2]
     input_y = shape[3]
 
@@ -333,12 +335,12 @@ def inference_tiles(inference_model, img_full, device='cuda', shape=(32, 1, 768,
     merger = CudaTileMerger(tiler.target_shape, channels=1, weight=tiler.weight)
 
     # Run predictions for tiles and accumulate them
-    for tiles_batch, coords_batch in DataLoader(list(zip(tiles, tiler.crops)), batch_size=shape[0], pin_memory=True):
+    for tiles_batch, coords_batch in DataLoader(list(zip(tiles, tiler.crops)), batch_size=bs, pin_memory=True):
 
         # Move tile to GPU
         tiles_batch = ((tiles_batch.float() - mean) / std).to(device)
-        #tiles_batch = (tiles_batch.float() / 255.).to(device)
-        # Predict and move back to CPU
+
+        # Predict
         pred_batch = inference_model(tiles_batch)
 
         # Merge on GPU

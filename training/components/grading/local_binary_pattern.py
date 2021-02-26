@@ -226,12 +226,13 @@ def MRELBP(image, parameters, eps=1e-06, normalize=False, args=None, sample=None
         print_images(lbp_list, subtitles=['Large', 'Small', 'Radial'], title=sample,
                      sample=sample + '.png')
 
-        # Print center image
-        fig = plt.figure(dpi=300)
-        ax = fig.add_subplot(111)
-        ax.imshow(image_center >= 0)
-        plt.title('Center')
-        plt.show()
+    # Print center image
+    fig = plt.figure(dpi=300)
+    ax = fig.add_subplot(111)
+    ax.imshow(image_center >= 0)
+    plt.title('Center')
+    plt.savefig(args.save_path + '/Images/LBP/' + sample + '_center.png', transparent=True)
+    plt.close()
 
         # Print unmapped LBP
         #print_images([lbp_large, lbp_small, lbp_radial], subtitles=['Large', 'Small', 'Radial'], title=sample,

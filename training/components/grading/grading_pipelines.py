@@ -226,7 +226,7 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
                                  savepath=f'{args.save_path}/Shap_')
 
         # Save calculated weights
-        print(intercept_log, intercept_lin)
+        print(f'Intercepts: {intercept_log}, {intercept_lin}')
         model_root = os.path.dirname(args.save_path)
         write_binary_weights(model_root + '/' + grade_name + '_weights.dat',
                              score.shape[1],
@@ -332,8 +332,8 @@ def pipeline_prediction(args, grade_name, pat_groups=None, check_samples=False, 
     print('Number of components: ', score.shape[1])
     save_lin = args.save_path + '/linear_' + grade_name + '_' + args.split
     # Draw linear plot
-    plot_linear(grades, pred_linear, text_string=text_string, plt_title=grade_name, savepath=save_lin)
-    #plot_linear(grades, pred_linear, text_string=None, plt_title=grade_name, savepath=save_lin)
+    #plot_linear(grades, pred_linear, text_string=text_string, plt_title=grade_name, savepath=save_lin)
+    plot_linear(grades, pred_linear, text_string=None, plt_title=grade_name, savepath=save_lin)
 
     """
     # Plot PCA components
@@ -408,7 +408,7 @@ def load_voi(args, file, grade, par, save_images=False, autocrop=True):
     if save_images:
         titles_norm = ['Mean + Std', '', 'Normalized']
         print_images((image, image, image_norm),
-                     subtitles=titles_norm, title=file + ' Input',
+                     subtitles=titles_norm, title=file + ' Input', cmap2='gray',
                      save_path=save + '/Images/Input/', sample=file[:-3] + '_' + grade + '.png')
     return image_norm
 

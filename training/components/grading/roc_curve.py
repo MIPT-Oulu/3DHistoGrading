@@ -42,14 +42,14 @@ def roc_curve_multi(preds, targets, lim, aucs=None, ci_l=None, ci_h=None, savepa
     plt.plot(fpr_calc, tpr_calc, color=red, linewidth=5)
     plt.plot([0, 1], [0, 1], '--', color='black')
     if aucs is None or ci_h is None or ci_l is None:
-        plt.legend(['surface, AUC: {:0.3f}'.format(auc_surf),
-                    'deep, AUC: {:0.3f}'.format(auc_deep),
-                    'calcified, AUC: {:0.3f}'.format(auc_calc)], loc='lower right', fontsize=30)
+        plt.legend(['surface, AUC: {:0.2f}'.format(auc_surf),
+                    'deep, AUC: {:0.2f}'.format(auc_deep),
+                    'calcified, AUC: {:0.2f}'.format(auc_calc)], loc='lower right', fontsize=30)
     # Confidence intervals
     else:
-        plt.legend(['Surface, AUC: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[0], ci_l[0], ci_h[0]),
-                    'Deep, AUC: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[1], ci_l[1], ci_h[1]),
-                    'Calcified, AUC: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[2], ci_l[2], ci_h[2])],
+        plt.legend(['Surface, AUC: {:0.2f}, ({:1.2f}, {:2.2f})'.format(aucs[0], ci_l[0], ci_h[0]),
+                    'Deep, AUC: {:0.2f}, ({:1.2f}, {:2.2f})'.format(aucs[1], ci_l[1], ci_h[1]),
+                    'Calcified, AUC: {:0.2f}, ({:1.2f}, {:2.2f})'.format(aucs[2], ci_l[2], ci_h[2])],
                    loc='lower right', fontsize=22)
     plt.ylabel('True Positive Rate', fontsize=36)
     plt.xlabel('False Positive Rate', fontsize=36)
@@ -117,7 +117,7 @@ def roc_curve_single(preds, targets, lim, savepath=None, title=None):
     blue = (132 / 225, 102 / 225, 179 / 225)
     plt.plot(fpr, tpr, color=blue, linewidth=5)
     plt.plot([0, 1], [0, 1], '--', color='black')
-    plt.legend(['AUC: {:0.3f}'.format(auc)], loc='lower right', fontsize=30)
+    plt.legend(['AUC: {:0.2f}'.format(auc)], loc='lower right', fontsize=30)
     plt.ylabel('True Positive Rate', fontsize=36)
     plt.xlabel('False Positive Rate', fontsize=36)
     plt.xticks(fontsize=24)

@@ -45,7 +45,8 @@ def get_interface(data, size, mask, n_jobs=12):
     interface_bci = np.argmax(mask, 2)
     interface_bci = medfilt(interface_bci, kernel_size=5)
 
-    plt.imshow(np.sum(mask, 2))  # display sum of mask
+    plt.imshow(np.sum(mask, 2), cmap='bone')  # display sum of mask
+    plt.title('Sum of BCI mask')
     plt.show()
 
     # Get surface VOI
@@ -260,11 +261,11 @@ def mean_std(surfvoi, savepath, sample, deepvoi=None, ccvoi=None, otsu_thresh=No
     ax2.imshow(images[1], cmap='gray')
     plt.title('Standard deviation')
     ax3 = fig.add_subplot(323)
-    ax3.imshow(mean, cmap='gray')
+    ax3.imshow(images[2], cmap='gray')
     ax4 = fig.add_subplot(324)
-    ax4.imshow(std, cmap='gray')
+    ax4.imshow(images[3], cmap='gray')
     ax5 = fig.add_subplot(325)
-    ax5.imshow(mean, cmap='gray')
+    ax5.imshow(images[4], cmap='gray')
     ax6 = fig.add_subplot(326)
-    ax6.imshow(std, cmap='gray')
+    ax6.imshow(images[5], cmap='gray')
     plt.show()

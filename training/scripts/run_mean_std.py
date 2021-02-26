@@ -51,7 +51,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_shape', type=tuple, default=(32, 1, 768, 448))
     parser.add_argument('--listbox', type=bool, default=False)
     parser.add_argument('--overnight', type=bool, default=False)
-    parser.add_argument('--completed', type=int, default=0)
+    parser.add_argument('--completed', type=int, default=33)
     parser.add_argument('--threshold', type=int, default=0.2)
     parser.add_argument('--n_jobs', type=int, default=12)
     args = parser.parse_args()
@@ -67,8 +67,10 @@ if __name__ == '__main__':
 
     # Use glob
     else:
-        file_list = glob(str(args.path / '*sub*'))
-        if len(file_list) == 0:
-            file_list = glob(str(args.path / '*Rec*'))
+        search = ['*OA*', '*KP*']
+        file_list = []
+        for term in search:
+            file_list.extend(glob(str(args.path / term)))
+        file_list.sort()
 
     calculate_multiple(args, file_list, skip=args.completed)

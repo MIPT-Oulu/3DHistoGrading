@@ -299,7 +299,7 @@ def crop_center(data, sizex=400, sizey=400, method='cm'):
 
     # Visualize crops
     fig, ax = plt.subplots(1)
-    ax.imshow(sumarray)
+    ax.imshow(sumarray, cmap='bone')
     fig.suptitle('Sum image along z-axis\nMoment (green): x = {0}, y = {1}\nCenter of mass (red): x = {2}, y = {3}'
                  .format(cx, cy, center[0], center[1]))
     rect = patches.Rectangle((y1, x1), sizey, sizex, linewidth=3, edgecolor='r', facecolor='none')

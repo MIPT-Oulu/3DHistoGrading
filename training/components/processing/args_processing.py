@@ -11,7 +11,7 @@ def return_args(root, choice):
 
     parser = ArgumentParser()
     parser.add_argument('--data_path', type=Path, default=root)
-    parser.add_argument('--save_image_path', type=Path, default=root / ('MeanStd_' + choice + '_augmented'))
+    parser.add_argument('--save_image_path', type=Path, default=Path(root) / ('MeanStd_' + choice + '_augmented'))
     parser.add_argument('--model_path', type=Path, default=root + r'/components/segmentation/unet/')
     parser.add_argument('--snapshots', type=Path, default=root + r'/components/segmentation/2018_12_03_15_25/')
     parser.add_argument('--rotation', choices=[0, 1, 2, 3, 4], type=int, default=1)

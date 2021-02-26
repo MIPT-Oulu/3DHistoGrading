@@ -35,23 +35,19 @@ if __name__ == '__main__':
 
     # Get arguments as namespace
     arguments = arg.return_args(data_path, dataset_name, pars=arg.set_surf_loo, grade_list=arg.grades_cut)
+
     #arguments = arg.return_args(data_path, dataset_name, pars=arg.set_FS, grade_list=arg.grades_cut)
 
-    # !Decline PCA usage!
-    #arguments.use_PCA = False
-    #arguments.alpha = 1.0
-    #arguments.standardization = 'standardize'
-    #arguments.n_components = 0.95
-    #arguments.save_images = False
-
     if dataset_name == '2mm':
+        arguments.image_path = '/media/santeri/data/MeanStd_2mm_augmented'
         arguments.train_regression = True
         arguments.split = 'logo'
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
     elif dataset_name == 'Isokerays' or dataset_name == 'Isokerays_sub':
-        arguments.train_regression = False
-        arguments.n_subvolumes = 9
+        arguments.image_path = '/media/santeri/data/MeanStd_4mm_augmented'
+        arguments.train_regression = True
+        #arguments.n_subvolumes = 9
         groups, _ = load_excel(arguments.grade_path, titles=['groups'])
         groups = groups.flatten()
         if arguments.train_regression:
@@ -76,8 +72,9 @@ if __name__ == '__main__':
         listbox.GetFileSelection(arguments.image_path)
         file_list = listbox.file_list
     else:
-        arguments.image_path = arguments.image_path + '_large'
+        #arguments.image_path = arguments.image_path + '_large'
         file_list = [os.path.basename(f) for f in glob(arguments.image_path + '/' + '*.h5')]
+    file_list.sort()
     # Create directories
     os.makedirs(arguments.save_path, exist_ok=True)
     os.makedirs(arguments.save_path + '/' + 'Images', exist_ok=True)
@@ -143,9 +140,9 @@ if __name__ == '__main__':
                 blines.append(baseline)
 
             # Display precision recall curve
-            legend_list = ['Surface, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[0], aucs_l[0], aucs_h[0]),
-                           'Deep, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[1], aucs_l[1], aucs_h[1]),
-                           'Calcified, precision: {:0.3f}, ({:1.3f}, {:2.3f})'.format(aucs[2], aucs_l[2], aucs_h[2])]
+            legend_list = ['Surface, precision: {:0.2f}, ({:1.2f}, {:2.2f})'.format(aucs[0], aucs_l[0], aucs_h[0]),
+                           'Deep, precision: {:0.2f}, ({:1.2f}, {:2.2f})'.format(aucs[1], aucs_l[1], aucs_h[1]),
+                           'Calcified, precision: {:0.2f}, ({:1.2f}, {:2.2f})'.format(aucs[2], aucs_l[2], aucs_h[2])]
             axis = ['Recall', 'Precision']
             plot_vois(rec, prec, legend_list, savepath=save_path, axis_labels=axis, baselines=blines)
 
