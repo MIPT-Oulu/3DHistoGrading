@@ -6,7 +6,7 @@ h5py==2.9.0
 hyperopt==0.1.2
 joblib
 matplotlib==2.2.2
-numpy==1.15.2
+numpy==1.22.0
 opencv-python==4.0.0.21
 openpyxl
 pandas==0.24.2
