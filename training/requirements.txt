@@ -16,5 +16,5 @@ scipy==1.1.0
 torch==1.0.0
 torchvision==0.2.1
 tqdm
-vtk==8.1.1
+vtk==9.0.1
 xlrd
