@@ -3,7 +3,7 @@
 *Software for 3D grading osteochondral Phosphotungstic acid -stained tissue samples. We currently support only Windows.*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/6lbb2719xekk5rrx?svg=true "Build status")](https://ci.appveyor.com/project/sarytky/3dhistograding)
-
+[![DOI](https://zenodo.org/badge/144540603.svg)](https://zenodo.org/badge/latestdoi/144540603)
 
 ![Analysis pipeline](../master/training/documentation/flowchart.PNG)
 
